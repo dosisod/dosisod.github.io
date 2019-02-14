@@ -1,6 +1,6 @@
 @font-face {
 	font-family: "rabbit";
-	src: url("whitrabt.woff");
+	src: url("font/whitrabt.woff");
 }
 * {
 	margin: 0;
@@ -15,7 +15,7 @@ html, body {
 	height: 100%;
 }
 #s1 {
-	background: url("grid.png") repeat;
+	background: url("img/grid.png") repeat;
 }
 .title {
 	font-family: "rabbit";
