@@ -1,0 +1,32 @@
+@font-face {
+	font-family: "rabbit";
+	src: url("whitrabt.woff");
+}
+* {
+	margin: 0;
+	padding: 0;
+}
+html, body {
+	width: 100%;
+	height: 100%;
+	background: black;
+}
+.slide {
+	height: 100%;
+}
+#s1 {
+	background: url("grid.png") repeat;
+}
+.title {
+	font-family: "rabbit";
+	font-size: 150px;
+	color: white;
+}
+.desc {
+	font-family: "rabbit";
+	font-size: 35px;
+	color: white;
+}
+.float-left {
+	float: left;
+}
