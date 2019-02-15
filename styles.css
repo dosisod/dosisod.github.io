@@ -17,16 +17,42 @@ html, body {
 #s1 {
 	background: url("img/grid.png") repeat;
 }
+.status-bar {
+	display: flex;
+	align-items: center;
+	padding: 40px;
+}
+.status-bar div {
+	clear: right;
+}
 .title {
 	font-family: "rabbit";
-	font-size: 150px;
+	font-size: 10em;
 	color: white;
 }
 .desc {
 	font-family: "rabbit";
-	font-size: 35px;
+	font-size: 2em;
 	color: white;
 }
-.float-left {
+.github {
+	width: 11em;
+	height: 11em;
 	float: left;
+	padding-right: 10px;
+	border-radius: 50%;
+}
+.card {
+	padding: 30px;
+}
+.card-title {
+	font-size: 4em;
+	color: white;
+	padding-bottom: 5px;
+	font-family: "rabbit";
+}
+.card-desc {
+	font-size:2em;
+	color: white;
+	font-family: "rabbit";
 }
