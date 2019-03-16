@@ -3,6 +3,11 @@
 	display: inline-block;
 	font-family: monospace, monospace;
 	padding: 10px;
+	transition: padding 250ms;
+	transition: timing-function: ease-out;
+}
+.bubble:hover {
+	padding: 20px;
 }
 .bubble-title {
 	font-size: 2em;
