@@ -30,6 +30,7 @@ html, body {
 }
 #s2 {
 	background: #fff;
+	overflow-y: hidden;
 }
 .status-bar {
 	display: flex;

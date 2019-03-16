@@ -1,0 +1,38 @@
+.bubble {
+	border-radius: 500px;
+	display: inline-block;
+	font-family: monospace, monospace;
+	padding: 10px;
+}
+.bubble-title {
+	font-size: 2em;
+}
+.bubble-comment {
+	font-size: 1.5em;
+	margin-bottom: 10px;
+}
+.bubble-void {
+	border: solid black 2px;
+	color: black;
+	background: white;
+}
+.bubble-fill {
+	color: white;
+	padding: 10px;
+	background: black;
+}
+.github-bubble {
+	width: 3em;
+	height: 3em;
+	margin-right: 20px;
+	border-radius: 50%;
+}
+ul {
+	list-style-type: none;
+}
+.container {
+	margin-top: 100px;
+}
+li {
+	margin-left: 100px;
+}
