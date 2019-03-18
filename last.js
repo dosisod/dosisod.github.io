@@ -1209,22 +1209,29 @@ function get_last() {
 		tmp=document.createElement("span")
 		tmp.className+="bubble "
 		tmp.className+=css
-		console.log(tmp.className)
 		tmp.innerText=msg
 
 		app.appendChild(tmp)
 	}
-	
-	for (item of json) {
+
+	last=""
+	for (i in json) {
 		li=document.createElement("li")
 
-		d=new Date(item["created_at"]) //parse date
-		addspan(d.toString().split(" ").splice(1,2).join(" "), "bubble-fill", li) //create string
+		d=new Date(json[i]["created_at"]) //parse date
+		str=d.toString().split(" ").splice(1,2).join(" ")
+		if (str!=last) {
+			addspan(str, "bubble-fill", li) //create string
+		}
+		else {
+			addspan(str, "bubble-spacer", li) //same indent, just empty
+		}
+		last=str
 		
-		addspan(item["repo"]["name"].split("/")[1], "bubble-void", li) //repo name
+		addspan(json[i]["repo"]["name"].split("/")[1], "bubble-void", li) //repo name
 		
-		if (item["type"]=="PushEvent") {
-			addspan(item["payload"]["commits"][0]["message"], "bubble-void", li) //message for commit
+		if (json[i]["type"]=="PushEvent") {
+			addspan(json[i]["payload"]["commits"][0]["message"], "bubble-void", li) //message for commit
 		}
 		else {
 			addspan("new repo", "bubble-fill", li) //is a new commit
