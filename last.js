@@ -11,8 +11,7 @@ async function get_last() {
 
 	addspan=(msg, css, app)=>{ //message, css class, append to
 		tmp=document.createElement("span")
-		tmp.className+="bubble "
-		tmp.className+=css
+		tmp.className="bubble "+css
 		tmp.innerText=msg
 
 		app.appendChild(tmp)
