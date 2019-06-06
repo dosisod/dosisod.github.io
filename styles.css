@@ -34,47 +34,10 @@ a {
 	background: #fff;
 	overflow-y: hidden;
 }
-.status-bar {
-	display: flex;
-	align-items: center;
-	padding: 40px;
-}
-.status-bar div {
-	clear: right;
-}
-.title {
-	font-family: "rabbit";
-	font-size: 10em;
-	color: white;
-}
-.desc {
-	font-family: "rabbit";
-	font-size: 2em;
-	color: white;
-}
 .github {
 	width: 11em;
 	height: 11em;
 	float: left;
 	margin-right: 20px;
 	border-radius: 50%;
-}
-.card {
-	padding: 30px;
-}
-.card-title {
-	font-size: 4em;
-	color: white;
-	padding-bottom: 5px;
-	font-family: "rabbit";
-	transition: font-size 500ms;
-	transition-timing-function: ease-in-out;
-}
-.card-title:hover {
-	font-size: 5em;
-}
-.card-desc {
-	font-size:2em;
-	color: white;
-	font-family: "rabbit";
 }
