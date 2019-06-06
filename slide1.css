@@ -24,8 +24,8 @@
 	color: white;
 	padding-bottom: 5px;
 	font-family: "rabbit";
-	transition: font-size 500ms;
-	transition-timing-function: ease-in-out;
+	transition: font-size 400ms;
+	transition-timing-function: ease-out;
 }
 .card-title:hover {
 	font-size: 5em;
@@ -42,5 +42,7 @@
 }
 .card-row .card {
 	display: table-cell;
-	border: 1px solid gray;
+}
+a.orange {
+	color: orange;
 }
