@@ -1,4 +1,4 @@
-//gets my last commit
+//gets and parses most recent commits
 
 async function get_last() {
 	await fetch("https://api.github.com/users/dosisod/events")
@@ -17,28 +17,54 @@ async function get_last() {
 		app.appendChild(tmp)
 	}
 
+	arr=[]
+	for (i of json) {
+		console.log(i)
+		tmp=new Date(i["created_at"]) //parse date
+		date=tmp.toString().split(" ").splice(1,2).join(" ")
+
+		repo=i["repo"]["name"].split("/")[1]
+
+		//normal push, loop through commits
+		if (i["type"]=="PushEvent") {
+			for (j of i["payload"]["commits"]) {
+				arr.push({
+					"date": date,
+					"commit": j["message"],
+					"repo": repo
+				})
+			}
+		}
+		//new repo added
+		else if (i["payload"]["ref_type"]=="branch") {
+			arr.push({
+				"date": date,
+				"new": true,
+				"repo": repo
+			})
+		}
+	}
+
 	last=""
-	for (i in json) {
+	for (i of arr) {
 		li=document.createElement("li")
 
-		d=new Date(json[i]["created_at"]) //parse date
-		str=d.toString().split(" ").splice(1,2).join(" ")
-		if (str!=last) {
-			addspan(str, "bubble-fill", li) //create string
+		if (i["date"]!=last) {
+			addspan(i["date"], "bubble-fill", li) //create string
 		}
 		else {
-			addspan(str, "bubble-spacer", li) //same indent, just empty
+			addspan(i["date"], "bubble-spacer", li) //same indent, just empty
 		}
-		last=str
-		
-		addspan(json[i]["repo"]["name"].split("/")[1], "bubble-void", li) //repo name
-		
-		if (json[i]["type"]=="PushEvent") {
-			addspan(json[i]["payload"]["commits"][0]["message"], "bubble-void", li) //message for commit
+		last=i["date"]
+
+		addspan(i["repo"], "bubble-void", li) //repo name
+
+		if (i["commit"]) {
+			addspan(i["commit"], "bubble-void", li) //message for commit
 			html.appendChild(li)
 		}
-		else if (json[i]["payload"]["ref_type"]=="branch") {
-			addspan("new repo", "bubble-fill", li) //is a new commit
+		else if (i["new"]) {
+			addspan("new repo", "bubble-fill", li) //is a new repo
 			html.appendChild(li)
 		}
 	}
