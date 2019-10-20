@@ -48,6 +48,7 @@ async function get_last() {
 	last=""
 	for (i of arr) {
 		li=document.createElement("li")
+		li.className="recent-commit"
 
 		if (i["date"]!=last) {
 			addspan(i["date"], "bubble-fill", li) //create string

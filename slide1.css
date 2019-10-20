@@ -8,12 +8,12 @@
 }
 .title {
 	font-family: "rabbit";
-	font-size: 10em;
+	font-size: calc( 8vw + 1em );
 	color: white;
 }
 .desc {
 	font-family: "rabbit";
-	font-size: 2em;
+	font-size: calc( 1.5vw + 1em );
 	color: white;
 }
 .card {

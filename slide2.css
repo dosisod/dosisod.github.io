@@ -2,6 +2,7 @@
 	border-radius: 500px;
 	display: inline-block;
 	font-family: monospace, monospace;
+	font-size: calc( 0.25vw + 12px );
 	padding: 10px;
 	transition: padding 200ms;
 	transition: timing-function: ease-out;
@@ -41,6 +42,7 @@ ul {
 .container {
 	margin-top: 100px;
 }
-li {
-	margin-left: 100px;
+li.recent-commit {
+	margin-left: calc( 3.5vw + 5px );
+	white-space: nowrap;
 }
