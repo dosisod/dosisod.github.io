@@ -21,7 +21,7 @@ a {
 	padding: 0;
 }
 .slide {
-	height: 100%;
+	min-height: 100%;
 	width: 100%;
 
 	display: inline-block;
@@ -33,6 +33,7 @@ a {
 #s2 {
 	background: #fff;
 	overflow-y: hidden;
+	height: 150% !important;
 }
 .github {
 	width: calc( 8vw + 2em );

@@ -19,7 +19,6 @@ async function get_last() {
 
 	arr=[]
 	for (i of json) {
-		console.log(i)
 		tmp=new Date(i["created_at"]) //parse date
 		date=tmp.toString().split(" ").splice(1,2).join(" ")
 
@@ -30,18 +29,27 @@ async function get_last() {
 			for (j of i["payload"]["commits"]) {
 				arr.push({
 					"date": date,
-					"commit": j["message"],
+					"commit": j["message"].replace(/\n/g, " "),
 					"repo": repo
 				})
 			}
 		}
 		//new repo added
-		else if (i["payload"]["ref_type"]=="branch") {
+		else if (i["type"]=="CreateEvent"&&i["payload"]["ref"]==null) {
 			arr.push({
 				"date": date,
-				"new": true,
+				"new": "new repo",
 				"repo": repo
 			})
+		}
+		else if (i["type"]=="PullRequestEvent") {
+			if (i["payload"]["pull_request"]["state"]=="closed") {
+				arr.push({
+					"date": date,
+					"new": "new PR",
+					"repo": repo
+				})
+			}
 		}
 	}
 
@@ -65,7 +73,7 @@ async function get_last() {
 			html.appendChild(li)
 		}
 		else if (i["new"]) {
-			addspan("new repo", "bubble-fill", li) //is a new repo
+			addspan(i["new"], "bubble-fill", li) //this is a PR or a new repo
 			html.appendChild(li)
 		}
 	}
