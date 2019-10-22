@@ -11,6 +11,11 @@
 	font-size: calc( 8vw + 1em );
 	color: white;
 }
+.heart {
+	font-family: "rabbit";
+	font-size: calc(0.25vw + 1em);
+	color: orange;
+}
 .desc {
 	font-family: "rabbit";
 	font-size: calc( 1.5vw + 1em );
@@ -28,7 +33,7 @@
 	transition-timing-function: ease-out;
 }
 .card-title:hover {
-	font-size: 6vw;
+	font-size: calc(1.75em + 4vw);
 }
 .card-desc {
 	font-size: calc(1em + 1.25vw);
