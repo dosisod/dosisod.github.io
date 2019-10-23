@@ -1,28 +1,23 @@
 //gets and parses most recent commits
+function recent_commits() {
+	fetch("https://api.github.com/users/dosisod/events").then(function(e){return e.json()}).then(function(e){
+	json=e
 
-async function get_last() {
-	await fetch("https://api.github.com/users/dosisod/events")
-		.then(e=>e.json())
-		.then(e=>{
-			json=e
-		})
+	var html=document.getElementById("recent") //stores html to display
 
-	html=document.getElementById("recent") //stores html to display
-
-	addspan=(msg, css, app)=>{ //message, css class, append to
-		tmp=document.createElement("span")
-		tmp.className="bubble "+css
-		tmp.innerText=msg
-
-		app.appendChild(tmp)
+	function addspan(msg, css, app) { //message, css class, append to
+		nu("span", {
+			"className": "bubble "+css,
+			"innerText": msg
+		}, app)
 	}
 
-	arr=[]
-	for (i of json) {
-		tmp=new Date(i["created_at"]) //parse date
-		date=tmp.toString().split(" ").splice(1,2).join(" ")
+	var arr=[]
+	for (var i of json) {
+		var tmp=new Date(i["created_at"]) //parse date
+		var date=tmp.toString().split(" ").splice(1,2).join(" ")
 
-		repo=i["repo"]["name"].split("/")[1]
+		var repo=i["repo"]["name"].split("/")[1]
 
 		//normal push, loop through commits
 		if (i["type"]=="PushEvent") {
@@ -53,10 +48,9 @@ async function get_last() {
 		}
 	}
 
-	last=""
-	for (i of arr) {
-		li=document.createElement("li")
-		li.className="recent-commit"
+	var last=""
+	for (var i of arr) {
+		var li=nu("li", {"className": "recent_commit"})
 
 		if (i["date"]!=last) {
 			addspan(i["date"], "bubble-fill", li) //create string
@@ -76,5 +70,5 @@ async function get_last() {
 			addspan(i["new"], "bubble-fill", li) //this is a PR or a new repo
 			html.appendChild(li)
 		}
-	}
+	}})
 }
