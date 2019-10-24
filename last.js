@@ -50,7 +50,7 @@ function recent_commits() {
 
 	var last=""
 	for (var i of arr) {
-		var li=nu("li", {"className": "recent_commit"})
+		var li=nu("li", {"className": "recent-commit"})
 
 		if (i["date"]!=last) {
 			addspan(i["date"], "bubble-fill", li) //create string
