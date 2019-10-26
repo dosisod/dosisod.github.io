@@ -1,7 +1,7 @@
 .bubble {
 	border-radius: 500px;
 	display: inline-block;
-	font-family: monospace, monospace;
+	font-family: "dejavu", monospace;
 	font-size: calc( 1vw + 0.4em );
 	padding: 10px;
 	transition: padding 200ms;
