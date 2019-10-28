@@ -3,7 +3,7 @@
 
 @font-face {
 	font-family: "dejavu";
-	src: url(/DejaVuSansMono.ttf) format("truetype");
+	src: url("font/DejaVuSansMono.ttf") format("truetype");
 }
 @font-face {
 	font-family: "rabbit";

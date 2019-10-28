@@ -1,7 +1,7 @@
 //gets and parses most recent commits
 function recent_commits() {
 	fetch("https://api.github.com/users/dosisod/events").then(function(e){return e.json()}).then(function(e){
-	json=e
+	var json=e
 
 	var html=document.getElementById("recent") //stores html to display
 
@@ -21,7 +21,7 @@ function recent_commits() {
 
 		//normal push, loop through commits
 		if (i["type"]=="PushEvent") {
-			for (j of i["payload"]["commits"]) {
+			for (var j of i["payload"]["commits"].reverse()) {
 				arr.push({
 					"date": date,
 					"commit": j["message"].replace(/\n/g, " "),
