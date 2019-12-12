@@ -1,9 +1,9 @@
 //gets and parses most recent commits
 function recent_commits() {
 	fetch("https://api.github.com/users/dosisod/events").then(function(e){return e.json()}).then(function(e){
-	var json=e
+	const json=e
 
-	var html=document.getElementById("recent") //stores html to display
+	var html=nu("recent") //stores html to display
 
 	function addspan(msg, css, app) { //message, css class, append to
 		nu("span", {
@@ -13,15 +13,15 @@ function recent_commits() {
 	}
 
 	var arr=[]
-	for (var i of json) {
-		var tmp=new Date(i["created_at"]) //parse date
-		var date=tmp.toString().split(" ").splice(1,2).join(" ")
+	for (const i of json) {
+		const tmp=new Date(i["created_at"]) //parse date
+		const date=tmp.toString().split(" ").splice(1,2).join(" ")
 
-		var repo=i["repo"]["name"].split("/")[1]
+		const repo=i["repo"]["name"].split("/")[1]
 
 		//normal push, loop through commits
 		if (i["type"]=="PushEvent") {
-			for (var j of i["payload"]["commits"].reverse()) {
+			for (const j of i["payload"]["commits"].reverse()) {
 				arr.push({
 					"date": date,
 					"commit": j["message"].replace(/\n/g, " "),
@@ -49,8 +49,8 @@ function recent_commits() {
 	}
 
 	var last=""
-	for (var i of arr) {
-		var li=nu("li", {"className": "recent-commit"})
+	for (const i of arr) {
+		const li=nu("li", {"className": "recent-commit"})
 
 		if (i["date"]!=last) {
 			addspan(i["date"], "bubble-fill", li) //create string

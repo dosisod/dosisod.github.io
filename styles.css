@@ -3,11 +3,11 @@
 
 @font-face {
 	font-family: "dejavu";
-	src: url("font/DejaVuSansMono.ttf") format("truetype");
+	src: url("/font/DejaVuSansMono.ttf") format("truetype");
 }
 @font-face {
 	font-family: "rabbit";
-	src: url("font/whitrabt.woff");
+	src: url("/font/whitrabt.woff");
 }
 * {
 	margin: 0;
@@ -35,7 +35,7 @@ a {
 	vertical-align: top;
 }
 #s1 {
-	background: url("img/grid.png") repeat;
+	background: url("/img/grid.png") repeat;
 }
 #s2 {
 	background: #fff;
