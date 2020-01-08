@@ -1,45 +1,41 @@
-//gets and parses most recent commits
 function recent_commits() {
-	fetch("https://api.github.com/users/dosisod/events").then(function(e){return e.json()}).then(function(e){
-	const json=e
+	fetch("https://api.github.com/users/dosisod/events")
+		.then(function(e) { return e.json() })
+		.then(function(e) {
+			parse_events(e)
+		})
+}
 
-	var html=nu("recent") //stores html to display
+function parse_events(events) {
+	var commits=[]
+	for (const git_event of events) {
+		const date_obj=new Date(git_event["created_at"])
+		const date=date_obj.toString()
+			.split(" ")
+			.splice(1, 2)
+			.join(" ")
 
-	function addspan(msg, css, app) { //message, css class, append to
-		nu("span", {
-			"className": "bubble "+css,
-			"innerText": msg
-		}, app)
-	}
+		const repo=git_event["repo"]["name"].split("/")[1]
 
-	var arr=[]
-	for (const i of json) {
-		const tmp=new Date(i["created_at"]) //parse date
-		const date=tmp.toString().split(" ").splice(1,2).join(" ")
-
-		const repo=i["repo"]["name"].split("/")[1]
-
-		//normal push, loop through commits
-		if (i["type"]=="PushEvent") {
-			for (const j of i["payload"]["commits"].reverse()) {
-				arr.push({
+		if (git_event["type"]=="PushEvent") {
+			for (const commit of git_event["payload"]["commits"].reverse()) {
+				commits.push({
 					"date": date,
-					"commit": j["message"].replace(/\n/g, " "),
+					"commit_msg": commit["message"].replace(/\n/g, " "),
 					"repo": repo
 				})
 			}
 		}
-		//new repo added
-		else if (i["type"]=="CreateEvent"&&i["payload"]["ref"]==null) {
-			arr.push({
+		else if (git_event["type"]=="CreateEvent" && git_event["payload"]["ref"]==null) {
+			commits.push({
 				"date": date,
 				"new": "new repo",
 				"repo": repo
 			})
 		}
-		else if (i["type"]=="PullRequestEvent") {
-			if (i["payload"]["pull_request"]["state"]=="closed") {
-				arr.push({
+		else if (git_event["type"]=="PullRequestEvent") {
+			if (git_event["payload"]["pull_request"]["state"]=="closed") {
+				commits.push({
 					"date": date,
 					"new": "new PR",
 					"repo": repo
@@ -48,27 +44,35 @@ function recent_commits() {
 		}
 	}
 
-	var last=""
-	for (const i of arr) {
+	var last_date=""
+	for (const commit of commits) {
 		const li=nu("li", {"className": "recent-commit"})
 
-		if (i["date"]!=last) {
-			addspan(i["date"], "bubble-fill", li) //create string
-		}
-		else {
-			addspan(i["date"], "bubble-spacer", li) //same indent, just empty
-		}
-		last=i["date"]
+		let classname="bubble-fill"
+		if (commit["date"]==last_date) classname="bubble-spacer"
+		addspan(commit["data"], classname, li)
 
-		addspan(i["repo"], "bubble-void", li) //repo name
+		last_date=commit["date"]
 
-		if (i["commit"]) {
-			addspan(i["commit"], "bubble-void", li) //message for commit
-			html.appendChild(li)
+		classname="bubble-void"
+		addspan(commit["repo"], classname, li)
+
+		if (commit["commit_msg"] || commit["new"]) {
+			if (commit["new"]) classname="bubble-fill"
+
+			addspan(
+				commit["commit_msg"] || commit["new"],
+				classname,
+				li
+			)
+			nu("recent").appendChild(li)
 		}
-		else if (i["new"]) {
-			addspan(i["new"], "bubble-fill", li) //this is a PR or a new repo
-			html.appendChild(li)
-		}
-	}})
+	}
+}
+
+function addspan(msg, classname, node) {
+	nu("span", {
+		"className": "bubble "+classname,
+		"innerText": msg
+	}, node)
 }
