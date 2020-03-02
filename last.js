@@ -50,7 +50,7 @@ function parse_events(events) {
 
 		let classname="bubble-fill"
 		if (commit["date"]==last_date) classname="bubble-spacer"
-		addspan(commit["data"], classname, li)
+		addspan(commit["date"], classname, li)
 
 		last_date=commit["date"]
 
