@@ -47,5 +47,10 @@ a {
 	height: calc( 8vw + 2em );
 	float: left;
 	margin-right: 20px;
-	border-radius: 50%;
+	border-radius: 45%;
+	transition: border-radius 250ms;
+	transition-timing-function: ease-in;
+}
+.github:hover {
+	border-radius: 15%;
 }
