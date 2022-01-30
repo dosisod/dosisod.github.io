@@ -177,16 +177,16 @@ def convert(lines: List[Node]) -> str:
             end_python_block_if_needed(ctx)
 
         elif type == NodeType.HEADER_1:
-            ctx.html += f"<h1>{line}</h1><br>\n"
+            ctx.html += f"<h1>{line}</h1>\n"
 
         elif type == NodeType.HEADER_2:
-            ctx.html += f"<h2>{line}</h2><br>\n"
+            ctx.html += f"<h2>{line}</h2>\n"
 
         elif type == NodeType.HEADER_3:
-            ctx.html += f"<h3>{line}</h3><br>\n"
+            ctx.html += f"<h3>{line}</h3>\n"
 
         elif type == NodeType.HEADER_4:
-            ctx.html += f"<h4>{line}</h4><br>\n"
+            ctx.html += f"<h4>{line}</h4>\n"
 
         elif type == NodeType.TEXT:
             ctx.html += f"<p>{line}</p>\n"

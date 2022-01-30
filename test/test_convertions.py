@@ -108,10 +108,10 @@ def test_categorize():
 
 
 def test_convert_headings():
-    assert run_pipeline("# Heading 1") == "<h1>Heading 1</h1><br>\n"
-    assert run_pipeline("## Heading 2") == "<h2>Heading 2</h2><br>\n"
-    assert run_pipeline("### Heading 3") == "<h3>Heading 3</h3><br>\n"
-    assert run_pipeline("#### Heading 4") == "<h4>Heading 4</h4><br>\n"
+    assert run_pipeline("# Heading 1") == "<h1>Heading 1</h1>\n"
+    assert run_pipeline("## Heading 2") == "<h2>Heading 2</h2>\n"
+    assert run_pipeline("### Heading 3") == "<h3>Heading 3</h3>\n"
+    assert run_pipeline("#### Heading 4") == "<h4>Heading 4</h4>\n"
 
 
 def test_convert_text():
