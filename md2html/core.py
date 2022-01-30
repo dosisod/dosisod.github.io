@@ -30,37 +30,38 @@ def run_python_block(code: str) -> str:
     return _locals["html"]
 
 
-def categorize(lines: List[str]) -> List[Tuple[str, str]]:
-    def line_to_type(line: str) -> NodeType:
-        if line.startswith("# "):
-            return NodeType.HEADER_1
+def line_to_type(line: str) -> NodeType:
+    if line.startswith("# "):
+        return NodeType.HEADER_1
 
-        if line.startswith("## "):
-            return NodeType.HEADER_2
+    if line.startswith("## "):
+        return NodeType.HEADER_2
 
-        if line.startswith("### "):
-            return NodeType.HEADER_3
+    if line.startswith("### "):
+        return NodeType.HEADER_3
 
-        if line.startswith("#### "):
-            return NodeType.HEADER_4
+    if line.startswith("#### "):
+        return NodeType.HEADER_4
 
-        if line.startswith("*"):
-            return NodeType.BULLET_ITEM
+    if line.startswith("*"):
+        return NodeType.BULLET_ITEM
 
-        if re.match(r"^\d+\.", line):
-            return NodeType.NUMBERED_ITEM
+    if re.match(r"^\d+\.", line):
+        return NodeType.NUMBERED_ITEM
 
-        if line.startswith("<"):
-            return NodeType.RAW_HTML
+    if line.startswith("<"):
+        return NodeType.RAW_HTML
 
-        if line == "":
-            return NodeType.NEWLINE
+    if line == "":
+        return NodeType.NEWLINE
 
-        if line == "!!!":
-            return NodeType.RAW_PYTHON
+    if line == "!!!":
+        return NodeType.RAW_PYTHON
 
-        return NodeType.TEXT
+    return NodeType.TEXT
 
+
+def categorize(lines: List[str]) -> List[Tuple[NodeType, str]]:
     return [((line_to_type(line), line)) for line in lines]
 
 
@@ -124,7 +125,7 @@ def parse_python_block(ctx: ParserContext, type: NodeType, line: str) -> None:
         ctx.python_block += f"{line}\n"
 
 
-def convert(lines: List[Tuple[str, str]]) -> str:
+def convert(lines: List[Tuple[NodeType, str]]) -> str:
     ctx = ParserContext()
 
     for type, line in lines:
