@@ -1,4 +1,4 @@
-from md2html.core import categorize, expand_links, line_to_type, NodeType
+from md2html.core import categorize, convert, expand_links, line_to_type, NodeType
 
 def test_expand_single_link():
     content = "[example.com](https://example.com)"
@@ -46,3 +46,64 @@ def test_categorize():
 
     assert categorized[1][0] == NodeType.TEXT
     assert categorized[1][1] == "world"
+
+
+def convert_fixture(s: str) -> str:
+    return convert(categorize(s.split("\n")))
+
+
+def test_convert_headings():
+    assert convert_fixture("# Heading 1") == "<h1>Heading 1</h1><br>\n"
+    assert convert_fixture("## Heading 2") == "<h2>Heading 2</h2><br>\n"
+    assert convert_fixture("### Heading 3") == "<h3>Heading 3</h3><br>\n"
+    assert convert_fixture("#### Heading 4") == "<h4>Heading 4</h4><br>\n"
+
+
+def test_convert_text():
+    assert convert_fixture("hello") == "<p>hello</p>\n"
+
+
+def test_convert_bullet_list():
+    assert convert_fixture("* hello\n") == "<ul>\n<li>hello</li>\n</ul>\n"
+
+    assert convert_fixture("* hello\n* world\n") == (
+        "<ul>\n"
+        "<li>hello</li>\n"
+        "<li>world</li>\n"
+        "</ul>\n"
+    )
+
+
+def test_convert_numbered_list():
+    assert convert_fixture("1. hello\n") == "<ol>\n<li>hello</li>\n</ol>\n"
+
+    assert convert_fixture("1. hello\n2. world\n") == (
+        "<ol>\n"
+        "<li>hello</li>\n"
+        "<li>world</li>\n"
+        "</ol>\n"
+    )
+
+
+def test_convert_raw_html():
+    assert convert_fixture("<something/>") == "<something/>\n"
+
+
+def make_python_block(code: str) -> str:
+    return f"!!!\n{code}\n!!!\n"
+
+
+def test_convert_raw_python_single_line():
+    block = make_python_block("html += 'hi'")
+
+    assert convert_fixture(block) == "hi<br>\n"
+
+
+def test_convert_raw_python_multi_line():
+    block = make_python_block('html += "hello "\nhtml += "world"\n')
+
+    assert convert_fixture(block) == "hello world<br>\n"
+
+
+def test_convert_newline():
+    block = convert_fixture("\n\n") == "<br>\n"
