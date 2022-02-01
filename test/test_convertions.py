@@ -1,4 +1,11 @@
-from md2html.core import categorize, convert, expand_links, line_to_type, NodeType
+from md2html.core import (
+    NodeType,
+    categorize,
+    convert,
+    expand_links,
+    group_text,
+    line_to_type
+)
 
 def test_expand_single_link():
     content = "[example.com](https://example.com)"
@@ -49,7 +56,7 @@ def test_categorize():
 
 
 def convert_fixture(s: str) -> str:
-    return convert(categorize(s.split("\n")))
+    return convert(group_text(categorize(s.split("\n"))))
 
 
 def test_convert_headings():
@@ -107,3 +114,7 @@ def test_convert_raw_python_multi_line():
 
 def test_convert_newline():
     block = convert_fixture("\n\n") == "<br>\n"
+
+
+def test_group_text_lines():
+    assert convert_fixture("hello\nthere\nworld") == "<p>hello\nthere\nworld</p>\n"

@@ -125,6 +125,20 @@ def parse_python_block(ctx: ParserContext, type: NodeType, line: str) -> None:
         ctx.python_block += f"{line}\n"
 
 
+def group_text(lines: List[Tuple[NodeType, str]]) -> List[Tuple[NodeType, str]]:
+    out = [lines.pop(0)]
+
+    for line in lines:
+        if line[0] == NodeType.TEXT and out[-1][0] == NodeType.TEXT:
+            last = out.pop()
+            out.append((NodeType.TEXT, f"{last[1]}\n{line[1]}"))
+
+        else:
+            out.append(line)
+
+    return out
+
+
 def convert(lines: List[Tuple[NodeType, str]]) -> str:
     ctx = ParserContext()
 
@@ -184,7 +198,7 @@ def main():
 
     markdown = file.read_text()
     lines = markdown.split("\n")
-    content = expand_links(convert(categorize(lines)))
+    content = expand_links(convert(group_text(categorize(lines))))
 
     # to have style sheet referenced correctly, we need to add an
     # appropriate amount of folder back-tracking
