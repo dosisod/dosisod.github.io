@@ -59,6 +59,12 @@ li:before {
   color: var(--gray);
 }
 
+code {
+  color: var(--bg);
+  background: var(--fg);
+  padding: 0.5ch;
+}
+
 .gray {
   color: var(--gray);
 }

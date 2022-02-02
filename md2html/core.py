@@ -43,7 +43,7 @@ def line_to_type(line: str) -> NodeType:
     if line.startswith("#### "):
         return NodeType.HEADER_4
 
-    if line.startswith("*"):
+    if line.startswith("* "):
         return NodeType.BULLET_ITEM
 
     if re.match(r"^\d+\.", line):
@@ -189,6 +189,38 @@ def expand_links(html: str) -> str:
     return re.sub(md_url_regex, a_tag_regex, html)
 
 
+def expand_bold(html: str) -> str:
+    md_bold_regex = r"\*\*([^[\*]+)\*\*"
+    bold_regex = r"<strong>\1</strong>"
+
+    return re.sub(md_bold_regex, bold_regex, html)
+
+
+def expand_italics(html: str) -> str:
+    md_italics_regex = r"\*([^[\*]+)\*"
+    italics_regex = r"<em>\1</em>"
+
+    return re.sub(md_italics_regex, italics_regex, html)
+
+
+def expand_code(html: str) -> str:
+    md_code_regex = r"`([^`]+)`"
+    code_regex = r"<code>\1</code>"
+
+    return re.sub(md_code_regex, code_regex, html)
+
+
+def expand_inline(line: str) -> str:
+    return expand_code(expand_italics(expand_bold(expand_links(line))))
+
+
+def run_pipeline(markdown: str) -> str:
+    lines = group_text(categorize(markdown.split("\n")))
+    expanded = [(type, expand_inline(line)) for type, line in lines]
+
+    return convert(expanded)
+
+
 def main():
     if len(argv) != 2:
         print(f"usage: {argv[0]} <file.md>")
@@ -197,8 +229,7 @@ def main():
     file = Path(argv[1])
 
     markdown = file.read_text()
-    lines = markdown.split("\n")
-    content = expand_links(convert(group_text(categorize(lines))))
+    content = run_pipeline(markdown)
 
     # to have style sheet referenced correctly, we need to add an
     # appropriate amount of folder back-tracking
