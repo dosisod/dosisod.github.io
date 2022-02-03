@@ -65,6 +65,13 @@ code {
   padding: 0.5ch;
 }
 
+blockquote {
+  border-left: 0.5ch solid var(--gray);
+  padding: 1ch 1ch 1ch 1.5ch;
+  margin: 0;
+  font-style: italic;
+}
+
 .gray {
   color: var(--gray);
 }

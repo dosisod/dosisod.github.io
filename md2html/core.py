@@ -15,10 +15,14 @@ class NodeType(Enum):
     RAW_HTML = auto()
     RAW_PYTHON = auto()
     NEWLINE = auto()
+    BLOCKQUOTE = auto()
 
     @classmethod
     def is_list_item(cls, type: "NodeType") -> bool:
         return type == cls.BULLET_ITEM or type == cls.NUMBERED_ITEM
+
+
+Node = Tuple[NodeType, str]
 
 
 def run_python_block(code: str) -> str:
@@ -30,39 +34,42 @@ def run_python_block(code: str) -> str:
     return _locals["html"]
 
 
-def line_to_type(line: str) -> NodeType:
+def line_to_node(line: str) -> Node:
     if line.startswith("# "):
-        return NodeType.HEADER_1
+        return (NodeType.HEADER_1, line[2:])
 
     if line.startswith("## "):
-        return NodeType.HEADER_2
+        return (NodeType.HEADER_2, line[3:])
 
     if line.startswith("### "):
-        return NodeType.HEADER_3
+        return (NodeType.HEADER_3, line[4:])
 
     if line.startswith("#### "):
-        return NodeType.HEADER_4
+        return (NodeType.HEADER_4, line[5:])
 
     if line.startswith("* "):
-        return NodeType.BULLET_ITEM
+        return (NodeType.BULLET_ITEM, line[2:])
 
     if re.match(r"^\d+\.", line):
-        return NodeType.NUMBERED_ITEM
+        return (NodeType.NUMBERED_ITEM, line[line.index(' ') + 1:])
 
     if line.startswith("<"):
-        return NodeType.RAW_HTML
+        return (NodeType.RAW_HTML, line)
 
     if line == "":
-        return NodeType.NEWLINE
+        return (NodeType.NEWLINE, "")
 
     if line == "!!!":
-        return NodeType.RAW_PYTHON
+        return (NodeType.RAW_PYTHON, "")
 
-    return NodeType.TEXT
+    if line.startswith("> "):
+        return (NodeType.BLOCKQUOTE, line[2:])
+
+    return (NodeType.TEXT, line)
 
 
-def categorize(lines: List[str]) -> List[Tuple[NodeType, str]]:
-    return [((line_to_type(line), line)) for line in lines]
+def categorize(lines: List[str]) -> List[Node]:
+    return [line_to_node(line) for line in lines]
 
 
 class ParserContext:
@@ -111,7 +118,7 @@ def end_python_block_if_needed(ctx: ParserContext) -> None:
 def parse_list_item(ctx: ParserContext, type: NodeType, line: str) -> None:
     start_list_if_needed(ctx, type)
 
-    ctx.html += f"<li>{line[line.index(' ') + 1:]}</li>\n"
+    ctx.html += f"<li>{line}</li>\n"
 
 
 def parse_python_block(ctx: ParserContext, type: NodeType, line: str) -> None:
@@ -125,13 +132,16 @@ def parse_python_block(ctx: ParserContext, type: NodeType, line: str) -> None:
         ctx.python_block += f"{line}\n"
 
 
-def group_text(lines: List[Tuple[NodeType, str]]) -> List[Tuple[NodeType, str]]:
+def group_text_and_blockquotes(lines: List[Node]) -> List[Node]:
     out = [lines.pop(0)]
 
     for line in lines:
-        if line[0] == NodeType.TEXT and out[-1][0] == NodeType.TEXT:
+        if (
+            line[0] == out[-1][0] and
+            line[0] in (NodeType.TEXT, NodeType.BLOCKQUOTE)
+        ):
             last = out.pop()
-            out.append((NodeType.TEXT, f"{last[1]}\n{line[1]}"))
+            out.append((line[0], f"{last[1]}\n{line[1]}"))
 
         else:
             out.append(line)
@@ -139,7 +149,7 @@ def group_text(lines: List[Tuple[NodeType, str]]) -> List[Tuple[NodeType, str]]:
     return out
 
 
-def convert(lines: List[Tuple[NodeType, str]]) -> str:
+def convert(lines: List[Node]) -> str:
     ctx = ParserContext()
 
     for type, line in lines:
@@ -159,16 +169,16 @@ def convert(lines: List[Tuple[NodeType, str]]) -> str:
             end_python_block_if_needed(ctx)
 
         elif type == NodeType.HEADER_1:
-            ctx.html += f"<h1>{line[2:]}</h1><br>\n"
+            ctx.html += f"<h1>{line}</h1><br>\n"
 
         elif type == NodeType.HEADER_2:
-            ctx.html += f"<h2>{line[3:]}</h2><br>\n"
+            ctx.html += f"<h2>{line}</h2><br>\n"
 
         elif type == NodeType.HEADER_3:
-            ctx.html += f"<h3>{line[4:]}</h3><br>\n"
+            ctx.html += f"<h3>{line}</h3><br>\n"
 
         elif type == NodeType.HEADER_4:
-            ctx.html += f"<h4>{line[5:]}</h4><br>\n"
+            ctx.html += f"<h4>{line}</h4><br>\n"
 
         elif type == NodeType.TEXT:
             ctx.html += f"<p>{line}</p>\n"
@@ -178,6 +188,9 @@ def convert(lines: List[Tuple[NodeType, str]]) -> str:
 
         elif type == NodeType.RAW_HTML:
             ctx.html += f"{line}\n"
+
+        elif type == NodeType.BLOCKQUOTE:
+            ctx.html += f"<blockquote>{line}</blockquote>\n"
 
     return ctx.html
 
@@ -215,7 +228,7 @@ def expand_inline(line: str) -> str:
 
 
 def run_pipeline(markdown: str) -> str:
-    lines = group_text(categorize(markdown.split("\n")))
+    lines = group_text_and_blockquotes(categorize(markdown.split("\n")))
     expanded = [(type, expand_inline(line)) for type, line in lines]
 
     return convert(expanded)

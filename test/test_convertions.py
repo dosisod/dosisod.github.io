@@ -6,8 +6,7 @@ from md2html.core import (
     expand_italics,
     expand_links,
     expand_code,
-    group_text,
-    line_to_type,
+    line_to_node,
     run_pipeline,
 )
 
@@ -69,24 +68,26 @@ def test_expand_multile_links():
 
 
 def test_line_type_detection():
-    assert line_to_type("hello world") == NodeType.TEXT
+    assert line_to_node("hello world") == (NodeType.TEXT, "hello world")
 
-    assert line_to_type("# hello world") == NodeType.HEADER_1
-    assert line_to_type("## hello world") == NodeType.HEADER_2
-    assert line_to_type("### hello world") == NodeType.HEADER_3
-    assert line_to_type("#### hello world") == NodeType.HEADER_4
+    assert line_to_node("# hello world") == (NodeType.HEADER_1, "hello world")
+    assert line_to_node("## hello world") == (NodeType.HEADER_2, "hello world")
+    assert line_to_node("### hello world") == (NodeType.HEADER_3, "hello world")
+    assert line_to_node("#### hello world") == (NodeType.HEADER_4, "hello world")
 
-    assert line_to_type("* something") == NodeType.BULLET_ITEM
-    assert line_to_type("*not a bullet point") != NodeType.BULLET_ITEM
+    assert line_to_node("* something") == (NodeType.BULLET_ITEM, "something")
+    assert line_to_node("*not a bullet point")[0] != NodeType.BULLET_ITEM
 
-    assert line_to_type("1. something") == NodeType.NUMBERED_ITEM
-    assert line_to_type("99. something") == NodeType.NUMBERED_ITEM
+    assert line_to_node("1. something") == (NodeType.NUMBERED_ITEM, "something")
+    assert line_to_node("99. something") == (NodeType.NUMBERED_ITEM, "something")
 
-    assert line_to_type("<p>raw html</p>") == NodeType.RAW_HTML
+    assert line_to_node("<p>raw html</p>") == (NodeType.RAW_HTML, "<p>raw html</p>")
 
-    assert line_to_type("") == NodeType.NEWLINE
+    assert line_to_node("") == (NodeType.NEWLINE, "")
 
-    assert line_to_type("!!!") == NodeType.RAW_PYTHON
+    assert line_to_node("!!!") == (NodeType.RAW_PYTHON, "")
+
+    assert line_to_node("> some quote") == (NodeType.BLOCKQUOTE, "some quote")
 
 
 def test_categorize():
@@ -97,7 +98,7 @@ def test_categorize():
     assert len(categorized) == 2
 
     assert categorized[0][0] == NodeType.HEADER_1
-    assert categorized[0][1] == "# hello"
+    assert categorized[0][1] == "hello"
 
     assert categorized[1][0] == NodeType.TEXT
     assert categorized[1][1] == "world"
@@ -157,11 +158,21 @@ def test_convert_raw_python_multi_line():
 
 
 def test_convert_newline():
-    block = run_pipeline("\n\n") == "<br>\n"
+    assert run_pipeline("") == "<br>\n"
+
+
+def test_convert_blockquote():
+    assert run_pipeline("> hello world") == "<blockquote>hello world</blockquote>\n"
 
 
 def test_group_text_lines():
     assert run_pipeline("hello\nthere\nworld") == "<p>hello\nthere\nworld</p>\n"
+
+
+def test_group_blockquote_lines():
+    expected = "<blockquote>hello\nthere\nworld</blockquote>\n"
+
+    assert run_pipeline("> hello\n> there\n> world") == expected
 
 
 def test_pipeline_runs_bold():
