@@ -89,6 +89,9 @@ def test_line_type_detection():
 
     assert line_to_node("> some quote") == (NodeType.BLOCKQUOTE, "some quote")
 
+    assert line_to_node("- [ ] hello") == (NodeType.CHECKBOX_UNCHECKED, "hello")
+    assert line_to_node("- [x] hello") == (NodeType.CHECKBOX_CHECKED, "hello")
+
 
 def test_categorize():
     content = "# hello\nworld".split("\n")
@@ -163,6 +166,18 @@ def test_convert_newline():
 
 def test_convert_blockquote():
     assert run_pipeline("> hello world") == "<blockquote>hello world</blockquote>\n"
+
+
+def test_convert_unchecked_checkbox():
+    expected = '<p><input type="checkbox">hello world</p>\n'
+
+    assert run_pipeline("- [ ] hello world") == expected
+
+
+def test_convert_checked_checkbox():
+    expected = '<p><input type="checkbox" checked>hello world</p>\n'
+
+    assert run_pipeline("- [x] hello world") == expected
 
 
 def test_group_text_lines():

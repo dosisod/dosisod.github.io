@@ -16,10 +16,12 @@ class NodeType(Enum):
     RAW_PYTHON = auto()
     NEWLINE = auto()
     BLOCKQUOTE = auto()
+    CHECKBOX_UNCHECKED = auto()
+    CHECKBOX_CHECKED = auto()
 
     @classmethod
     def is_list_item(cls, type: "NodeType") -> bool:
-        return type == cls.BULLET_ITEM or type == cls.NUMBERED_ITEM
+        return type in (cls.BULLET_ITEM, cls.NUMBERED_ITEM)
 
 
 Node = Tuple[NodeType, str]
@@ -64,6 +66,12 @@ def line_to_node(line: str) -> Node:
 
     if line.startswith("> "):
         return (NodeType.BLOCKQUOTE, line[2:])
+
+    if line.startswith("- [ ] "):
+        return (NodeType.CHECKBOX_UNCHECKED, line[6:])
+
+    if line.startswith("- [x] "):
+        return (NodeType.CHECKBOX_CHECKED, line[6:])
 
     return (NodeType.TEXT, line)
 
@@ -191,6 +199,12 @@ def convert(lines: List[Node]) -> str:
 
         elif type == NodeType.BLOCKQUOTE:
             ctx.html += f"<blockquote>{line}</blockquote>\n"
+
+        elif type == NodeType.CHECKBOX_UNCHECKED:
+            ctx.html += f'<p><input type="checkbox">{line}</p>\n'
+
+        elif type == NodeType.CHECKBOX_CHECKED:
+            ctx.html += f'<p><input type="checkbox" checked>{line}</p>\n'
 
     return ctx.html
 
