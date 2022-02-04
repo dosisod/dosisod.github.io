@@ -54,6 +54,15 @@ ol, ul {
   list-style: none;
 }
 
+ol {
+  counter-reset: numbered-list;
+}
+
+ol > li:before {
+  counter-increment: numbered-list;
+  content: counter(numbered-list) ". ";
+}
+
 li:before {
   content: "* ";
   color: var(--gray);
