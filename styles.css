@@ -69,9 +69,18 @@ li:before {
 }
 
 code {
+  white-space: pre-wrap;
   color: var(--bg);
   background: var(--fg);
+}
+
+code:not(.code-block) {
   padding: 0.5ch;
+}
+
+code.code-block {
+  width: 80ch;
+  display: block;
 }
 
 blockquote {

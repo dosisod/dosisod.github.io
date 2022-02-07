@@ -18,6 +18,7 @@ class NodeType(Enum):
     BLOCKQUOTE = auto()
     CHECKBOX_UNCHECKED = auto()
     CHECKBOX_CHECKED = auto()
+    CODE_BLOCK = auto()
 
     @classmethod
     def is_list_item(cls, type: "NodeType") -> bool:
@@ -64,6 +65,9 @@ def line_to_node(line: str) -> Node:
     if line == "!!!":
         return (NodeType.RAW_PYTHON, "")
 
+    if line.startswith("```"):
+        return (NodeType.CODE_BLOCK, "")
+
     if line.startswith("> "):
         return (NodeType.BLOCKQUOTE, line[2:])
 
@@ -88,6 +92,9 @@ class ParserContext:
 
     in_python_block = False
     python_block = ""
+
+    in_code_block = False
+    code_block = ""
 
     def in_list(self) -> bool:
         return self.in_bullet_list or self.in_number_list
@@ -118,11 +125,6 @@ def end_list_if_needed(ctx: ParserContext, type: NodeType) -> None:
         ctx.in_number_list = False
 
 
-def end_python_block_if_needed(ctx: ParserContext) -> None:
-    if not ctx.in_python_block:
-        ctx.in_python_block = True
-
-
 def parse_list_item(ctx: ParserContext, type: NodeType, line: str) -> None:
     start_list_if_needed(ctx, type)
 
@@ -138,6 +140,17 @@ def parse_python_block(ctx: ParserContext, type: NodeType, line: str) -> None:
 
     else:
         ctx.python_block += f"{line}\n"
+
+
+def parse_code_block(ctx: ParserContext, type: NodeType, line: str) -> None:
+    if type == NodeType.CODE_BLOCK:
+        ctx.html += f'<code class="code-block">{ctx.code_block}</code>'
+
+        ctx.in_code_block = False
+        ctx.code_block = ""
+
+    else:
+        ctx.code_block += f"{line}\n"
 
 
 def group_text_and_blockquotes(lines: List[Node]) -> List[Node]:
@@ -170,11 +183,17 @@ def convert(lines: List[Node]) -> str:
         elif ctx.in_python_block:
             parse_python_block(ctx, type, line)
 
+        elif ctx.in_code_block:
+            parse_code_block(ctx, type, line)
+
         elif NodeType.is_list_item(type):
             parse_list_item(ctx, type, line)
 
         elif type == NodeType.RAW_PYTHON:
-            end_python_block_if_needed(ctx)
+            ctx.in_python_block = True
+
+        elif type == NodeType.CODE_BLOCK:
+            ctx.in_code_block = True
 
         elif type == NodeType.HEADER_1:
             ctx.html += f"<h1>{line}</h1>\n"
