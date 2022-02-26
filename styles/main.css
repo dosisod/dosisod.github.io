@@ -10,7 +10,6 @@
 
 * {
   font-family: monospace;
-  background: var(--bg);
   color: var(--fg);
 }
 
@@ -19,6 +18,7 @@ html, body {
   width: 100%;
   margin: 0;
   padding: 0;
+  background: var(--bg);
 }
 
 main {
@@ -69,18 +69,12 @@ li:before {
 }
 
 code {
-  white-space: pre-wrap;
-  color: var(--bg);
-  background: var(--fg);
-}
-
-code:not(.code-block) {
   padding: 0.5ch;
 }
 
-code.code-block {
-  width: 80ch;
-  display: block;
+pre {
+  width: 76ch;
+  padding: 1ch;
 }
 
 blockquote {

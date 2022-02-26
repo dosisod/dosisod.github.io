@@ -1,7 +1,8 @@
+from enum import Enum, auto
+from pathlib import Path
+from subprocess import Popen, PIPE, STDOUT
 from sys import argv
 from typing import List, Tuple
-from pathlib import Path
-from enum import Enum, auto
 import re
 
 class NodeType(Enum):
@@ -66,7 +67,7 @@ def line_to_node(line: str) -> Node:
         return (NodeType.RAW_PYTHON, "")
 
     if line.startswith("```"):
-        return (NodeType.CODE_BLOCK, "")
+        return (NodeType.CODE_BLOCK, line[3:])
 
     if line.startswith("> "):
         return (NodeType.BLOCKQUOTE, line[2:])
@@ -144,7 +145,18 @@ def parse_python_block(ctx: ParserContext, type: NodeType, line: str) -> None:
 
 def parse_code_block(ctx: ParserContext, type: NodeType, line: str) -> None:
     if type == NodeType.CODE_BLOCK:
-        ctx.html += f'<code class="code-block">{ctx.code_block}</code>'
+        if ctx.language:
+            pipe = Popen(
+                ["node", "highlighter/index.js", ctx.language],
+                stdout=PIPE,
+                stdin=PIPE,
+                stderr=STDOUT
+            )
+
+            ctx.html += pipe.communicate(input=ctx.code_block.encode())[0].decode()
+
+        else:
+            ctx.html += f'<pre class="hljs">{ctx.code_block}</pre>'
 
         ctx.in_code_block = False
         ctx.code_block = ""
@@ -193,6 +205,7 @@ def convert(lines: List[Node]) -> str:
             ctx.in_python_block = True
 
         elif type == NodeType.CODE_BLOCK:
+            ctx.language = line
             ctx.in_code_block = True
 
         elif type == NodeType.HEADER_1:
@@ -277,13 +290,7 @@ def main():
     markdown = file.read_text()
     content = run_pipeline(markdown)
 
-    # to have style sheet referenced correctly, we need to add an
-    # appropriate amount of folder back-tracking
-    nested_dir_count = len(file.parts) - 1
-    path_prefix = "/".join([".." * nested_dir_count]) or "."
-
     template = Path("./index.template.html").read_text()
-    template = re.sub("PATH_PREFIX", path_prefix, template)
     template = re.sub("TITLE", file.stem, template)
 
     html = re.sub("MAIN_CONTENT", content, template)
