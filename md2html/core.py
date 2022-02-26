@@ -1,9 +1,9 @@
 from enum import Enum, auto
 from pathlib import Path
-from subprocess import Popen, PIPE, STDOUT
-from sys import argv
+from subprocess import run
 from typing import List, Tuple
 import re
+
 
 class NodeType(Enum):
     TEXT = auto()
@@ -55,7 +55,7 @@ def line_to_node(line: str) -> Node:
         return (NodeType.BULLET_ITEM, line[2:])
 
     if re.match(r"^\d+\.", line):
-        return (NodeType.NUMBERED_ITEM, line[line.index(' ') + 1:])
+        return (NodeType.NUMBERED_ITEM, line[line.index(" ") + 1 :])
 
     if line.startswith("<"):
         return (NodeType.RAW_HTML, line)
@@ -143,17 +143,31 @@ def parse_python_block(ctx: ParserContext, type: NodeType, line: str) -> None:
         ctx.python_block += f"{line}\n"
 
 
+def hightlight_code(code: str, language: str) -> str:
+    pipe = run(
+        ["node", "highlighter/index.js", language],
+        capture_output=True,
+        input=code.encode(),
+    )
+
+    if pipe.returncode != 0:
+        raise ChildProcessError(
+            f"""\
+Code could not be highlighted. This could be for a number of reasons:
+* The language "{language}" was not recognized
+* Node is not installed
+* You didn't run "npm install" in highlighter folder
+* index.js was not found
+"""
+        )
+
+    return pipe.stdout.decode()
+
+
 def parse_code_block(ctx: ParserContext, type: NodeType, line: str) -> None:
     if type == NodeType.CODE_BLOCK:
         if ctx.language:
-            pipe = Popen(
-                ["node", "highlighter/index.js", ctx.language],
-                stdout=PIPE,
-                stdin=PIPE,
-                stderr=STDOUT
-            )
-
-            ctx.html += pipe.communicate(input=ctx.code_block.encode())[0].decode()
+            ctx.html += hightlight_code(ctx.code_block, ctx.language)
 
         else:
             ctx.html += f'<pre class="hljs">{ctx.code_block}</pre>'
@@ -169,9 +183,9 @@ def group_text_and_blockquotes(lines: List[Node]) -> List[Node]:
     out = [lines.pop(0)]
 
     for line in lines:
-        if (
-            line[0] == out[-1][0] and
-            line[0] in (NodeType.TEXT, NodeType.BLOCKQUOTE)
+        if line[0] == out[-1][0] and line[0] in (
+            NodeType.TEXT,
+            NodeType.BLOCKQUOTE,
         ):
             last = out.pop()
             out.append((line[0], f"{last[1]}\n{line[1]}"))
@@ -280,12 +294,8 @@ def run_pipeline(markdown: str) -> str:
     return convert(expanded)
 
 
-def main():
-    if len(argv) != 2:
-        print(f"usage: {argv[0]} <file.md>")
-        return
-
-    file = Path(argv[1])
+def convert_file(filename: str) -> None:
+    file = Path(filename)
 
     markdown = file.read_text()
     content = run_pipeline(markdown)
@@ -299,5 +309,8 @@ def main():
         f.write(html)
 
 
-if __name__ == "__main__":
-    main()
+def main(argv: List[str]):
+    if len(argv) == 2:
+        convert_file(argv[1])
+
+    print(f"usage: {argv[0]} <file.md>")

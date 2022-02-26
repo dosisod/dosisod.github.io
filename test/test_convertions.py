@@ -1,5 +1,3 @@
-import pytest
-
 from md2html.core import (
     NodeType,
     categorize,
@@ -22,7 +20,9 @@ def test_expand_bold():
 
 def test_expand_bold_multiple():
     content = "hello **there** world **goodbye** world"
-    expected = "hello <strong>there</strong> world <strong>goodbye</strong> world"
+    expected = (
+        "hello <strong>there</strong> world <strong>goodbye</strong> world"
+    )
 
     assert expand_bold(content) == expected
 
@@ -74,16 +74,31 @@ def test_line_type_detection():
 
     assert line_to_node("# hello world") == (NodeType.HEADER_1, "hello world")
     assert line_to_node("## hello world") == (NodeType.HEADER_2, "hello world")
-    assert line_to_node("### hello world") == (NodeType.HEADER_3, "hello world")
-    assert line_to_node("#### hello world") == (NodeType.HEADER_4, "hello world")
+    assert line_to_node("### hello world") == (
+        NodeType.HEADER_3,
+        "hello world",
+    )
+    assert line_to_node("#### hello world") == (
+        NodeType.HEADER_4,
+        "hello world",
+    )
 
     assert line_to_node("* something") == (NodeType.BULLET_ITEM, "something")
     assert line_to_node("*not a bullet point")[0] != NodeType.BULLET_ITEM
 
-    assert line_to_node("1. something") == (NodeType.NUMBERED_ITEM, "something")
-    assert line_to_node("99. something") == (NodeType.NUMBERED_ITEM, "something")
+    assert line_to_node("1. something") == (
+        NodeType.NUMBERED_ITEM,
+        "something",
+    )
+    assert line_to_node("99. something") == (
+        NodeType.NUMBERED_ITEM,
+        "something",
+    )
 
-    assert line_to_node("<p>raw html</p>") == (NodeType.RAW_HTML, "<p>raw html</p>")
+    assert line_to_node("<p>raw html</p>") == (
+        NodeType.RAW_HTML,
+        "<p>raw html</p>",
+    )
 
     assert line_to_node("") == (NodeType.NEWLINE, "")
 
@@ -94,7 +109,10 @@ def test_line_type_detection():
 
     assert line_to_node("> some quote") == (NodeType.BLOCKQUOTE, "some quote")
 
-    assert line_to_node("- [ ] hello") == (NodeType.CHECKBOX_UNCHECKED, "hello")
+    assert line_to_node("- [ ] hello") == (
+        NodeType.CHECKBOX_UNCHECKED,
+        "hello",
+    )
     assert line_to_node("- [x] hello") == (NodeType.CHECKBOX_CHECKED, "hello")
 
 
@@ -127,10 +145,7 @@ def test_convert_bullet_list():
     assert run_pipeline("* hello\n") == "<ul>\n<li>hello</li>\n</ul>\n"
 
     assert run_pipeline("* hello\n* world\n") == (
-        "<ul>\n"
-        "<li>hello</li>\n"
-        "<li>world</li>\n"
-        "</ul>\n"
+        "<ul>\n<li>hello</li>\n<li>world</li>\n</ul>\n"
     )
 
 
@@ -138,10 +153,7 @@ def test_convert_numbered_list():
     assert run_pipeline("1. hello\n") == "<ol>\n<li>hello</li>\n</ol>\n"
 
     assert run_pipeline("1. hello\n2. world\n") == (
-        "<ol>\n"
-        "<li>hello</li>\n"
-        "<li>world</li>\n"
-        "</ol>\n"
+        "<ol>\n<li>hello</li>\n<li>world</li>\n</ol>\n"
     )
 
 
@@ -181,20 +193,14 @@ def test_convert_code_block_multi_line():
     assert run_pipeline(block) == '<pre class="hljs">hello\nworld\n</pre>'
 
 
-# TODO: figure out how to mock this properly (specifically the Popen call)
-@pytest.mark.xfail
-def test_convert_code_block_language_set():
-    block = make_code_block("hello world", language="python")
-
-    assert run_pipeline(block) == '<code class="code-block">hello world\n</code>'
-
-
 def test_convert_newline():
     assert run_pipeline("") == "<br>\n"
 
 
 def test_convert_blockquote():
-    assert run_pipeline("> hello world") == "<blockquote>hello world</blockquote>\n"
+    assert run_pipeline("> hello world") == (
+        "<blockquote>hello world</blockquote>\n"
+    )
 
 
 def test_convert_unchecked_checkbox():
@@ -210,7 +216,9 @@ def test_convert_checked_checkbox():
 
 
 def test_group_text_lines():
-    assert run_pipeline("hello\nthere\nworld") == "<p>hello\nthere\nworld</p>\n"
+    expected = "<p>hello\nthere\nworld</p>\n"
+
+    assert run_pipeline("hello\nthere\nworld") == expected
 
 
 def test_group_blockquote_lines():
