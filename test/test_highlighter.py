@@ -20,6 +20,17 @@ def test_convert_code_block_language_set(mocked):
     mocked.assert_called_with("hello world\n", "python")
 
 
+@patch("md2html.core.hightlight_code")
+def test_highlighter_escapes_backslashes(mocked):
+    block = make_code_block("hello\\nworld", language="python")
+
+    mocked.return_value = "anything"
+
+    run_pipeline(block)
+
+    mocked.assert_called_with("hello\\\\nworld\n", "python")
+
+
 def test_invalid_language_throws_error():
     block = make_code_block("hello world", language="not a language")
 

@@ -26,7 +26,16 @@ class NodeType(Enum):
         return type in (cls.BULLET_ITEM, cls.NUMBERED_ITEM)
 
 
-Node = Tuple[NodeType, str]
+class Node:
+    type: NodeType
+    data: str
+
+    def __init__(self, type: NodeType, data: str) -> None:
+        self.type = type
+        self.data = data
+
+    def __eq__(self, o) -> bool:
+        return self.type == o.type and self.data == o.data
 
 
 def run_python_block(code: str) -> str:
@@ -40,45 +49,45 @@ def run_python_block(code: str) -> str:
 
 def line_to_node(line: str) -> Node:
     if line.startswith("# "):
-        return (NodeType.HEADER_1, line[2:])
+        return Node(NodeType.HEADER_1, line[2:])
 
     if line.startswith("## "):
-        return (NodeType.HEADER_2, line[3:])
+        return Node(NodeType.HEADER_2, line[3:])
 
     if line.startswith("### "):
-        return (NodeType.HEADER_3, line[4:])
+        return Node(NodeType.HEADER_3, line[4:])
 
     if line.startswith("#### "):
-        return (NodeType.HEADER_4, line[5:])
+        return Node(NodeType.HEADER_4, line[5:])
 
     if line.startswith("* "):
-        return (NodeType.BULLET_ITEM, line[2:])
+        return Node(NodeType.BULLET_ITEM, line[2:])
 
-    if re.match(r"^\d+\.", line):
-        return (NodeType.NUMBERED_ITEM, line[line.index(" ") + 1 :])
+    if re.match(r"^\d+\. ", line):
+        return Node(NodeType.NUMBERED_ITEM, line[line.index(" ") + 1 :])
 
     if line.startswith("<"):
-        return (NodeType.RAW_HTML, line)
+        return Node(NodeType.RAW_HTML, line)
 
     if line == "":
-        return (NodeType.NEWLINE, "")
+        return Node(NodeType.NEWLINE, "")
 
     if line == "!!!":
-        return (NodeType.RAW_PYTHON, "")
+        return Node(NodeType.RAW_PYTHON, "")
 
     if line.startswith("```"):
-        return (NodeType.CODE_BLOCK, line[3:])
+        return Node(NodeType.CODE_BLOCK, line[3:])
 
     if line.startswith("> "):
-        return (NodeType.BLOCKQUOTE, line[2:])
+        return Node(NodeType.BLOCKQUOTE, line[2:])
 
     if line.startswith("- [ ] "):
-        return (NodeType.CHECKBOX_UNCHECKED, line[6:])
+        return Node(NodeType.CHECKBOX_UNCHECKED, line[6:])
 
     if line.startswith("- [x] "):
-        return (NodeType.CHECKBOX_CHECKED, line[6:])
+        return Node(NodeType.CHECKBOX_CHECKED, line[6:])
 
-    return (NodeType.TEXT, line)
+    return Node(NodeType.TEXT, line)
 
 
 def categorize(lines: List[str]) -> List[Node]:
@@ -129,7 +138,7 @@ def end_list_if_needed(ctx: ParserContext, type: NodeType) -> None:
 def parse_list_item(ctx: ParserContext, type: NodeType, line: str) -> None:
     start_list_if_needed(ctx, type)
 
-    ctx.html += f"<li>{line}</li>\n"
+    ctx.html += f"<li>{expand_inline(line)}</li>\n"
 
 
 def parse_python_block(ctx: ParserContext, type: NodeType, line: str) -> None:
@@ -167,7 +176,9 @@ Code could not be highlighted. This could be for a number of reasons:
 def parse_code_block(ctx: ParserContext, type: NodeType, line: str) -> None:
     if type == NodeType.CODE_BLOCK:
         if ctx.language:
-            ctx.html += hightlight_code(ctx.code_block, ctx.language)
+            escaped = ctx.code_block.replace("\\", "\\\\")
+
+            ctx.html += hightlight_code(escaped, ctx.language)
 
         else:
             ctx.html += f'<pre class="hljs">{ctx.code_block}</pre>'
@@ -179,27 +190,30 @@ def parse_code_block(ctx: ParserContext, type: NodeType, line: str) -> None:
         ctx.code_block += f"{line}\n"
 
 
-def group_text_and_blockquotes(lines: List[Node]) -> List[Node]:
-    out = [lines.pop(0)]
+def group_text_and_blockquotes(nodes: List[Node]) -> List[Node]:
+    out = [nodes.pop(0)]
 
-    for line in lines:
-        if line[0] == out[-1][0] and line[0] in (
+    for node in nodes:
+        if node.type == out[-1].type and node.type in (
             NodeType.TEXT,
             NodeType.BLOCKQUOTE,
         ):
             last = out.pop()
-            out.append((line[0], f"{last[1]}\n{line[1]}"))
+            out.append(Node(node.type, f"{last.data}\n{node.data}"))
 
         else:
-            out.append(line)
+            out.append(node)
 
     return out
 
 
-def convert(lines: List[Node]) -> str:
+def convert(nodes: List[Node]) -> str:
     ctx = ParserContext()
 
-    for type, line in lines:
+    for node in nodes:
+        type = node.type
+        line = node.data
+
         if ctx.in_list():
             if NodeType.is_list_item(type):
                 parse_list_item(ctx, type, line)
@@ -223,19 +237,19 @@ def convert(lines: List[Node]) -> str:
             ctx.in_code_block = True
 
         elif type == NodeType.HEADER_1:
-            ctx.html += f"<h1>{line}</h1>\n"
+            ctx.html += f"<h1>{expand_inline(line)}</h1>\n"
 
         elif type == NodeType.HEADER_2:
-            ctx.html += f"<h2>{line}</h2>\n"
+            ctx.html += f"<h2>{expand_inline(line)}</h2>\n"
 
         elif type == NodeType.HEADER_3:
-            ctx.html += f"<h3>{line}</h3>\n"
+            ctx.html += f"<h3>{expand_inline(line)}</h3>\n"
 
         elif type == NodeType.HEADER_4:
-            ctx.html += f"<h4>{line}</h4>\n"
+            ctx.html += f"<h4>{expand_inline(line)}</h4>\n"
 
         elif type == NodeType.TEXT:
-            ctx.html += f"<p>{line}</p>\n"
+            ctx.html += f"<p>{expand_inline(line)}</p>\n"
 
         elif type == NodeType.NEWLINE:
             ctx.html += "<br>\n"
@@ -244,13 +258,15 @@ def convert(lines: List[Node]) -> str:
             ctx.html += f"{line}\n"
 
         elif type == NodeType.BLOCKQUOTE:
-            ctx.html += f"<blockquote>{line}</blockquote>\n"
+            ctx.html += f"<blockquote>{expand_inline(line)}</blockquote>\n"
 
         elif type == NodeType.CHECKBOX_UNCHECKED:
-            ctx.html += f'<p><input type="checkbox">{line}</p>\n'
+            ctx.html += (
+                f'<p><input type="checkbox">{expand_inline(line)}</p>\n'
+            )
 
         elif type == NodeType.CHECKBOX_CHECKED:
-            ctx.html += f'<p><input type="checkbox" checked>{line}</p>\n'
+            ctx.html += f'<p><input type="checkbox" checked>{expand_inline(line)}</p>\n'
 
     return ctx.html
 
@@ -278,7 +294,7 @@ def expand_italics(html: str) -> str:
 
 def expand_code(html: str) -> str:
     md_code_regex = r"`([^`]+)`"
-    code_regex = r"<code>\1</code>"
+    code_regex = r'<code class="hljs">\1</code>'
 
     return re.sub(md_code_regex, code_regex, html)
 
@@ -288,10 +304,10 @@ def expand_inline(line: str) -> str:
 
 
 def run_pipeline(markdown: str) -> str:
-    lines = group_text_and_blockquotes(categorize(markdown.split("\n")))
-    expanded = [(type, expand_inline(line)) for type, line in lines]
+    nodes = categorize(markdown.split("\n"))
+    nodes = group_text_and_blockquotes(nodes)
 
-    return convert(expanded)
+    return convert(nodes)
 
 
 def convert_file(filename: str) -> None:
@@ -313,4 +329,5 @@ def main(argv: List[str]):
     if len(argv) == 2:
         convert_file(argv[1])
 
-    print(f"usage: {argv[0]} <file.md>")
+    else:
+        print(f"usage: {argv[0]} <file.md>")

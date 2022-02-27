@@ -8,6 +8,7 @@ from md2html.core import (
     expand_code,
     line_to_node,
     run_pipeline,
+    Node,
 )
 
 
@@ -43,14 +44,14 @@ def test_expand_italics_multiple():
 
 def test_expand_code():
     content = "hello `there` world"
-    expected = "hello <code>there</code> world"
+    expected = 'hello <code class="hljs">there</code> world'
 
     assert expand_code(content) == expected
 
 
 def test_expand_code_multiple():
     content = "hello `there` world `goodbye` world"
-    expected = "hello <code>there</code> world <code>goodbye</code> world"
+    expected = 'hello <code class="hljs">there</code> world <code class="hljs">goodbye</code> world'
 
     assert expand_code(content) == expected
 
@@ -70,50 +71,64 @@ def test_expand_multile_links():
 
 
 def test_line_type_detection():
-    assert line_to_node("hello world") == (NodeType.TEXT, "hello world")
+    assert line_to_node("hello world") == Node(NodeType.TEXT, "hello world")
 
-    assert line_to_node("# hello world") == (NodeType.HEADER_1, "hello world")
-    assert line_to_node("## hello world") == (NodeType.HEADER_2, "hello world")
-    assert line_to_node("### hello world") == (
+    assert line_to_node("# hello world") == Node(
+        NodeType.HEADER_1, "hello world"
+    )
+    assert line_to_node("## hello world") == Node(
+        NodeType.HEADER_2, "hello world"
+    )
+    assert line_to_node("### hello world") == Node(
         NodeType.HEADER_3,
         "hello world",
     )
-    assert line_to_node("#### hello world") == (
+    assert line_to_node("#### hello world") == Node(
         NodeType.HEADER_4,
         "hello world",
     )
 
-    assert line_to_node("* something") == (NodeType.BULLET_ITEM, "something")
-    assert line_to_node("*not a bullet point")[0] != NodeType.BULLET_ITEM
+    assert line_to_node("* something") == Node(
+        NodeType.BULLET_ITEM, "something"
+    )
+    assert line_to_node("*not a bullet point").type != NodeType.BULLET_ITEM
 
-    assert line_to_node("1. something") == (
+    assert line_to_node("1. something") == Node(
         NodeType.NUMBERED_ITEM,
         "something",
     )
-    assert line_to_node("99. something") == (
+    assert line_to_node("99. something") == Node(
         NodeType.NUMBERED_ITEM,
         "something",
     )
+    assert line_to_node("1.something") == Node(
+        NodeType.TEXT,
+        "1.something",
+    )
 
-    assert line_to_node("<p>raw html</p>") == (
+    assert line_to_node("<p>raw html</p>") == Node(
         NodeType.RAW_HTML,
         "<p>raw html</p>",
     )
 
-    assert line_to_node("") == (NodeType.NEWLINE, "")
+    assert line_to_node("") == Node(NodeType.NEWLINE, "")
 
-    assert line_to_node("!!!") == (NodeType.RAW_PYTHON, "")
+    assert line_to_node("!!!") == Node(NodeType.RAW_PYTHON, "")
 
-    assert line_to_node("```") == (NodeType.CODE_BLOCK, "")
-    assert line_to_node("```python") == (NodeType.CODE_BLOCK, "python")
+    assert line_to_node("```") == Node(NodeType.CODE_BLOCK, "")
+    assert line_to_node("```python") == Node(NodeType.CODE_BLOCK, "python")
 
-    assert line_to_node("> some quote") == (NodeType.BLOCKQUOTE, "some quote")
+    assert line_to_node("> some quote") == Node(
+        NodeType.BLOCKQUOTE, "some quote"
+    )
 
-    assert line_to_node("- [ ] hello") == (
+    assert line_to_node("- [ ] hello") == Node(
         NodeType.CHECKBOX_UNCHECKED,
         "hello",
     )
-    assert line_to_node("- [x] hello") == (NodeType.CHECKBOX_CHECKED, "hello")
+    assert line_to_node("- [x] hello") == Node(
+        NodeType.CHECKBOX_CHECKED, "hello"
+    )
 
 
 def test_categorize():
@@ -123,11 +138,11 @@ def test_categorize():
 
     assert len(categorized) == 2
 
-    assert categorized[0][0] == NodeType.HEADER_1
-    assert categorized[0][1] == "hello"
+    assert categorized[0].type == NodeType.HEADER_1
+    assert categorized[0].data == "hello"
 
-    assert categorized[1][0] == NodeType.TEXT
-    assert categorized[1][1] == "world"
+    assert categorized[1].type == NodeType.TEXT
+    assert categorized[1].data == "world"
 
 
 def test_convert_headings():
@@ -236,7 +251,9 @@ def test_pipeline_runs_italics():
 
 
 def test_pipeline_converts_code():
-    assert run_pipeline("`hello`") == "<p><code>hello</code></p>\n"
+    assert run_pipeline("`hello`") == (
+        '<p><code class="hljs">hello</code></p>\n'
+    )
 
 
 def test_multiline_bold_ignored():
@@ -249,3 +266,11 @@ def test_multiline_italics_ignored():
 
 def test_multiline_code_ignored():
     assert "<code>" not in run_pipeline("`hello\n\n`world")
+
+
+def test_dont_expand_inline_code_in_code_blocks():
+    assert "<em>" not in run_pipeline("```\n*hello world*\n```")
+
+
+def test_dont_expand_inline_code_in_python_blocks():
+    assert "<em>" not in run_pipeline('!!!\n"*hello world*"\n!!!')
