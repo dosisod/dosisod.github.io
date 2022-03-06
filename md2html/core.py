@@ -1,274 +1,202 @@
-from enum import Enum, auto
 from pathlib import Path
 from subprocess import run
-from typing import List, Tuple
 import re
+from sys import argv
 
-
-class NodeType(Enum):
-    TEXT = auto()
-    HEADER_1 = auto()
-    HEADER_2 = auto()
-    HEADER_3 = auto()
-    HEADER_4 = auto()
-    BULLET_ITEM = auto()
-    NUMBERED_ITEM = auto()
-    RAW_HTML = auto()
-    RAW_PYTHON = auto()
-    NEWLINE = auto()
-    BLOCKQUOTE = auto()
-    CHECKBOX_UNCHECKED = auto()
-    CHECKBOX_CHECKED = auto()
-    CODE_BLOCK = auto()
-
-    @classmethod
-    def is_list_item(cls, type: "NodeType") -> bool:
-        return type in (cls.BULLET_ITEM, cls.NUMBERED_ITEM)
+from typing import List, Tuple, Iterator, Optional
 
 
 class Node:
-    type: NodeType
-    data: str
+    type: str
+    contents: str
+    data: List[str]
 
-    def __init__(self, type: NodeType, data: str) -> None:
+    def __init__(
+        self, type: str, contents: str = "", data: Optional[List[str]] = None
+    ) -> None:
         self.type = type
-        self.data = data
+        self.contents = contents
+        self.data = [] if data is None else data
 
-    def __eq__(self, o) -> bool:
-        return self.type == o.type and self.data == o.data
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, Node):
+            return NotImplemented  # pragma: no cover
 
-
-def run_python_block(code: str) -> str:
-    html = ""
-
-    _locals = locals()
-    exec(code, globals(), _locals)
-
-    return _locals["html"]
-
-
-def line_to_node(line: str) -> Node:
-    if line.startswith("# "):
-        return Node(NodeType.HEADER_1, line[2:])
-
-    if line.startswith("## "):
-        return Node(NodeType.HEADER_2, line[3:])
-
-    if line.startswith("### "):
-        return Node(NodeType.HEADER_3, line[4:])
-
-    if line.startswith("#### "):
-        return Node(NodeType.HEADER_4, line[5:])
-
-    if line.startswith("* "):
-        return Node(NodeType.BULLET_ITEM, line[2:])
-
-    if re.match(r"^\d+\. ", line):
-        return Node(NodeType.NUMBERED_ITEM, line[line.index(" ") + 1 :])
-
-    if line.startswith("<"):
-        return Node(NodeType.RAW_HTML, line)
-
-    if line == "":
-        return Node(NodeType.NEWLINE, "")
-
-    if line == "!!!":
-        return Node(NodeType.RAW_PYTHON, "")
-
-    if line.startswith("```"):
-        return Node(NodeType.CODE_BLOCK, line[3:])
-
-    if line.startswith("> "):
-        return Node(NodeType.BLOCKQUOTE, line[2:])
-
-    if line.startswith("- [ ] "):
-        return Node(NodeType.CHECKBOX_UNCHECKED, line[6:])
-
-    if line.startswith("- [x] "):
-        return Node(NodeType.CHECKBOX_CHECKED, line[6:])
-
-    return Node(NodeType.TEXT, line)
-
-
-def categorize(lines: List[str]) -> List[Node]:
-    return [line_to_node(line) for line in lines]
-
-
-class ParserContext:
-    html = ""
-
-    in_bullet_list = False
-    in_number_list = False
-
-    in_python_block = False
-    python_block = ""
-
-    in_code_block = False
-    code_block = ""
-
-    def in_list(self) -> bool:
-        return self.in_bullet_list or self.in_number_list
-
-
-def start_list_if_needed(ctx: ParserContext, type: NodeType) -> None:
-    if ctx.in_list():
-        return
-
-    if type == NodeType.BULLET_ITEM:
-        ctx.html += "<ul>\n"
-        ctx.in_bullet_list = True
-
-    else:
-        ctx.html += "<ol>\n"
-        ctx.in_number_list = True
-
-
-def end_list_if_needed(ctx: ParserContext, type: NodeType) -> None:
-    if not NodeType.is_list_item(type):
-        if ctx.in_bullet_list:
-            ctx.html += "</ul>\n"
-
-        else:
-            ctx.html += "</ol>\n"
-
-        ctx.in_bullet_list = False
-        ctx.in_number_list = False
-
-
-def parse_list_item(ctx: ParserContext, type: NodeType, line: str) -> None:
-    start_list_if_needed(ctx, type)
-
-    ctx.html += f"<li>{expand_inline(line)}</li>\n"
-
-
-def parse_python_block(ctx: ParserContext, type: NodeType, line: str) -> None:
-    if type == NodeType.RAW_PYTHON:
-        ctx.html += run_python_block(ctx.python_block)
-
-        ctx.in_python_block = False
-        ctx.python_block = ""
-
-    else:
-        ctx.python_block += f"{line}\n"
-
-
-def hightlight_code(code: str, language: str) -> str:
-    pipe = run(
-        ["node", "highlighter/index.js", language],
-        capture_output=True,
-        input=code.encode(),
-    )
-
-    if pipe.returncode != 0:
-        raise ChildProcessError(
-            f"""\
-Code could not be highlighted. This could be for a number of reasons:
-* The language "{language}" was not recognized
-* Node is not installed
-* You didn't run "npm install" in highlighter folder
-* index.js was not found
-"""
+        return bool(
+            self.type == o.type
+            and self.contents == o.contents
+            and self.data == o.data
         )
 
-    return pipe.stdout.decode()
 
+def group_blocked_nodes(nodes: Iterator[Node]) -> List[Node]:
+    def iter_code_block(first: Node, nodes: Iterator[Node]) -> Node:
+        lang = first.contents[3:]
+        next_node = next(nodes, None)
 
-def parse_code_block(ctx: ParserContext, type: NodeType, line: str) -> None:
-    if type == NodeType.CODE_BLOCK:
-        if ctx.language:
-            escaped = ctx.code_block.replace("\\", "\\\\")
+        if not next_node:
+            raise ValueError("codeblock end not reached")
 
-            ctx.html += hightlight_code(escaped, ctx.language)
+        codeblock = next_node.contents
+
+        for node in nodes:
+            if node.contents.startswith("```"):
+                next(nodes)
+                return Node("CODEBLOCK", data=[lang, codeblock])
+
+            else:
+                codeblock += f"\n{node.contents}"
+
+        raise ValueError("codeblock end not reached")
+
+    def iter_python_blocks(nodes: Iterator[Node]) -> Node:
+        next_node = next(nodes, None)
+
+        if not next_node:
+            raise ValueError("python block end not reached")
+
+        code = next_node.contents
+
+        for node in nodes:
+            if node.contents == "!!!":
+                next(nodes)
+                return Node("PYTHON_BLOCK", code)
+
+            else:
+                code += f"\n{node.contents}"
+
+        raise ValueError("python block end not reached")
+
+    def iter_block_quote(first: Node, nodes: Iterator[Node]) -> Node:
+        blockquote = first.contents[2:]
+
+        for node in nodes:
+            if node.contents.startswith("> "):
+                blockquote += f"\n{node.contents[2:]}"
+
+            else:
+                break
+
+        return Node("BLOCKQUOTE", blockquote)
+
+    grouped_nodes = []
+
+    for node in nodes:
+        if node.contents.startswith("```"):
+            grouped_nodes.append(iter_code_block(node, nodes))
+
+        elif node.contents == "!!!":
+            grouped_nodes.append(iter_python_blocks(nodes))
+
+        elif node.contents.startswith("> "):
+            grouped_nodes.append(iter_block_quote(node, nodes))
 
         else:
-            ctx.html += f'<pre class="hljs">{ctx.code_block}</pre>'
+            grouped_nodes.append(node)
 
-        ctx.in_code_block = False
-        ctx.code_block = ""
+    return grouped_nodes
+
+
+def classify_node(node: Node) -> None:
+    if node.type in ("PYTHON_BLOCK", "CODEBLOCK", "BLOCKQUOTE"):
+        pass
+
+    elif node.contents.startswith("# "):
+        node.type = "HEADER1"
+        node.contents = node.contents[2:]
+
+    elif node.contents.startswith("## "):
+        node.type = "HEADER2"
+        node.contents = node.contents[3:]
+
+    elif node.contents.startswith("### "):
+        node.type = "HEADER3"
+        node.contents = node.contents[4:]
+
+    elif node.contents.startswith("#### "):
+        node.type = "HEADER4"
+        node.contents = node.contents[5:]
+
+    elif node.contents == "":
+        node.type = "NEWLINE"
+
+    elif node.contents.startswith("* "):
+        node.type = "BULLET"
+        node.contents = node.contents[2:]
+
+    elif node.contents.startswith("<"):
+        node.type = "HTML"
+
+    elif re.match(r"^\d+\. ", node.contents):
+        node.type = "NUM_LIST"
+        node.contents = node.contents[node.contents.index(" ") + 1 :]
+
+    elif node.contents.startswith("- [ ] "):
+        node.type = "CHECKBOX_UNCHECKED"
+        node.contents = node.contents[6:]
+
+    elif node.contents.startswith("- [x] "):
+        node.type = "CHECKBOX_CHECKED"
+        node.contents = node.contents[6:]
 
     else:
-        ctx.code_block += f"{line}\n"
+        node.type = "TEXT"
 
 
-def group_text_and_blockquotes(nodes: List[Node]) -> List[Node]:
-    out = [nodes.pop(0)]
+def classify_nodes(nodes: List[Node]) -> None:
+    for node in nodes:
+        classify_node(node)
+
+
+def group_text_nodes(nodes: List[Node]) -> List[Node]:
+    done: List[Node] = []
 
     for node in nodes:
-        if node.type == out[-1].type and node.type in (
-            NodeType.TEXT,
-            NodeType.BLOCKQUOTE,
-        ):
-            last = out.pop()
-            out.append(Node(node.type, f"{last.data}\n{node.data}"))
+        if node.type == "TEXT":
+            if len(done) == 0 or done[-1].type != "TEXT":
+                done.append(node)
+
+            else:
+                done[-1].contents += f"\n{node.contents}"
 
         else:
-            out.append(node)
+            done.append(node)
 
-    return out
+    return done
 
 
-def convert(nodes: List[Node]) -> str:
-    ctx = ParserContext()
+def group_bullet_nodes(nodes: List[Node]) -> List[Node]:
+    done: List[Node] = []
 
     for node in nodes:
-        type = node.type
-        line = node.data
+        if node.type == "BULLET":
+            if len(done) == 0 or done[-1].type != "BULLET":
+                done.append(Node(node.type, data=[node.contents]))
 
-        if ctx.in_list():
-            if NodeType.is_list_item(type):
-                parse_list_item(ctx, type, line)
+            else:
+                done[-1].data.append(node.contents)
 
-            end_list_if_needed(ctx, type)
+        else:
+            done.append(node)
 
-        elif ctx.in_python_block:
-            parse_python_block(ctx, type, line)
+    return done
 
-        elif ctx.in_code_block:
-            parse_code_block(ctx, type, line)
 
-        elif NodeType.is_list_item(type):
-            parse_list_item(ctx, type, line)
+def group_number_list_nodes(nodes: List[Node]) -> List[Node]:
+    done: List[Node] = []
 
-        elif type == NodeType.RAW_PYTHON:
-            ctx.in_python_block = True
+    for node in nodes:
+        if node.type == "NUM_LIST":
+            if len(done) == 0 or done[-1].type != "NUM_LIST":
+                done.append(Node(node.type, data=[node.contents]))
 
-        elif type == NodeType.CODE_BLOCK:
-            ctx.language = line
-            ctx.in_code_block = True
+            else:
+                done[-1].data.append(node.contents)
 
-        elif type == NodeType.HEADER_1:
-            ctx.html += f"<h1>{expand_inline(line)}</h1>\n"
+        else:
+            done.append(node)
 
-        elif type == NodeType.HEADER_2:
-            ctx.html += f"<h2>{expand_inline(line)}</h2>\n"
-
-        elif type == NodeType.HEADER_3:
-            ctx.html += f"<h3>{expand_inline(line)}</h3>\n"
-
-        elif type == NodeType.HEADER_4:
-            ctx.html += f"<h4>{expand_inline(line)}</h4>\n"
-
-        elif type == NodeType.TEXT:
-            ctx.html += f"<p>{expand_inline(line)}</p>\n"
-
-        elif type == NodeType.NEWLINE:
-            ctx.html += "<br>\n"
-
-        elif type == NodeType.RAW_HTML:
-            ctx.html += f"{line}\n"
-
-        elif type == NodeType.BLOCKQUOTE:
-            ctx.html += f"<blockquote>{expand_inline(line)}</blockquote>\n"
-
-        elif type == NodeType.CHECKBOX_UNCHECKED:
-            ctx.html += (
-                f'<p><input type="checkbox">{expand_inline(line)}</p>\n'
-            )
-
-        elif type == NodeType.CHECKBOX_CHECKED:
-            ctx.html += f'<p><input type="checkbox" checked>{expand_inline(line)}</p>\n'
-
-    return ctx.html
+    return done
 
 
 def expand_links(html: str) -> str:
@@ -303,18 +231,130 @@ def expand_inline(line: str) -> str:
     return expand_code(expand_italics(expand_bold(expand_links(line))))
 
 
-def run_pipeline(markdown: str) -> str:
-    nodes = categorize(markdown.split("\n"))
-    nodes = group_text_and_blockquotes(nodes)
+def expand_nodes(nodes: List[Node]) -> None:
+    for node in nodes:
+        if node.type in ("BULLET", "NUM_LIST"):
+            for i, item in enumerate(node.data):
+                node.data[i] = expand_inline(item)
 
-    return convert(nodes)
+        elif node.type not in ("CODEBLOCK", "BLOCKQUOTE"):
+            node.contents = expand_inline(node.contents)
+
+
+def run_python_block(code: str) -> str:
+    html = ""
+
+    _locals = locals()
+    exec(code, globals(), _locals)
+
+    return _locals["html"]  # type: ignore
+
+
+def hightlight_code(code: str, language: str) -> str:
+    pipe = run(
+        ["node", "highlighter/index.js", language],
+        capture_output=True,
+        input=code.encode(),
+    )
+
+    if pipe.returncode != 0:
+        raise ChildProcessError(
+            f"""\
+Code could not be highlighted. This could be for a number of reasons:
+* The language "{language}" was not recognized
+* Node is not installed
+* You didn't run "npm install" in highlighter folder
+* index.js was not found
+"""
+        )
+
+    return pipe.stdout.decode()
+
+
+def convert_node(node: Node) -> str:
+    type = node.type
+    line = node.contents
+
+    if type == "HEADER1":
+        return f"<h1>{line}</h1>"
+
+    elif type == "HEADER2":
+        return f"<h2>{line}</h2>"
+
+    elif type == "HEADER3":
+        return f"<h3>{line}</h3>"
+
+    elif type == "HEADER4":
+        return f"<h4>{line}</h4>"
+
+    elif type == "TEXT":
+        return f"<p>{line}</p>"
+
+    elif type == "NEWLINE":
+        return "<br>"
+
+    elif type == "HTML":
+        return f"{line}"
+
+    elif type == "BLOCKQUOTE":
+        return f"<blockquote>{line}</blockquote>"
+
+    elif type == "CHECKBOX_UNCHECKED":
+        return f'<p><input type="checkbox">{line}</p>'
+
+    elif type == "CHECKBOX_CHECKED":
+        return f'<p><input type="checkbox" checked>{line}</p>'
+
+    elif type == "BULLET":
+        items = "\n".join([f"<li>{l}</li>" for l in node.data])
+
+        return f"<ul>\n{items}\n</ul>"
+
+    elif type == "NUM_LIST":
+        items = "\n".join([f"<li>{l}</li>" for l in node.data])
+
+        return f"<ol>\n{items}\n</ol>"
+
+    elif type == "PYTHON_BLOCK":
+        return run_python_block(line)
+
+    elif type == "CODEBLOCK":
+        lang = node.data[0]
+        code = node.data[1]
+
+        if lang:
+            escaped = code.replace("\\", "\\\\")
+
+            return hightlight_code(escaped, lang)
+
+        else:
+            return f'<pre class="hljs">{code}</pre>'
+
+    assert False  # pragma: no cover
+
+
+def setup_nodes(md: str) -> List[Node]:
+    lines = md.split("\n")
+    return [Node("UNKNOWN", line) for line in lines]
+
+
+def markdown_to_html(md: str) -> str:
+    nodes = setup_nodes(md)
+    nodes = group_blocked_nodes(iter(nodes))
+    classify_nodes(nodes)
+    nodes = group_text_nodes(nodes)
+    nodes = group_bullet_nodes(nodes)
+    nodes = group_number_list_nodes(nodes)
+    expand_nodes(nodes)
+
+    return "\n".join([convert_node(node) for node in nodes])
 
 
 def convert_file(filename: str) -> None:
     file = Path(filename)
 
     markdown = file.read_text()
-    content = run_pipeline(markdown)
+    content = markdown_to_html(markdown)
 
     template = Path("./index.template.html").read_text()
     template = re.sub("TITLE", file.stem, template)

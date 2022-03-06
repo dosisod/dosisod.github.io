@@ -2,11 +2,12 @@ from unittest.mock import patch
 
 import pytest
 
-from md2html.core import run_pipeline
+from md2html.core import markdown_to_html
 
 
+# TODO: fix needing extra newline
 def make_code_block(body: str, language: str = "") -> str:
-    return f"```{language}\n{body}\n```"
+    return f"```{language}\n{body}\n```\n"
 
 
 @patch("md2html.core.hightlight_code")
@@ -15,9 +16,9 @@ def test_convert_code_block_language_set(mocked):
 
     mocked.return_value = "anything"
 
-    run_pipeline(block)
+    markdown_to_html(block)
 
-    mocked.assert_called_with("hello world\n", "python")
+    mocked.assert_called_with("hello world", "python")
 
 
 @patch("md2html.core.hightlight_code")
@@ -26,22 +27,22 @@ def test_highlighter_escapes_backslashes(mocked):
 
     mocked.return_value = "anything"
 
-    run_pipeline(block)
+    markdown_to_html(block)
 
-    mocked.assert_called_with("hello\\\\nworld\n", "python")
+    mocked.assert_called_with("hello\\\\nworld", "python")
 
 
 def test_invalid_language_throws_error():
     block = make_code_block("hello world", language="not a language")
 
     with pytest.raises(ChildProcessError):
-        run_pipeline(block)
+        markdown_to_html(block)
 
 
 def test_converter_is_actually_ran():
     block = make_code_block("1", language="python")
 
-    html = run_pipeline(block)
+    html = markdown_to_html(block)
 
     # "hljs-number" is one of the CSS styles that is applied as part of
     # the syntax highlighing. There is a probably better way to check
