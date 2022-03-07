@@ -73,8 +73,8 @@ code {
 }
 
 pre {
-  width: 76ch;
   padding: 1ch;
+  margin-right: 1ch;
 }
 
 blockquote {
