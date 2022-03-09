@@ -79,6 +79,23 @@ def group_blocked_nodes(nodes: Iterator[Node]) -> List[Node]:
 
         return Node("BLOCKQUOTE", blockquote)
 
+    def iter_html_comment(first: Node, nodes: Iterator[Node]) -> Node:
+        if first.contents.endswith("-->"):
+            return Node("COMMENT", first.contents[4:-3])
+
+        comment = first.contents[4:]
+
+        for node in nodes:
+            if node.contents.endswith("-->"):
+                comment += f"\n{node.contents[:-3]}"
+                next(nodes)
+                return Node("COMMENT", comment)
+
+            else:
+                comment += f"\n{node.contents}"
+
+        raise ValueError("html comment not closed")
+
     grouped_nodes = []
 
     for node in nodes:
@@ -90,6 +107,9 @@ def group_blocked_nodes(nodes: Iterator[Node]) -> List[Node]:
 
         elif node.contents.startswith("> "):
             grouped_nodes.append(iter_block_quote(node, nodes))
+
+        elif node.contents.startswith("<!--"):
+            grouped_nodes.append(iter_html_comment(node, nodes))
 
         else:
             grouped_nodes.append(node)

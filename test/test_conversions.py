@@ -63,6 +63,36 @@ def test_group_blockquote_blocks():
     assert got_nodes[0].contents == "this\nis a\nblockquote"
 
 
+def test_group_html_comments():
+    nodes = make_nodes(["<!--this", "is a", "comment-->", ""])
+
+    got_nodes = group_blocked_nodes(iter(nodes))
+
+    assert len(got_nodes) == 1
+    assert got_nodes[0].type == "COMMENT"
+    assert got_nodes[0].contents == "this\nis a\ncomment"
+
+
+def test_group_html_comments_one_line():
+    nodes = make_nodes(["<!--this is a comment-->"])
+
+    got_nodes = group_blocked_nodes(iter(nodes))
+
+    assert len(got_nodes) == 1
+    assert got_nodes[0].type == "COMMENT"
+    assert got_nodes[0].contents == "this is a comment"
+
+
+def test_group_html_comments_two_lines():
+    nodes = make_nodes(["<!--this is\na comment-->"])
+
+    got_nodes = group_blocked_nodes(iter(nodes))
+
+    assert len(got_nodes) == 1
+    assert got_nodes[0].type == "COMMENT"
+    assert got_nodes[0].contents == "this is\na comment"
+
+
 def test_preserve_nodes_next_to_codeblock():
     # TODO: fix line directly after closing ``` getting eaten
     nodes = make_nodes(["pre", "```", "code", "```", "", "post"])
