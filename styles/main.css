@@ -1,10 +1,10 @@
 :root {
   --bg: #1a1a1a;
   --fg: #dddddd;
-  --accent1: #d7fbe8;
-  --accent2: #9df3c4;
-  --accent3: #62d2a2;
-  --accent3: #1fab89;
+  --accent1: #ffaa00;
+  --accent2: #e69900;
+  --accent3: #cc8800;
+  --accent4: #b37700;
   --gray: #565656;
 }
 
@@ -22,8 +22,8 @@ html, body {
 }
 
 main {
-  padding: 1ch 0 0 1ch;
-  max-width: 80ch;
+  padding: 1ch 1ch 0 1ch;
+  max-width: 78ch;
   display: inline-block;
 }
 
@@ -35,7 +35,7 @@ h1, h2, h3, h4 {
   font-size: 1rem;
   padding: 0;
   margin: 0;
-  font-weight: normal;
+  font-weight: bold;
 }
 
 h1 { color: var(--accent1); }
@@ -69,12 +69,11 @@ li:before {
 }
 
 code {
-  padding: 0.5ch;
+  padding: 0 !important;
 }
 
 pre {
   padding: 1ch;
-  margin-right: 1ch;
 }
 
 blockquote {
