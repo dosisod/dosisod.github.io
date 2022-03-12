@@ -41,5 +41,5 @@ def test_file_is_created_properly(tempfile):
 
     html = html_file.read_text()
 
-    assert tempfile.name in html
+    assert "<title>Hello world</title>" in html
     assert "Hello world" in html

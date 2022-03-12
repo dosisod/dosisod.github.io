@@ -4,6 +4,8 @@ import re
 from git import Repo
 from git.exc import GitCommandError
 
+from md2html.core import get_title
+
 def gen_recent_blogs() -> str:
     repo = Repo()
 
@@ -53,7 +55,7 @@ def gen_recent_blogs() -> str:
                 with path.open() as f:
                     # Assumes title is in the form "# header", and on the
                     # first line. This should be changed at some point.
-                    title = f.readline()[2:-1]
+                    title = get_title(f.readline())
 
                 html += f'''
   <li>

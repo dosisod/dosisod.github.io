@@ -370,6 +370,10 @@ def markdown_to_html(md: str) -> str:
     return "\n".join([convert_node(node) for node in nodes])
 
 
+def get_title(md: str) -> str:
+    return md.split("\n")[0][2:]
+
+
 def convert_file(filename: str) -> None:
     file = Path(filename)
 
@@ -377,7 +381,7 @@ def convert_file(filename: str) -> None:
     content = markdown_to_html(markdown)
 
     template = Path("./index.template.html").read_text()
-    template = re.sub("TITLE", file.stem, template)
+    template = re.sub("TITLE", get_title(markdown), template)
 
     html = re.sub("MAIN_CONTENT", content, template)
 
