@@ -27,6 +27,10 @@ main {
   display: inline-block;
 }
 
+a {
+  text-decoration: underline var(--accent1);
+}
+
 p, span {
   margin: 0;
 }
