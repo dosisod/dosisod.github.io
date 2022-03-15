@@ -23,8 +23,7 @@ def test_setup_nodes():
 
 
 def test_group_codeblock():
-    # TODO: fix needing "" by adding default value to next() iterator
-    nodes = make_nodes(["```", "some", "code", "```", ""])
+    nodes = make_nodes(["```", "some", "code", "```"])
 
     got_nodes = group_blocked_nodes(iter(nodes))
 
@@ -34,7 +33,7 @@ def test_group_codeblock():
 
 
 def test_group_codeblock_with_language():
-    nodes = make_nodes(["```python", "code", "```", ""])
+    nodes = make_nodes(["```python", "code", "```"])
 
     got_nodes = group_blocked_nodes(iter(nodes))
 
@@ -44,7 +43,7 @@ def test_group_codeblock_with_language():
 
 
 def test_group_python_blocks():
-    nodes = make_nodes(["!!!", "some", "python", "!!!", ""])
+    nodes = make_nodes(["!!!", "some", "python", "!!!"])
 
     got_nodes = group_blocked_nodes(iter(nodes))
 
@@ -54,7 +53,7 @@ def test_group_python_blocks():
 
 
 def test_group_blockquote_blocks():
-    nodes = make_nodes(["> this", "> is a", "> blockquote", ""])
+    nodes = make_nodes(["> this", "> is a", "> blockquote"])
 
     got_nodes = group_blocked_nodes(iter(nodes))
 
@@ -94,8 +93,7 @@ def test_group_html_comments_two_lines():
 
 
 def test_preserve_nodes_next_to_codeblock():
-    # TODO: fix line directly after closing ``` getting eaten
-    nodes = make_nodes(["pre", "```", "code", "```", "", "post"])
+    nodes = make_nodes(["pre", "```", "code", "```", "post"])
 
     got_nodes = group_blocked_nodes(iter(nodes))
 
@@ -107,8 +105,7 @@ def test_preserve_nodes_next_to_codeblock():
 
 
 def test_preserve_nodes_next_to_raw_python():
-    # TODO: fix line directly after closing !!! getting eaten
-    nodes = make_nodes(["pre", "!!!", "code", "!!!", "", "post"])
+    nodes = make_nodes(["pre", "!!!", "code", "!!!", "post"])
 
     got_nodes = group_blocked_nodes(iter(nodes))
 
@@ -120,8 +117,7 @@ def test_preserve_nodes_next_to_raw_python():
 
 
 def test_preserve_nodes_next_to_blockquote():
-    # TODO: fix line directly after blockquote getting eaten
-    nodes = make_nodes(["pre", "> line", "", "post"])
+    nodes = make_nodes(["pre", "> line", "post"])
 
     got_nodes = group_blocked_nodes(iter(nodes))
 
@@ -292,13 +288,13 @@ def test_convert_node():
 
     run("> hello\n> world", "<blockquote>hello\nworld</blockquote>")
 
-    run("!!!\nhtml += 'hello'\n!!!\n", "hello")
+    run("!!!\nhtml += 'hello'\n!!!", "hello")
 
     run("* hello\n* world", "<ul>\n<li>hello</li>\n<li>world</li>\n</ul>")
 
     run("1. hello\n2. world", "<ol>\n<li>hello</li>\n<li>world</li>\n</ol>")
 
-    run("```\nhello world\n```\n", '<pre class="hljs">hello world</pre>')
+    run("```\nhello world\n```", '<pre class="hljs">hello world</pre>')
 
 
 def test_expand_inline_code_in_lists():

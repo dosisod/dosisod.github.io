@@ -5,7 +5,6 @@
 > building/running programs, etc). It doesn't matter which language, just so
 > long as you have a basic grasp.
 
-
 There are a lot of reasons why you might want to write your own compiler:
 
 * You want to make your own programming language
@@ -69,26 +68,26 @@ syntax tree). Most compiler front ends do these steps:
 
 * **Tokenization**: Split code into little "tokens", for example, each word or operator
 * **Classification**: Each token is assigned a type based on it's contents
-* **AST Generation**: The tokens are grouped up into meaningful "nodes", which represent different parts of the program (ie, a variable definition, or function call)
+* **AST Generation**: The tokens are grouped up into meaningful "nodes", which represent different parts of the program (eg, a variable definition or function call)
 
 ### The Middle End
 
-This is where the AST is checked for symantic errors, (including type
-checking), and optionally, optimization(s) are performed. This is where the
+This is where the AST is checked for symantic errors, type checking is done,
+and optionally, optimization(s) are performed. This is where the
 "juicy" parts of most compilers live. The job of the middle end is to make sure
-that the parsed code is valid, and make sure that the optimizations are done
-such that the backend can only worry about what it needs to do.
+that the parsed code is valid, and to make sure that the optimizations are done
+such that the backend don't have to worry about it.
 
 ### The Back End
 
 After the AST has been checked, the backend will start to generate the
 executable (or code). There are many techniques that a backend can use to
 generate these files, which we won't get into right now. Some might compilers
-only have one backend, while others might support many different backens.
+only have one backend, while others might support many different backends.
 This all depends on the wants and needs of the language designer.
 
 ## The Next Steps
 
 At the end of this series, we will have created a simple programming language
 in Python, which supports 2 backends: a Python backend, and an [LLVM](https://llvm.org/)
-backend, which allows for building executables, and JIT compilation of out code.
+backend, which allows for building executables, and JIT compilation of our code.

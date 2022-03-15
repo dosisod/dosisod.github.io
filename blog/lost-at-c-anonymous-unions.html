@@ -28,6 +28,7 @@ only one at any given time. Let me explain:</p>
     <span class="hljs-type">double</span> d;
 };</pre>
 
+<br>
 <p>Here we define a union called <code class="hljs">Number</code>. It can store an <code class="hljs">int</code>, <code class="hljs">float</code>, and
 a <code class="hljs">double</code>. The size of <code class="hljs">Number</code> will be the size of the biggest field in the
 union, which will be the <code class="hljs">double</code>.</p>
@@ -42,22 +43,26 @@ union, which will be the <code class="hljs">double</code>.</p>
 <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%f\n&quot;</span>, f.f);
 <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%lf\n&quot;</span>, d.d);</pre>
 
+<br>
 <p>When compiling, we get the following result:</p>
 <br>
 <pre class="hljs">1234
 3.140000
 1.414000</pre>
+<br>
 <p>Now, what happens if we use a different field then the datatype that we expect?</p>
 <br>
 <pre class="hljs"><span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%i\n&quot;</span>, d.i);
 <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%f\n&quot;</span>, i.f);
 <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%lf\n&quot;</span>, f.d);</pre>
 
+<br>
 <p>Compiling and running:</p>
 <br>
 <pre class="hljs">1992864825
 0.000000
 0.000000</pre>
+<br>
 <p>Was that what you where expecting?</p>
 <br>
 <p>Basically, to use a union correctly, we need a way of identifying what the
@@ -73,6 +78,7 @@ state of the union is in, so that we can use it correctly:</p>
     } num;
 };</pre>
 
+<br>
 <p>Now instead of using <code class="hljs">Number</code>, we can use <code class="hljs">NewNumber</code>, which will allow
 for us to set the <code class="hljs">state</code> field. Now we can set/get the <code class="hljs">state</code> field,
 and based on the results, properly handle the data in the <code class="hljs">num</code> union:</p>
@@ -87,6 +93,7 @@ and based on the results, properly handle the data in the <code class="hljs">num
 <span class="hljs-keyword">if</span> (age.state == <span class="hljs-number">1</span>) <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%f\n&quot;</span>, age.num.f);
 <span class="hljs-keyword">if</span> (age.state == <span class="hljs-number">2</span>) <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%lf\n&quot;</span>, age.num.d);</pre>
 
+<br>
 <p>Here we are using a simple <code class="hljs">int</code> to describe the data being stored in the
 union. In practice, we probably want to use an enum to better signify
 what state is which.</p>
@@ -106,6 +113,7 @@ are many different ways of declaring a union:</p>
 <span class="hljs-comment">// version 4</span>
 <span class="hljs-class"><span class="hljs-keyword">union</span> {</span> };</pre>
 
+<br>
 <ol>
 <li>This is what we used originally. This will create a union with a type of <code class="hljs">X</code>, and can be declared via <code class="hljs">union X x = ...</code></li>
 <li>Same as 1, except we also create an instance of the union, and call it <code class="hljs">Y</code></li>
@@ -130,6 +138,7 @@ the struct. Well, that is were anonymous unions come in!</p>
     };
 };</pre>
 
+<br>
 <p>Now we can use the number like so:</p>
 <br>
 <pre class="hljs"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">FinalNumber</span> <span class="hljs-title">fn</span> =</span> {
@@ -139,6 +148,7 @@ the struct. Well, that is were anonymous unions come in!</p>
 
 <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%i\n&quot;</span>, fn.i);</pre>
 
+<br>
 <h2>What is this good for?</h2>
 <br>
 <p>This is really good for cutting down on the size of structs when they have many
@@ -154,6 +164,7 @@ has a union to pointers containing metadata about different <code class="hljs">N
     };
 };</pre>
 
+<br>
 <h2>The cons</h2>
 <br>
 <p>One of the big drawbacks of using a union is that you can get into weird issues
@@ -169,6 +180,7 @@ example:</p>
     <span class="hljs-type">unsigned</span> age;
 };</pre>
 
+<br>
 <p>The person has a <code class="hljs">name</code>, which is a <code class="hljs">const char *</code>. It cannot be touched. But
 you can also access <code class="hljs">name</code> via <code class="hljs">dynamic_name</code>, which is not <code class="hljs">const</code>. This means
 that if you try to access a name using <code class="hljs">dynamic_name</code> which was set via <code class="hljs">name</code>,

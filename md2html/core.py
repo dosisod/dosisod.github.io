@@ -1,32 +1,16 @@
+from dataclasses import dataclass, field
 from pathlib import Path
 from subprocess import run
-import re
 from sys import argv
-
 from typing import List, Tuple, Iterator, Optional
+import re
 
 
+@dataclass
 class Node:
     type: str
-    contents: str
-    data: List[str]
-
-    def __init__(
-        self, type: str, contents: str = "", data: Optional[List[str]] = None
-    ) -> None:
-        self.type = type
-        self.contents = contents
-        self.data = [] if data is None else data
-
-    def __eq__(self, o: object) -> bool:
-        if not isinstance(o, Node):
-            return NotImplemented  # pragma: no cover
-
-        return bool(
-            self.type == o.type
-            and self.contents == o.contents
-            and self.data == o.data
-        )
+    contents: str = ""
+    data: List[str] = field(default_factory=list)
 
 
 def group_blocked_nodes(nodes: Iterator[Node]) -> List[Node]:
@@ -41,7 +25,6 @@ def group_blocked_nodes(nodes: Iterator[Node]) -> List[Node]:
 
         for node in nodes:
             if node.contents.startswith("```"):
-                next(nodes)
                 return Node("CODEBLOCK", data=[lang, codeblock])
 
             else:
@@ -59,7 +42,6 @@ def group_blocked_nodes(nodes: Iterator[Node]) -> List[Node]:
 
         for node in nodes:
             if node.contents == "!!!":
-                next(nodes)
                 return Node("PYTHON_BLOCK", code)
 
             else:
@@ -67,17 +49,18 @@ def group_blocked_nodes(nodes: Iterator[Node]) -> List[Node]:
 
         raise ValueError("python block end not reached")
 
-    def iter_block_quote(first: Node, nodes: Iterator[Node]) -> Node:
+    def iter_block_quote(
+        first: Node, nodes: Iterator[Node]
+    ) -> Tuple[Node, Node]:
         blockquote = first.contents[2:]
 
         for node in nodes:
-            if node.contents.startswith("> "):
-                blockquote += f"\n{node.contents[2:]}"
+            if not node.contents.startswith("> "):
+                return (Node("BLOCKQUOTE", blockquote), node)
 
-            else:
-                break
+            blockquote += f"\n{node.contents[2:]}"
 
-        return Node("BLOCKQUOTE", blockquote)
+        return (Node("BLOCKQUOTE", blockquote), None)
 
     def iter_html_comment(first: Node, nodes: Iterator[Node]) -> Node:
         if first.contents.endswith("-->"):
@@ -106,7 +89,11 @@ def group_blocked_nodes(nodes: Iterator[Node]) -> List[Node]:
             grouped_nodes.append(iter_python_blocks(nodes))
 
         elif node.contents.startswith("> "):
-            grouped_nodes.append(iter_block_quote(node, nodes))
+            blockquote, leftover = iter_block_quote(node, nodes)
+            grouped_nodes.append(blockquote)
+
+            if leftover:
+                grouped_nodes.append(leftover)
 
         elif node.contents.startswith("<!--"):
             grouped_nodes.append(iter_html_comment(node, nodes))
