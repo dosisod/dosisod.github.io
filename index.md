@@ -3,9 +3,17 @@
 My little blog site.
 
 I talk about programming, science fiction, books, movies, shower
-thoughts, or whatever I want (this is my site after all).
+thoughts, or whatever else I want (this is my site after all).
 
-You can follow me on [Github](https://github.com/dosisod).
+You can follow me on [GitHub](https://github.com/dosisod).
+
+## Currently reading
+
+* [Children of Dune](https://www.amazon.com/dp/0593098242)
+* [The Dragon Book](https://suif.stanford.edu/dragonbook/)
+* [The Pragmatic Programmer](https://www.amazon.com/dp/0135957052)
+* [Meditations](http://classics.mit.edu/Antoninus/meditations.html)
+* [1984](https://www.amazon.com/dp/0451524934)
 
 ## Latest blogs
 
