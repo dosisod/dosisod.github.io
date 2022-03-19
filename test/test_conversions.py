@@ -313,3 +313,10 @@ def test_inline_markdown_expanded():
     expected = '<p><em>hello</em> <strong>there</strong> <code class="hljs">world</code></p>'
 
     assert html == expected
+
+
+def test_expand_inline_markdown_in_blockquote():
+    assert (
+        markdown_to_html("> **hello**")
+        == "<blockquote><strong>hello</strong></blockquote>"
+    )

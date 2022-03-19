@@ -244,7 +244,7 @@ def expand_nodes(nodes: List[Node]) -> None:
             for i, item in enumerate(node.data):
                 node.data[i] = expand_inline(item)
 
-        elif node.type not in ("CODEBLOCK", "BLOCKQUOTE"):
+        elif node.type != "CODEBLOCK":
             node.contents = expand_inline(node.contents)
 
 
