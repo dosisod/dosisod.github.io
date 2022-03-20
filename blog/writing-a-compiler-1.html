@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/gruvbox-dark-hard.css" />
+  <title>Writing a Compiler (Part 1): Project Setup</title>
+</head>
+<body>
+
+<main>
+<h1>Writing a Compiler (Part 1): Project Setup</h1>
+<br>
+<p>At the end of this blog we will have setup a basic git repository with the following:</p>
+<br>
+<ul>
+<li>Linting with <a href="https://github.com/PyCQA/flake8">flake8</a>, <a href="https://github.com/PyCQA/isort">isort</a>, and <a href="https://github.com/psf/black">black</a></li>
+<li>Testing with <a href="https://github.com/pytest-dev/pytest">pytest</a> and <a href="https://github.com/pytest-dev/pytest-cov">pytest-cov</a></li>
+<li>Static type checking with <a href="https://github.com/python/mypy">mypy</a></li>
+<li>CI (<a href="https://docs.github.com/en/actions/automating-builds-and-tests/about-continuous-integration">Continuous Integration</a>) with GitHub Actions</li>
+</ul>
+<br>
+<p>We will be starting from scratch so you can follow along yourself, but the code
+is available <a href="https://github.com/dosisod/write-a-compiler">here</a> for reference.</p>
+<br>
+<p>Let's jump in!</p>
+<br>
+<blockquote>In this blog (and all future blogs), I will be assuming that you are using
+Linux. If you are using Windows, you might be able to follow along, but some
+things might not work as expected. If you are using Windows, you can install
+<a href="https://aka.ms/wsl">WSL</a> (Windows Subsystem for Linux), which will allow you
+to run most of these commands without any issues.</blockquote>
+<br>
+<blockquote>I also assume you have a basic understanding of <a href="https://git-scm.com/">git</a>,
+or at the very least, a GitHub account, since we will be using GitHub
+Actions.</blockquote>
+<br>
+<h2>Basic Folder Scaffolding</h2>
+<br>
+<p>Start off by creating a new folder, and initializing a new git repo:</p>
+<br>
+<pre class="hljs">$ mkdir write-a-compiler
+$ cd write-a-compiler
+$ git init</pre>
+<br>
+<p>Now we can start creating the basic folder structure of the project. This what
+our folder structure will look like:</p>
+<br>
+<pre class="hljs">write-a-compiler
+├─.github
+│ └─workflows
+├─test
+└─wac
+  ├─ast
+  ├─codegen
+  │ ├─python
+  │ └─llvm
+  ├───parse
+  └───semantic</pre>
+<br>
+<p>These are what each of the folders will (eventually) be doing:</p>
+<br>
+<ul>
+<li><code class="hljs">write-a-compiler</code>: The root of our project</li>
+<li><code class="hljs">.github/workflows</code>: Holds our GitHub Actions workflows</li>
+<li><code class="hljs">test</code>: Where we will be writing all of our tests</li>
+<li><code class="hljs">wac</code>: The actual compiler source code. Short for "Write A Compiler"</li>
+<li><code class="hljs">wac/parse</code>: This is the "frontend", which will ingest/tokenize/AST-ify our code</li>
+<li><code class="hljs">wac/ast</code>: The interface between the parser, and semantic/codegen pipelines</li>
+<li><code class="hljs">wac/semantic</code>: Semantically analyze our AST nodes/trees</li>
+<li><code class="hljs">wac/codegen/python</code>: The code generator for compiling AST tree to python code</li>
+<li><code class="hljs">wac/codegen/llvm</code>: Same as the python one, but for LLVM</li>
+</ul>
+<br>
+<p>To create these folders, run the following:</p>
+<br>
+<pre class="hljs">$ mkdir -p .github/workflows test wac/{ast,codegen/python,codegen/llvm,parse,semantic}</pre>
+<br>
+<p>The <code class="hljs">-p</code> flag of <code class="hljs">mkdir</code> will allow for the creation of nested folders without
+needing to create the parent folder first. The <code class="hljs">{}</code> brackets will cause all the
+comma separated values to be expanded, with the values to the left/right of the
+brackets prepended/appended (if they exist) for each of the comma separated values.
+For example, <code class="hljs">a{a,b}c</code> will be expanded to <code class="hljs">aac abc</code>.</p>
+<br>
+<h2>Adding a License</h2>
+<br>
+<p>Before we start writing any code, we should license our software so people
+know whether they can modify our software or not, and if so, what sort of
+rules and limitations they need to abide by. The
+<a href="https://github.com/dosisod/write-a-compiler">write-a-compiler</a> codebase
+that this blog is based off of uses the
+<a href="https://www.gnu.org/licenses/gpl-3.0.en.html">GPLv3 license</a>, and I would
+recommend that you use it for yours, just because the resulting codebases will
+look very similar, and re-licensing under a different license could be
+problematic.</p>
+<br>
+<p>To add the license, download the GPLv3 license from the GNU website, and pipe it to
+a file called <code class="hljs">LICENSE</code>:</p>
+<br>
+<pre class="hljs">$ curl https://www.gnu.org/licenses/gpl-3.0.txt > LICENSE</pre>
+<br>
+<h2>Adding the Dependencies</h2>
+<br>
+<h3>Creating the Virtual Environment</h3>
+<br>
+<p>Before we do anything else, we need to install our Python packages. Before we
+do that though, we will need to setup a
+<a href="https://pythonbasics.org/virtualenv/">virtual environment</a>.
+This will basically allow us to create a little bubble for our Python project,
+so that we don't have to install our packages globally. Globally installed
+packages are harder to work with in general, especially when it comes to
+versioning. We can setup a virtual environment with the following:</p>
+<br>
+<pre class="hljs">$ python3 -m virtualenv .venv</pre>
+<br>
+<blockquote>If <code class="hljs">python3</code> doesn't exist, you might need to use something like <code class="hljs">python3.9</code>
+instead.</blockquote>
+<br>
+<p>Then, we need to activate the virtual environment:</p>
+<br>
+<pre class="hljs">$ source .venv/bin/activate
+
+# your prompt will be updated to look something similar to below
+(.venv) $</pre>
+<br>
+<blockquote>Note: you will need to reactivate the virtual environment every time you
+open a new terminal window. Exit a virtual environment without closing the
+terminal window by running <code class="hljs">deactivate</code>.</blockquote>
+<br>
+<h3>Installing the Packages</h3>
+<br>
+<p>Now we can actually install our packages!</p>
+<br>
+<pre class="hljs">$ pip3 install mypy black flake8 pytest pytest-cov isort</pre>
+<br>
+<p>To make sure that we always get the same package versions every time someone
+clones our code from GitHub, we will "freeze" our packages. This will take a
+snapshot of all of our installed packages and their versions:</p>
+<br>
+<pre class="hljs">$ pip3 freeze > dev-requirements.txt</pre>
+<br>
+<p>The little <code class="hljs">></code> symbol tells our shell to redirect the output of <code class="hljs">pip3 freeze</code>
+into the file called <code class="hljs">dev-requirements.txt</code> (try running just <code class="hljs">pip3 freeze</code> and
+see what happens).</p>
+<br>
+<p>We will also create an empty <code class="hljs">requirements.txt</code> file, which will store the
+dependencies for our actual production code, which doesn't exist yet:</p>
+<br>
+<pre class="hljs">$ touch requirements.txt</pre>
+<br>
+<h3>Configuring the Linters</h3>
+<br>
+<p>These configurations are subject to change, and can be changed based on your
+personal preference, though I have found these to be pretty sane defaults.
+Basically just copy and paste these into their respective files:</p>
+<br>
+<p>Flake8 (file goes in <code class="hljs">.flake8</code>):</p>
+<br>
+<pre class="hljs"><span class="hljs-section">[flake8]</span>
+<span class="hljs-attr">exclude</span> = .git,__pycache__,.venv</pre>
+
+<br>
+<p>Mypy (file goes in <code class="hljs">.mypy.ini</code>):</p>
+<br>
+<pre class="hljs"><span class="hljs-section">[mypy]</span>
+<span class="hljs-attr">check_untyped_defs</span>=<span class="hljs-literal">True</span>
+<span class="hljs-attr">disallow_any_decorated</span>=<span class="hljs-literal">True</span>
+<span class="hljs-attr">disallow_any_explicit</span>=<span class="hljs-literal">True</span>
+<span class="hljs-attr">disallow_any_generics</span>=<span class="hljs-literal">True</span>
+<span class="hljs-attr">disallow_any_unimported</span>=<span class="hljs-literal">True</span>
+<span class="hljs-attr">disallow_incomplete_defs</span>=<span class="hljs-literal">True</span>
+<span class="hljs-attr">disallow_subclassing_any</span>=<span class="hljs-literal">True</span>
+<span class="hljs-attr">namespace_packages</span>=<span class="hljs-literal">True</span>
+<span class="hljs-attr">no_implicit_optional</span>=<span class="hljs-literal">True</span>
+<span class="hljs-attr">strict_equality</span>=<span class="hljs-literal">True</span>
+<span class="hljs-attr">warn_redundant_casts</span>=<span class="hljs-literal">True</span>
+<span class="hljs-attr">warn_return_any</span>=<span class="hljs-literal">True</span>
+<span class="hljs-attr">warn_unreachable</span>=<span class="hljs-literal">True</span>
+<span class="hljs-attr">warn_unused_configs</span>=<span class="hljs-literal">True</span>
+<span class="hljs-attr">warn_unused_ignores</span>=<span class="hljs-literal">True</span></pre>
+
+<br>
+<p>There are some files I didn't bother to fully setup yet, since there is no real
+code to run these programs against yet. This should be good enough for now.</p>
+<br>
+<p>Now we can run <code class="hljs">flake8</code> (for example), and flake8 will lint our code for us.</p>
+<br>
+<h2>Make-ing Things Easier</h2>
+<br>
+<p>We just added a bunch of programs, and they all do different things: Mypy checks
+types, Flake8/Black standardize the format our code, and so on. Having to run
+these commands manually will be a pain. And if there are parameters we need to pass
+to these programs from the command line, we won't want to have to type those
+out all by hand each time.</p>
+<br>
+<p>To make our lives easier, we can use Makefiles, which will allow us to run
+"recipes" when a "target" needs to be built. Here is the contents of our <code class="hljs">Makefile</code>:</p>
+<br>
+<pre class="hljs"><span class="hljs-section">test: flake8 mypy black isort pytest</span>
+
+<span class="hljs-section">flake8:</span>
+	flake8
+
+<span class="hljs-section">mypy:</span>
+	mypy -p wac
+	mypy -p test
+
+<span class="hljs-section">black:</span>
+	black wac test -l 79 --check --diff --color
+
+<span class="hljs-section">isort:</span>
+	isort . --diff
+
+<span class="hljs-section">pytest:</span>
+	pytest test --cov --cov-report=html</pre>
+
+<br>
+<p>Now we can simply type <code class="hljs">make test</code> to run <code class="hljs">flake8</code>, <code class="hljs">mypy</code>, etc., or <code class="hljs">make pytest</code>
+to run just pytest.</p>
+<br>
+<h2>Adding CI</h2>
+<br>
+<p>As we make changes to our codebase in the future, we will need to ensure that
+the quality of the code is as high as possible, and has as few bugs as possible.
+To do this, we use Continuous Integration (CI), which will make sure that all new
+code introduced into the codebase is high quality. Here is the workflow we will be
+using:</p>
+<br>
+<p><code class="hljs">.github/workflows/actions.yml</code>:</p>
+<br>
+<pre class="hljs"><span class="hljs-attr">name:</span> <span class="hljs-string">tests</span>
+
+<span class="hljs-attr">on:</span> [<span class="hljs-string">push</span>, <span class="hljs-string">pull_request</span>]
+
+<span class="hljs-attr">jobs:</span>
+  <span class="hljs-attr">tests:</span>
+    <span class="hljs-attr">runs-on:</span> <span class="hljs-string">ubuntu-latest</span>
+
+    <span class="hljs-attr">steps:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">uses:</span> <span class="hljs-string">actions/checkout@v2</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Pip</span> <span class="hljs-string">install</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          pip install -r requirements.txt
+          pip install -r dev-requirements.txt
+</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Run</span> <span class="hljs-string">flake8</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">make</span> <span class="hljs-string">flake8</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Run</span> <span class="hljs-string">mypy</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">make</span> <span class="hljs-string">mypy</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Run</span> <span class="hljs-string">black</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">make</span> <span class="hljs-string">black</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Run</span> <span class="hljs-string">isort</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">make</span> <span class="hljs-string">isort</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Run</span> <span class="hljs-string">pytest</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">make</span> <span class="hljs-string">pytest</span></pre>
+
+<br>
+<p>The <code class="hljs">on</code> field specifies a list of
+<a href="https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows">events</a>
+which will trigger our workflow. In this case, whenever a PR (pull request)
+is made, or code is pushed to a branch (on GitHub), our workflow will run.</p>
+<br>
+<p>The <code class="hljs">jobs</code> field specifies only one job, <code class="hljs">tests</code>. <code class="hljs">tests</code> will run on an Ubuntu
+docker container (as specified by the <code class="hljs">ubuntu-latest</code> value of <code class="hljs">runs-on</code>). Each
+<code class="hljs">step</code> is a list of instructions to run. If any one step fails, the whole
+workflow fails, indicating of the code we tried to merge in did not pass one of
+our tests.</p>
+<br>
+<p>This <code class="hljs">actions.yml</code> file could be named anything, since GitHub will check the
+<code class="hljs">.github/workflows</code> folder for any <code class="hljs">.yml</code> files, and run what it needs based
+on the contents of the file.</p>
+<br>
+<h2>Making Git Happy</h2>
+<br>
+<h3>Ignoring Certain Files/Folders</h3>
+<br>
+<p>There are a lot of files which we don't want to have in our git repository,
+such as the <code class="hljs">.venv</code> folder and such. Here is what I have in my <code class="hljs">.gitignore</code>
+file currently:</p>
+<br>
+<pre class="hljs">.venv
+__pycache__
+.mypy_cache
+.pytest_cache
+.coverage</pre>
+<br>
+<p>This should prevent us from accidentally committing junk files into our nice
+clean codebase!</p>
+<br>
+<h3>Add Missing Folders</h3>
+<br>
+<p>If we run <code class="hljs">git status</code>, we won't see any of our folders, because git doesn't
+track folders, it tracks files. To get around this, we need to add placeholder
+files in the directories we want to keep:</p>
+<br>
+<pre class="hljs">$ touch wac/{ast,codegen/python,codegen/llvm,parse,semantic}/__init__.py</pre>
+<br>
+<p>This will put a filename called <code class="hljs">__init__.py</code> into each of these folders
+that we care about.</p>
+<br>
+<h3>Add "pre-commit" File</h3>
+<br>
+<p>A <code class="hljs">pre-commit</code> file is a file which will be ran before each commit is made.
+This is somewhat like our CI workflow, but it is meant for our local development
+environment instead. If the <code class="hljs">pre-commit</code> fails, the commit will be aborted.</p>
+<br>
+<p>For security purposes, the <code class="hljs">pre-commit</code> file is not ran by default: we need to add
+it to a special folder before git will run it. The folder in question is
+<code class="hljs">.git/hooks</code>. If we take a look inside it:</p>
+<br>
+<pre class="hljs">$ ls -1 .git/hooks
+applypatch-msg.sample
+commit-msg.sample
+fsmonitor-watchman.sample
+post-update.sample
+pre-applypatch.sample
+pre-commit.sample
+pre-merge-commit.sample
+prepare-commit-msg.sample
+pre-push.sample
+pre-rebase.sample
+pre-receive.sample
+push-to-checkout.sample
+update.sample</pre>
+<br>
+<p>You can see we have a bunch of <code class="hljs">.sample</code> files, which are just placeholders.
+We need to make a <code class="hljs">pre-commit</code> file to our local folder, and then symlink
+it to a file called <code class="hljs">.git/hooks/pre-commit</code>.</p>
+<br>
+<blockquote>A symlink is a file which is "linked" or "references" another file.</blockquote>
+<br>
+<p>We will create a basic pre-commit file, and symlink it to our hooks folder:</p>
+<br>
+<p><code class="hljs">pre-commit</code>:</p>
+<br>
+<pre class="hljs">#!/bin/sh
+
+make test</pre>
+<br>
+<p>The <code class="hljs">#!/bin/sh</code> line is a <a href="https://en.wikipedia.org/wiki/Shebang_&#40Unix&#41">shebang</a>.
+It tells the shell which program it should use to run our script. In this case,
+we are telling it to use <code class="hljs">/bin/sh</code>.</p>
+<br>
+<p>We can now symlink it with:</p>
+<br>
+<pre class="hljs">$ ln -sf $PWD/pre-commit .git/hooks/pre-commit</pre>
+<br>
+<p>Now whenever we want to make a commit, our <code class="hljs">pre-commit</code> file will run, and if we
+update our <code class="hljs">pre-commit</code> file, we won't need to copy/re-symlink it again!</p>
+<br>
+<p>If we want to run our <code class="hljs">pre-commit</code> file directly, we need to make the file executable:</p>
+<br>
+<pre class="hljs">$ chmod +x pre-commit</pre>
+<br>
+<p><code class="hljs">chmod</code> (aka "change mode") allows us to change the file attributes of a file.
+<code class="hljs">+x</code> will add the executable flag to our <code class="hljs">pre-commit</code> file. Now we can just run
+our pre commit file using <code class="hljs">./pre-commit</code>.</p>
+<br>
+<h2>Adding a Test</h2>
+<br>
+<p>Now that we have the basic folder structure setup, we can start writing a
+test to make sure we have all of our dependencies setup correctly. We can
+add the following to <code class="hljs">test/test_placeholder.py</code>:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">def</span> <span class="hljs-title function_">test_something</span>():
+    <span class="hljs-keyword">pass</span></pre>
+
+<br>
+<p>Now if we run <code class="hljs">make pytest</code>, we should see something like this:</p>
+<br>
+<pre class="hljs">pytest test --cov --cov-report=html
+============================= test session starts ==============================
+platform linux -- Python 3.10.2, pytest-7.1.1, pluggy-1.0.0
+rootdir: /home/loot/git/write-a-compiler
+plugins: cov-3.0.0
+collected 1 item
+
+test/test_placeholder.py .                                               [100%]
+
+---------- coverage: platform linux, python 3.10.2-final-0 -----------
+Coverage HTML written to dir htmlcov
+
+
+============================== 1 passed in 0.03s ===============================</pre>
+<br>
+<p>Our single <code class="hljs">test_something</code> test passes! As we continue writing our compiler,
+we will add more meaningful tests that make sure everything is working as expected.</p>
+<br>
+<h2>Add a README</h2>
+<br>
+<p>A README file is for users and developers to get an overview of a project.
+You can copy the version used in the reference repo
+<a href="https://github.com/dosisod/write-a-compiler/blob/master/README.md">here</a>.</p>
+<br>
+<h2>Fin</h2>
+<br>
+<p>We are done! Now all we need to do is push it up to our git repository:</p>
+<br>
+<pre class="hljs">$ git remote add origin git@github.com:USERNAME/REPONAME
+$ git add .
+$ git commit -m "Initial commit"
+$ git push origin master</pre>
+<br>
+<blockquote>Note: if you use the <code class="hljs">git@github.com</code> syntax (aka SSH syntax), you will
+need to setup an SSH key with your GitHub account. You can see how to do
+that <a href="https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account">here</a>.
+Alternatively, you can use <code class="hljs">https://github.com/USER/REPO</code>, and put in your
+username+password there.</blockquote>
+<br>
+<h2>What's Next</h2>
+<br>
+<p>Now that we have everything setup, we can start working on the actual compiler!
+More specifically, we will be working on the tokenizer, the first stage of any
+compiler frontend.</p>
+<br>
+<main>
+
+</body>
+</html>

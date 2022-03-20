@@ -78,6 +78,7 @@ code {
 
 pre {
   padding: 1ch;
+  overflow-x: auto;
 }
 
 blockquote {
