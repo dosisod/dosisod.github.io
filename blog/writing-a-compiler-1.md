@@ -45,8 +45,8 @@ write-a-compiler
   ├─codegen
   │ ├─python
   │ └─llvm
-  ├───parse
-  └───semantic
+  ├─parse
+  └─semantic
 ```
 
 These are what each of the folders will (eventually) be doing:
