@@ -156,6 +156,13 @@ def test_exception_throw_if_raw_python_without_body_is_missing_end():
         group_blocked_nodes(iter(nodes))
 
 
+def test_exception_throw_if_html_comment_not_closed():
+    nodes = make_nodes(["<!--"])
+
+    with pytest.raises(ValueError):
+        group_blocked_nodes(iter(nodes))
+
+
 def test_classify_nodes():
     def run(x, expected):
         node = make_node(x)

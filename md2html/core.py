@@ -377,8 +377,9 @@ def convert_file(filename: str) -> None:
 
 
 def main(argv: List[str]):
-    if len(argv) == 2:
-        convert_file(argv[1])
+    if len(argv) < 2:
+        print(f"usage: {argv[0]} <file.md> [...files.md]")
 
     else:
-        print(f"usage: {argv[0]} <file.md>")
+        for filename in argv[1:]:
+            convert_file(filename)

@@ -1,5 +1,5 @@
 from tempfile import mkstemp
-from unittest.mock import patch
+from unittest.mock import call, patch
 from pathlib import Path
 
 import pytest
@@ -10,12 +10,6 @@ from md2html.core import convert_file, main
 @patch("builtins.print")
 def test_print_usage_if_not_enough_args(mocked_print):
     main(["argv0"])
-    assert mocked_print.call_args[0][0].startswith("usage:")
-
-
-@patch("builtins.print")
-def test_print_usage_if_too_many_args(mocked_print):
-    main(["argv0", "too many", "args"])
     assert mocked_print.call_args[0][0].startswith("usage:")
 
 
@@ -43,3 +37,10 @@ def test_file_is_created_properly(tempfile):
 
     assert "<title>Hello world</title>" in html
     assert "Hello world" in html
+
+
+@patch("md2html.core.convert_file")
+def test_convert_multiple_files(mocked):
+    main(["argv0", "a", "b", "c"])
+
+    assert mocked.call_args_list == [call("a"), call("b"), call("c")]
