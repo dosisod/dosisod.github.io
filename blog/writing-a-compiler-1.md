@@ -441,3 +441,6 @@ $ git push origin master
 Now that we have everything setup, we can start working on the actual compiler!
 More specifically, we will be working on the tokenizer, the first stage of any
 compiler frontend.
+
+[[prev](./writing-a-compiler-0.html)]
+[[next](./writing-a-compiler-2.html)]
