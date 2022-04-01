@@ -349,10 +349,6 @@ def test_escape_html():
 
 > <x>
 
-!!!
-html += "<x>"
-!!!
-
 some text <x>
 
 - [ ] <x>

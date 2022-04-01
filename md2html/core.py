@@ -340,7 +340,7 @@ def convert_node(node: Node) -> str:
         return f"<ol>\n{items}\n</ol>"
 
     elif type == "PYTHON_BLOCK":
-        return escape(run_python_block(line))
+        return run_python_block(line)
 
     elif type == "CODEBLOCK":
         lang = node.data[0]
