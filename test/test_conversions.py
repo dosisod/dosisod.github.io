@@ -327,3 +327,39 @@ def test_expand_inline_markdown_in_blockquote():
         markdown_to_html("> **hello**")
         == "<blockquote><strong>hello</strong></blockquote>"
     )
+
+
+def test_escape_html():
+    markdown = f"""
+# <x>
+
+## <x>
+
+### <x>
+
+#### <x>
+
+* <x>
+
+1. <x>
+
+```
+<x>
+```
+
+> <x>
+
+!!!
+html += "<x>"
+!!!
+
+some text <x>
+
+- [ ] <x>
+
+- [x] <x>
+"""
+
+    html = markdown_to_html(markdown)
+
+    assert "<x>" not in html

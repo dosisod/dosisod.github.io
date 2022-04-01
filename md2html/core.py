@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from html import escape
 from pathlib import Path
 from subprocess import run
 from sys import argv
@@ -238,6 +239,22 @@ def expand_inline(line: str) -> str:
     return expand_code(expand_italics(expand_bold(expand_links(line))))
 
 
+def escape_nodes(nodes: List[Node]) -> None:
+    for node in nodes:
+        if node.type in ("PYTHON_BLOCK", "HTML"):
+            pass
+
+        elif node.type == "CODEBLOCK" and not node.data[0]:
+            node.data[1] = escape(node.data[1])
+
+        elif node.type in ("BULLET", "NUM_LIST"):
+            for i, item in enumerate(node.data):
+                node.data[i] = escape(item)
+
+        else:
+            node.contents = escape(node.contents)
+
+
 def expand_nodes(nodes: List[Node]) -> None:
     for node in nodes:
         if node.type in ("BULLET", "NUM_LIST"):
@@ -301,7 +318,7 @@ def convert_node(node: Node) -> str:
         return "<br>"
 
     elif type == "HTML":
-        return f"{line}"
+        return line
 
     elif type == "BLOCKQUOTE":
         return f"<blockquote>{line}</blockquote>"
@@ -323,7 +340,7 @@ def convert_node(node: Node) -> str:
         return f"<ol>\n{items}\n</ol>"
 
     elif type == "PYTHON_BLOCK":
-        return run_python_block(line)
+        return escape(run_python_block(line))
 
     elif type == "CODEBLOCK":
         lang = node.data[0]
@@ -352,6 +369,7 @@ def markdown_to_html(md: str) -> str:
     nodes = group_text_nodes(nodes)
     nodes = group_bullet_nodes(nodes)
     nodes = group_number_list_nodes(nodes)
+    escape_nodes(nodes)
     expand_nodes(nodes)
 
     return "\n".join([convert_node(node) for node in nodes])
