@@ -3,6 +3,7 @@ from html import escape
 from pathlib import Path
 from subprocess import run
 from sys import argv
+from threading import Thread
 from typing import List, Tuple, Iterator, Optional
 import re
 
@@ -397,7 +398,14 @@ def convert_file(filename: str) -> None:
 def main(argv: List[str]):
     if len(argv) < 2:
         print(f"usage: {argv[0]} <file.md> [...files.md]")
+        return
 
-    else:
-        for filename in argv[1:]:
-            convert_file(filename)
+    threads: List[Thread] = []
+
+    for filename in argv[1:]:
+        thread = Thread(target=convert_file, args=(filename,))
+        threads.append(thread)
+        thread.start()
+
+    for thread in threads:
+        thread.join()
