@@ -1,0 +1,31 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Pip Install
+        run: pip3 install -r requirements.txt
+
+      - name: NPM Install
+        run: cd highlighter && npm install
+
+      - name: Build
+        run: |
+          shopt -s globstar
+          python3 -m md2html 404.md index.md blog/**/*.md
+
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@v4.2.5
+        with:
+          branch: gh-pages
+          folder: .
