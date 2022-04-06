@@ -1,9 +1,9 @@
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from html import escape
 from pathlib import Path
 from subprocess import run
 from sys import argv
-from threading import Thread
 from typing import List, Tuple, Iterator, Optional
 import re
 
@@ -400,12 +400,11 @@ def main(argv: List[str]):
         print(f"usage: {argv[0]} <file.md> [...files.md]")
         return
 
-    threads: List[Thread] = []
+    with ThreadPoolExecutor() as executor:
+        futures = [
+            executor.submit(convert_file, filename) for filename in argv[1:]
+        ]
 
-    for filename in argv[1:]:
-        thread = Thread(target=convert_file, args=(filename,))
-        threads.append(thread)
-        thread.start()
-
-    for thread in threads:
-        thread.join()
+        for future in futures:
+            if ex := future.exception():
+                raise ex

@@ -49,7 +49,7 @@ def test_convert_multiple_files(mocked):
 
 
 @patch("md2html.core.convert_file")
-def test_convert_multiple_files(mocked):
+def test_file_multi_threaded(mocked):
     """
     Threading works differently on different machines, so this test (might)
     fail on some machines. In general though, if threading is enabled, we
@@ -74,3 +74,8 @@ def test_convert_multiple_files(mocked):
 
     assert elapsed_time > ms_to_second(SLEEP_FOR_MS)
     assert elapsed_time < ms_to_second(MAX_THREADS * SLEEP_FOR_MS)
+
+
+def test_exception_is_thrown_when_file_doesnt_exist():
+    with pytest.raises(FileNotFoundError):
+        main(["argv0", "file_doesnt_exist"])
