@@ -25,7 +25,7 @@ jobs:
           python3 -m md2html 404.md index.md blog/**/*.md
 
       - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@v4.2.5
+        uses: JamesIves/github-pages-deploy-action@v4.3.0
         with:
           branch: gh-pages
           folder: .
