@@ -1,5 +1,4 @@
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass, field
 from html import escape
 from pathlib import Path
 from subprocess import run
@@ -7,12 +6,7 @@ from sys import argv
 from typing import List, Tuple, Iterator, Optional
 import re
 
-
-@dataclass
-class Node:
-    type: str
-    contents: str = ""
-    data: List[str] = field(default_factory=list)
+from .node import *
 
 
 def group_blocked_nodes(nodes: Iterator[Node]) -> List[Node]:
@@ -27,7 +21,7 @@ def group_blocked_nodes(nodes: Iterator[Node]) -> List[Node]:
 
         for node in nodes:
             if node.contents.startswith("```"):
-                return Node("CODEBLOCK", data=[lang, codeblock])
+                return CodeblockNode(data=[lang, codeblock])
 
             else:
                 codeblock += f"\n{node.contents}"
@@ -44,7 +38,7 @@ def group_blocked_nodes(nodes: Iterator[Node]) -> List[Node]:
 
         for node in nodes:
             if node.contents == "!!!":
-                return Node("PYTHON_BLOCK", code)
+                return PythonNode(contents=code)
 
             else:
                 code += f"\n{node.contents}"
@@ -58,15 +52,15 @@ def group_blocked_nodes(nodes: Iterator[Node]) -> List[Node]:
 
         for node in nodes:
             if not node.contents.startswith("> "):
-                return (Node("BLOCKQUOTE", blockquote), node)
+                return (BlockquoteNode(contents=blockquote), node)
 
             blockquote += f"\n{node.contents[2:]}"
 
-        return (Node("BLOCKQUOTE", blockquote), None)
+        return (BlockquoteNode(contents=blockquote), None)
 
     def iter_html_comment(first: Node, nodes: Iterator[Node]) -> Node:
         if first.contents.endswith("-->"):
-            return Node("COMMENT", first.contents[4:-3])
+            return CommentNode(contents=first.contents[4:-3])
 
         comment = first.contents[4:]
 
@@ -74,7 +68,7 @@ def group_blocked_nodes(nodes: Iterator[Node]) -> List[Node]:
             if node.contents.endswith("-->"):
                 comment += f"\n{node.contents[:-3]}"
                 next(nodes)
-                return Node("COMMENT", comment)
+                return CommentNode(contents=comment)
 
             else:
                 comment += f"\n{node.contents}"
@@ -106,63 +100,55 @@ def group_blocked_nodes(nodes: Iterator[Node]) -> List[Node]:
     return grouped_nodes
 
 
-def classify_node(node: Node) -> None:
-    if node.type in ("PYTHON_BLOCK", "CODEBLOCK", "BLOCKQUOTE"):
-        pass
+def classify_node(node: Node) -> Node:
+    if isinstance(node, (BlockquoteNode, CodeblockNode, PythonNode)):
+        return node
 
-    elif node.contents.startswith("# "):
-        node.type = "HEADER1"
-        node.contents = node.contents[2:]
+    if node.contents.startswith("# "):
+        return HeaderNode(level=1, contents=node.contents[2:])
 
-    elif node.contents.startswith("## "):
-        node.type = "HEADER2"
-        node.contents = node.contents[3:]
+    if node.contents.startswith("## "):
+        return HeaderNode(level=2, contents=node.contents[3:])
 
-    elif node.contents.startswith("### "):
-        node.type = "HEADER3"
-        node.contents = node.contents[4:]
+    if node.contents.startswith("### "):
+        return HeaderNode(level=3, contents=node.contents[4:])
 
-    elif node.contents.startswith("#### "):
-        node.type = "HEADER4"
-        node.contents = node.contents[5:]
+    if node.contents.startswith("#### "):
+        return HeaderNode(level=4, contents=node.contents[5:])
 
-    elif node.contents == "":
-        node.type = "NEWLINE"
+    if node.contents == "":
+        return NewlineNode()
 
-    elif node.contents.startswith("* "):
-        node.type = "BULLET"
-        node.contents = node.contents[2:]
+    if node.contents.startswith("* "):
+        return BulletNode(contents=node.contents[2:])
 
-    elif node.contents.startswith("<"):
-        node.type = "HTML"
+    if node.contents.startswith("<"):
+        return HtmlNode(contents=node.contents)
 
-    elif re.match(r"^\d+\. ", node.contents):
-        node.type = "NUM_LIST"
-        node.contents = node.contents[node.contents.index(" ") + 1 :]
+    if re.match(r"^\d+\. ", node.contents):
+        item = node.contents
 
-    elif node.contents.startswith("- [ ] "):
-        node.type = "CHECKBOX_UNCHECKED"
-        node.contents = node.contents[6:]
+        return NumListNode(contents=item[item.index(" ") + 1 :])
 
-    elif node.contents.startswith("- [x] "):
-        node.type = "CHECKBOX_CHECKED"
-        node.contents = node.contents[6:]
+    if node.contents.startswith("- [ ] "):
+        return CheckboxNode(checked=False, contents=node.contents[6:])
 
-    else:
-        node.type = "TEXT"
+    if node.contents.startswith("- [x] "):
+        return CheckboxNode(checked=True, contents=node.contents[6:])
+
+    return TextNode(contents=node.contents)
 
 
-def classify_nodes(nodes: List[Node]) -> None:
-    for node in nodes:
-        classify_node(node)
+def classify_nodes(nodes: List[Node]) -> List[Node]:
+    return [classify_node(node) for node in nodes]
 
 
 def group_text_nodes(nodes: List[Node]) -> List[Node]:
     done: List[Node] = []
 
     for node in nodes:
-        if node.type == "TEXT":
-            if len(done) == 0 or done[-1].type != "TEXT":
+        if isinstance(node, TextNode):
+            if len(done) == 0 or not isinstance(done[-1], TextNode):
                 done.append(node)
 
             else:
@@ -178,9 +164,9 @@ def group_bullet_nodes(nodes: List[Node]) -> List[Node]:
     done: List[Node] = []
 
     for node in nodes:
-        if node.type == "BULLET":
-            if len(done) == 0 or done[-1].type != "BULLET":
-                done.append(Node(node.type, data=[node.contents]))
+        if isinstance(node, BulletNode):
+            if len(done) == 0 or not isinstance(done[-1], BulletNode):
+                done.append(BulletNode(data=[node.contents]))
 
             else:
                 done[-1].data.append(node.contents)
@@ -195,9 +181,9 @@ def group_number_list_nodes(nodes: List[Node]) -> List[Node]:
     done: List[Node] = []
 
     for node in nodes:
-        if node.type == "NUM_LIST":
-            if len(done) == 0 or done[-1].type != "NUM_LIST":
-                done.append(Node(node.type, data=[node.contents]))
+        if isinstance(node, NumListNode):
+            if len(done) == 0 or not isinstance(done[-1], NumListNode):
+                done.append(NumListNode(data=[node.contents]))
 
             else:
                 done[-1].data.append(node.contents)
@@ -242,15 +228,16 @@ def expand_inline(line: str) -> str:
 
 def escape_nodes(nodes: List[Node]) -> None:
     for node in nodes:
-        if node.type in ("PYTHON_BLOCK", "HTML"):
+        if isinstance(node, (HtmlNode, PythonNode)):
             pass
 
-        elif node.type == "CODEBLOCK" and not node.data[0]:
-            node.data[1] = escape(node.data[1])
+        elif isinstance(node, DataNode):
+            if isinstance(node, CodeblockNode) and not node.data[0]:
+                node.data[1] = escape(node.data[1])
 
-        elif node.type in ("BULLET", "NUM_LIST"):
-            for i, item in enumerate(node.data):
-                node.data[i] = escape(item)
+            elif isinstance(node, ListNode):
+                for i, item in enumerate(node.data):
+                    node.data[i] = escape(item)
 
         else:
             node.contents = escape(node.contents)
@@ -258,11 +245,11 @@ def escape_nodes(nodes: List[Node]) -> None:
 
 def expand_nodes(nodes: List[Node]) -> None:
     for node in nodes:
-        if node.type in ("BULLET", "NUM_LIST"):
+        if isinstance(node, ListNode) and isinstance(node, DataNode):
             for i, item in enumerate(node.data):
                 node.data[i] = expand_inline(item)
 
-        elif node.type != "CODEBLOCK":
+        elif not isinstance(node, CodeblockNode):
             node.contents = expand_inline(node.contents)
 
 
@@ -297,53 +284,42 @@ Code could not be highlighted. This could be for a number of reasons:
 
 
 def convert_node(node: Node) -> str:
-    type = node.type
     line = node.contents
 
-    if type == "HEADER1":
-        return f"<h1>{line}</h1>"
+    if isinstance(node, HeaderNode):
+        return f"<h{node.level}>{line}</h{node.level}>"
 
-    elif type == "HEADER2":
-        return f"<h2>{line}</h2>"
-
-    elif type == "HEADER3":
-        return f"<h3>{line}</h3>"
-
-    elif type == "HEADER4":
-        return f"<h4>{line}</h4>"
-
-    elif type == "TEXT":
+    elif isinstance(node, TextNode):
         return f"<p>{line}</p>"
 
-    elif type == "NEWLINE":
+    elif isinstance(node, NewlineNode):
         return "<br>"
 
-    elif type == "HTML":
+    elif isinstance(node, HtmlNode):
         return line
 
-    elif type == "BLOCKQUOTE":
+    elif isinstance(node, BlockquoteNode):
         return f"<blockquote>{line}</blockquote>"
 
-    elif type == "CHECKBOX_UNCHECKED":
-        return f'<p><input type="checkbox">{line}</p>'
+    elif isinstance(node, CheckboxNode):
+        checked = " checked" if node.checked else ""
 
-    elif type == "CHECKBOX_CHECKED":
-        return f'<p><input type="checkbox" checked>{line}</p>'
+        return f'<p><input type="checkbox"{checked}>{line}</p>'
 
-    elif type == "BULLET":
+    elif isinstance(node, BulletNode):
         items = "\n".join([f"<li>{l}</li>" for l in node.data])
 
         return f"<ul>\n{items}\n</ul>"
 
-    elif type == "NUM_LIST":
+    elif isinstance(node, NumListNode):
         items = "\n".join([f"<li>{l}</li>" for l in node.data])
 
         return f"<ol>\n{items}\n</ol>"
 
-    elif type == "PYTHON_BLOCK":
+    elif isinstance(node, PythonNode):
         return run_python_block(line)
 
-    elif type == "CODEBLOCK":
+    elif isinstance(node, CodeblockNode):
         lang = node.data[0]
         code = node.data[1]
 
@@ -360,13 +336,13 @@ def convert_node(node: Node) -> str:
 
 def setup_nodes(md: str) -> List[Node]:
     lines = md.split("\n")
-    return [Node("UNKNOWN", line) for line in lines]
+    return [Node(contents=line) for line in lines]
 
 
 def markdown_to_html(md: str) -> str:
     nodes = setup_nodes(md)
     nodes = group_blocked_nodes(iter(nodes))
-    classify_nodes(nodes)
+    nodes = classify_nodes(nodes)
     nodes = group_text_nodes(nodes)
     nodes = group_bullet_nodes(nodes)
     nodes = group_number_list_nodes(nodes)

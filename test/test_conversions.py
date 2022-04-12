@@ -1,10 +1,11 @@
 import pytest
 
 from md2html.core import *
+from md2html.node import *
 
 
 def make_node(s):
-    return Node("UNKNOWN", s)
+    return Node(contents=s)
 
 
 def make_nodes(strs):
@@ -14,7 +15,7 @@ def make_nodes(strs):
 def test_setup_nodes():
     nodes = setup_nodes("a\nb\nc")
 
-    assert all([node.type == "UNKNOWN" for node in nodes])
+    assert all([isinstance(node, Node) for node in nodes])
 
     assert len(nodes) == 3
     assert nodes[0].contents == "a"
@@ -28,7 +29,7 @@ def test_group_codeblock():
     got_nodes = group_blocked_nodes(iter(nodes))
 
     assert len(got_nodes) == 1
-    assert got_nodes[0].type == "CODEBLOCK"
+    assert isinstance(got_nodes[0], CodeblockNode)
     assert got_nodes[0].data == ["", "some\ncode"]
 
 
@@ -38,7 +39,7 @@ def test_group_codeblock_with_language():
     got_nodes = group_blocked_nodes(iter(nodes))
 
     assert len(got_nodes) == 1
-    assert got_nodes[0].type == "CODEBLOCK"
+    assert isinstance(got_nodes[0], CodeblockNode)
     assert got_nodes[0].data == ["python", "code"]
 
 
@@ -48,7 +49,7 @@ def test_group_python_blocks():
     got_nodes = group_blocked_nodes(iter(nodes))
 
     assert len(got_nodes) == 1
-    assert got_nodes[0].type == "PYTHON_BLOCK"
+    assert isinstance(got_nodes[0], PythonNode)
     assert got_nodes[0].contents == "some\npython"
 
 
@@ -58,7 +59,7 @@ def test_group_blockquote_blocks():
     got_nodes = group_blocked_nodes(iter(nodes))
 
     assert len(got_nodes) == 1
-    assert got_nodes[0].type == "BLOCKQUOTE"
+    assert isinstance(got_nodes[0], BlockquoteNode)
     assert got_nodes[0].contents == "this\nis a\nblockquote"
 
 
@@ -68,7 +69,7 @@ def test_group_html_comments():
     got_nodes = group_blocked_nodes(iter(nodes))
 
     assert len(got_nodes) == 1
-    assert got_nodes[0].type == "COMMENT"
+    assert isinstance(got_nodes[0], CommentNode)
     assert got_nodes[0].contents == "this\nis a\ncomment"
 
 
@@ -78,7 +79,7 @@ def test_group_html_comments_one_line():
     got_nodes = group_blocked_nodes(iter(nodes))
 
     assert len(got_nodes) == 1
-    assert got_nodes[0].type == "COMMENT"
+    assert isinstance(got_nodes[0], CommentNode)
     assert got_nodes[0].contents == "this is a comment"
 
 
@@ -88,7 +89,7 @@ def test_group_html_comments_two_lines():
     got_nodes = group_blocked_nodes(iter(nodes))
 
     assert len(got_nodes) == 1
-    assert got_nodes[0].type == "COMMENT"
+    assert isinstance(got_nodes[0], CommentNode)
     assert got_nodes[0].contents == "this is\na comment"
 
 
@@ -98,9 +99,9 @@ def test_preserve_nodes_next_to_codeblock():
     got_nodes = group_blocked_nodes(iter(nodes))
 
     assert got_nodes == [
-        Node("UNKNOWN", "pre"),
-        Node("CODEBLOCK", data=["", "code"]),
-        Node("UNKNOWN", "post"),
+        Node(contents="pre"),
+        CodeblockNode(data=["", "code"]),
+        Node(contents="post"),
     ]
 
 
@@ -110,9 +111,9 @@ def test_preserve_nodes_next_to_raw_python():
     got_nodes = group_blocked_nodes(iter(nodes))
 
     assert got_nodes == [
-        Node("UNKNOWN", "pre"),
-        Node("PYTHON_BLOCK", "code"),
-        Node("UNKNOWN", "post"),
+        Node(contents="pre"),
+        PythonNode(contents="code"),
+        Node(contents="post"),
     ]
 
 
@@ -122,9 +123,9 @@ def test_preserve_nodes_next_to_blockquote():
     got_nodes = group_blocked_nodes(iter(nodes))
 
     assert got_nodes == [
-        Node("UNKNOWN", "pre"),
-        Node("BLOCKQUOTE", "line"),
-        Node("UNKNOWN", "post"),
+        Node(contents="pre"),
+        BlockquoteNode(contents="line"),
+        Node(contents="post"),
     ]
 
 
@@ -165,113 +166,111 @@ def test_exception_throw_if_html_comment_not_closed():
 
 def test_classify_nodes():
     def run(x, expected):
-        node = make_node(x)
-        classify_node(node)
+        assert classify_node(make_node(x)) == expected
 
-        assert node == expected
+    run("# hello", HeaderNode(level=1, contents="hello"))
+    run("## hello", HeaderNode(level=2, contents="hello"))
+    run("### hello", HeaderNode(level=3, contents="hello"))
+    run("#### hello", HeaderNode(level=4, contents="hello"))
 
-    run("## hello", Node("HEADER2", "hello"))
-    run("### hello", Node("HEADER3", "hello"))
-    run("#### hello", Node("HEADER4", "hello"))
+    run("", NewlineNode())
 
-    run("", Node("NEWLINE", ""))
+    run("* hello", BulletNode(contents="hello"))
 
-    run("* hello", Node("BULLET", "hello"))
+    run("1. hello", NumListNode(contents="hello"))
+    run("9. hello", NumListNode(contents="hello"))
+    run("99. hello", NumListNode(contents="hello"))
 
-    run("1. hello", Node("NUM_LIST", "hello"))
-    run("9. hello", Node("NUM_LIST", "hello"))
-    run("99. hello", Node("NUM_LIST", "hello"))
+    run("<html>", HtmlNode(contents="<html>"))
 
-    run("<html>", Node("HTML", "<html>"))
+    run("- [ ] hello", CheckboxNode(checked=False, contents="hello"))
+    run("- [x] hello", CheckboxNode(checked=True, contents="hello"))
 
-    run("- [ ] hello", Node("CHECKBOX_UNCHECKED", "hello"))
-    run("- [x] hello", Node("CHECKBOX_CHECKED", "hello"))
-
-    run("hello", Node("TEXT", "hello"))
+    run("hello", TextNode(contents="hello"))
 
 
 def test_group_text_nodes():
     nodes = [
-        Node("TEXT", "hello"),
-        Node("TEXT", "world"),
+        TextNode(contents="hello"),
+        TextNode(contents="world"),
     ]
 
     got_nodes = group_text_nodes(nodes)
 
-    assert got_nodes == [Node("TEXT", "hello\nworld")]
+    assert got_nodes == [TextNode(contents="hello\nworld")]
 
 
 def test_only_group_adjacent_nodes():
     nodes = [
-        Node("TEXT", "hello"),
-        Node("NEWLINE", ""),
-        Node("TEXT", "world"),
+        TextNode(contents="hello"),
+        NewlineNode(),
+        TextNode(contents="world"),
     ]
 
     got_nodes = group_blocked_nodes(nodes)
 
     assert got_nodes == [
-        Node("TEXT", "hello"),
-        Node("NEWLINE", ""),
-        Node("TEXT", "world"),
+        TextNode(contents="hello"),
+        NewlineNode(),
+        TextNode(contents="world"),
     ]
 
 
 def test_group_bullet_nodes():
     nodes = [
-        Node("BULLET", "item"),
-        Node("BULLET", "another item"),
-        Node("BULLET", "last item"),
+        BulletNode(contents="item"),
+        BulletNode(contents="another item"),
+        BulletNode(contents="last item"),
     ]
 
     got_nodes = group_bullet_nodes(nodes)
 
     assert got_nodes == [
-        Node("BULLET", data=["item", "another item", "last item"])
+        BulletNode(data=["item", "another item", "last item"])
     ]
 
 
 def test_group_only_adjacent_bullet_nodes():
     nodes = [
-        Node("BULLET", "item"),
-        Node("TEXT", "text"),
-        Node("BULLET", "item"),
+        BulletNode(contents="item"),
+        TextNode(contents="text"),
+        BulletNode(contents="item"),
     ]
 
     got_nodes = group_bullet_nodes(nodes)
 
     assert got_nodes == [
-        Node("BULLET", data=["item"]),
-        Node("TEXT", "text"),
-        Node("BULLET", data=["item"]),
+        BulletNode(data=["item"]),
+        TextNode(contents="text"),
+        BulletNode(data=["item"]),
     ]
 
 
 def test_group_numbered_list_nodes():
     nodes = [
-        Node("NUM_LIST", "item 1"),
-        Node("NUM_LIST", "item 2"),
-        Node("NUM_LIST", "item 3"),
+        NumListNode(contents="item 1"),
+        NumListNode(contents="item 2"),
+        NumListNode(contents="item 3"),
     ]
 
     got_nodes = group_number_list_nodes(nodes)
 
-    assert got_nodes == [Node("NUM_LIST", data=["item 1", "item 2", "item 3"])]
+    assert got_nodes == [NumListNode(data=["item 1", "item 2", "item 3"])]
 
 
 def test_group_only_adjacent_num_list_nodes():
     nodes = [
-        Node("NUM_LIST", "item"),
-        Node("TEXT", "text"),
-        Node("NUM_LIST", "item"),
+        NumListNode(contents="item"),
+        TextNode(contents="text"),
+        NumListNode(contents="item"),
     ]
 
     got_nodes = group_number_list_nodes(nodes)
 
     assert got_nodes == [
-        Node("NUM_LIST", data=["item"]),
-        Node("TEXT", "text"),
-        Node("NUM_LIST", data=["item"]),
+        NumListNode(data=["item"]),
+        TextNode(contents="text"),
+        NumListNode(data=["item"]),
     ]
 
 
