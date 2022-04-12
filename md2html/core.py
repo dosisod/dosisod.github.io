@@ -53,7 +53,7 @@ def group_blocked_nodes(nodes: Iterator[Node]) -> List[Node]:
 
     def iter_block_quote(
         first: Node, nodes: Iterator[Node]
-    ) -> Tuple[Node, Node]:
+    ) -> Tuple[Node, Optional[Node]]:
         blockquote = first.contents[2:]
 
         for node in nodes:
@@ -395,7 +395,7 @@ def convert_file(filename: str) -> None:
         f.write(html)
 
 
-def main(argv: List[str]):
+def main(argv: List[str]) -> None:
     if len(argv) < 2:
         print(f"usage: {argv[0]} <file.md> [...files.md]")
         return

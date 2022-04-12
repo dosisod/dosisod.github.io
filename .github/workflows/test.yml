@@ -17,6 +17,9 @@ jobs:
           pip install -r requirements.txt
           pip install -r dev-requirements.txt
 
+      - name: Mypy
+        run: mypy -p md2html
+
       - name: Black
         run: black md2html test --check --diff --color -l 79
 
