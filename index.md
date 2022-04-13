@@ -18,9 +18,10 @@ You can follow me on [GitHub](https://github.com/dosisod).
 ## Latest blogs
 
 !!!
-from gen_index import gen_recent_blogs
+from gen_index import gen_recent_blogs, gen_updated_date
 
 html += gen_recent_blogs()
+html += f'<br><span class="gray">Updated {gen_updated_date()}</span>'
 !!!
 
-<style>.gray { white-space: pre-wrap; }<style>
+<style>.gray { white-space: pre-wrap; }</style>

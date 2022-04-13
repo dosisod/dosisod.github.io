@@ -1,3 +1,4 @@
+from datetime import datetime
 from pathlib import Path
 import re
 
@@ -68,3 +69,16 @@ def gen_recent_blogs() -> str:
     html += "\n</ul>"
 
     return html
+
+def gen_updated_date() -> str:
+    # From: https://stackoverflow.com/a/52045942
+    def day_suffix(day):
+        suffixes = ["th", "st", "nd", "rd"]
+
+        if day % 10 in [1, 2, 3] and day not in [11, 12, 13]:
+            return sufixes[day % 10]
+
+        return suffixes[0]
+
+    now = datetime.now()
+    return now.strftime('%B %dXXX %Y').replace("XXX", day_suffix(now.day))
