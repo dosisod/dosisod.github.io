@@ -25,6 +25,7 @@ jobs:
 
       - name: Build
         run: |
+          timedatectl set-timezone "America/Los_Angeles"
           shopt -s globstar
           python3 -m md2html 404.md index.md blog/**/*.md
 
