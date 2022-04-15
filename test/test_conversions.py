@@ -63,6 +63,68 @@ def test_group_blockquote_blocks():
     assert got_nodes[0].contents == "this\nis a\nblockquote"
 
 
+def test_table_header_with_missing_header_seperator():
+    nodes = make_nodes(["| A | B | C |"])
+
+    with pytest.raises(ValueError, match="missing .* header") as exc:
+        group_blocked_nodes(iter(nodes))
+
+
+@pytest.mark.parametrize("row", ["x| y |", "| y |x"])
+def test_table_header_check_seperator_pipe(row):
+    nodes = make_nodes(["| A |", row])
+
+    msg = "line must start and end with pipe"
+
+    with pytest.raises(ValueError, match=msg) as exc:
+        group_blocked_nodes(iter(nodes))
+
+
+def test_table_header():
+    nodes = make_nodes(["| A | B | C |", "|---|---|---|"])
+
+    got_nodes = group_blocked_nodes(iter(nodes))
+
+    assert got_nodes == [TableNode(header=["A", "B", "C"], rows=[])]
+
+
+def test_table_header_seperator_needs_same_number_of_cells():
+    nodes = make_nodes(["| A |", "|---|---|"])
+
+    with pytest.raises(ValueError, match="expected 1 cells, got 2 instead"):
+        group_blocked_nodes(iter(nodes))
+
+
+def test_table_with_rows():
+    nodes = make_nodes(["| A |", "|---|", "| row 1 |", "| row 2 |"])
+
+    got_nodes = group_blocked_nodes(iter(nodes))
+
+    assert got_nodes == [TableNode(header=["A"], rows=[["row 1"], ["row 2"]])]
+
+
+def test_table_with_trailing_content():
+    nodes = make_nodes(["| A |", "|---|", "| row 1 |", "some text"])
+
+    got_nodes = group_blocked_nodes(iter(nodes))
+
+    assert got_nodes == [
+        TableNode(header=["A"], rows=[["row 1"]]),
+        Node(contents="some text"),
+    ]
+
+
+def test_table_with_trailing_content_after_seperator():
+    nodes = make_nodes(["| A |", "|---|", "some text"])
+
+    got_nodes = group_blocked_nodes(iter(nodes))
+
+    assert got_nodes == [
+        TableNode(header=["A"], rows=[]),
+        Node(contents="some text"),
+    ]
+
+
 def test_group_html_comments():
     nodes = make_nodes(["<!--this", "is a", "comment-->", ""])
 
@@ -303,6 +365,14 @@ def test_convert_node():
     run("```\nhello world\n```", '<pre class="hljs">hello world</pre>')
 
 
+def test_convert_table_node():
+    markdown = "| A | B | C |\n|---|---|---|\n| 1 | 2 | 3 |"
+
+    html = "<table><tr><th>A</th><th>B</th><th>C</th></tr><tr><td>1</td><td>2</td><td>3</td></tr></table>"
+
+    assert markdown_to_html(markdown) == html
+
+
 def test_expand_inline_code_in_lists():
     assert (
         markdown_to_html("* *hello*") == "<ul>\n<li><em>hello</em></li>\n</ul>"
@@ -326,6 +396,13 @@ def test_expand_inline_markdown_in_blockquote():
         markdown_to_html("> **hello**")
         == "<blockquote><strong>hello</strong></blockquote>"
     )
+
+
+def test_expand_inline_markdown_in_table():
+    markdown = "|*hello*|\n|---|\n|*world*|"
+    html = "<table><tr><th><em>hello</em></th></tr><tr><td><em>world</em></td></tr></table>"
+
+    assert markdown_to_html(markdown) == html
 
 
 def test_escape_html():
@@ -353,6 +430,11 @@ some text <x>
 - [ ] <x>
 
 - [x] <x>
+
+| <x> |
+| --- |
+| <x> |
+
 """
 
     html = markdown_to_html(markdown)

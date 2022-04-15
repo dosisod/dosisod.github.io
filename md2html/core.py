@@ -9,6 +9,10 @@ import re
 from .node import *
 
 
+def is_valid_table_row(row: str) -> bool:
+    return bool(re.match(r"^\|.*\|$", row))
+
+
 def group_blocked_nodes(nodes: Iterator[Node]) -> List[Node]:
     def iter_code_block(first: Node, nodes: Iterator[Node]) -> Node:
         lang = first.contents[3:]
@@ -75,6 +79,37 @@ def group_blocked_nodes(nodes: Iterator[Node]) -> List[Node]:
 
         raise ValueError("html comment not closed")
 
+    def iter_table(
+        first: Node, nodes: Iterator[Node]
+    ) -> Tuple[Node, Optional[Node]]:
+        def split_row(row: str) -> List[str]:
+            return [x.strip() for x in row.split("|")[1:-1]]
+
+        header: List[str] = split_row(first.contents)
+        rows: List[List[str]] = []
+
+        seperator_node = next(nodes, None)
+
+        if not seperator_node:
+            raise ValueError("table missing required header seperator")
+
+        if not is_valid_table_row(seperator_node.contents):
+            raise ValueError("line must start and end with pipe")
+
+        seperator_cells = split_row(seperator_node.contents)
+        if len(seperator_cells) != len(header):
+            raise ValueError(
+                f"expected {len(header)} cells, got {len(seperator_cells)} instead"
+            )
+
+        while node := next(nodes, None):
+            if not is_valid_table_row(node.contents):
+                return (TableNode(header=header, rows=rows), node)
+
+            rows.append(split_row(node.contents))
+
+        return (TableNode(header=header, rows=rows), None)
+
     grouped_nodes = []
 
     for node in nodes:
@@ -94,14 +129,29 @@ def group_blocked_nodes(nodes: Iterator[Node]) -> List[Node]:
         elif node.contents.startswith("<!--"):
             grouped_nodes.append(iter_html_comment(node, nodes))
 
+        elif is_valid_table_row(node.contents):
+            table, leftover = iter_table(node, nodes)
+            grouped_nodes.append(table)
+
+            if leftover:
+                grouped_nodes.append(leftover)
+
         else:
             grouped_nodes.append(node)
 
     return grouped_nodes
 
 
+def is_already_classified(node: Node) -> bool:
+    # since we know "node" derives from Node, we can check if the type is
+    # anything other then Node, and if it is, we will know it is derived, and
+    # thus is already classified.
+
+    return type(node) != Node
+
+
 def classify_node(node: Node) -> Node:
-    if isinstance(node, (BlockquoteNode, CodeblockNode, PythonNode)):
+    if is_already_classified(node):
         return node
 
     if node.contents.startswith("# "):
@@ -239,6 +289,13 @@ def escape_nodes(nodes: List[Node]) -> None:
                 for i, item in enumerate(node.data):
                     node.data[i] = escape(item)
 
+        elif isinstance(node, TableNode):
+            for i, cell in enumerate(node.header):
+                node.header[i] = escape(cell)
+
+            for i, row in enumerate(node.rows):
+                node.rows[i] = [escape(cell) for cell in row]
+
         else:
             node.contents = escape(node.contents)
 
@@ -248,6 +305,13 @@ def expand_nodes(nodes: List[Node]) -> None:
         if isinstance(node, ListNode) and isinstance(node, DataNode):
             for i, item in enumerate(node.data):
                 node.data[i] = expand_inline(item)
+
+        elif isinstance(node, TableNode):
+            for i, cell in enumerate(node.header):
+                node.header[i] = expand_inline(cell)
+
+            for i, row in enumerate(node.rows):
+                node.rows[i] = [expand_inline(cell) for cell in row]
 
         elif not isinstance(node, CodeblockNode):
             node.contents = expand_inline(node.contents)
@@ -330,6 +394,18 @@ def convert_node(node: Node) -> str:
 
         else:
             return f'<pre class="hljs">{code}</pre>'
+
+    elif isinstance(node, TableNode):
+
+        def make_row(cells: List[str], type: str) -> str:
+            row = [f"<{type}>{x}</{type}>" for x in cells]
+
+            return f"<tr>{''.join(row)}</tr>"
+
+        rows = [make_row(node.header, "th")]
+        rows.extend([make_row(row, "td") for row in node.rows])
+
+        return f"<table>{''.join(rows)}</table>"
 
     assert False  # pragma: no cover
 

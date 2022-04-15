@@ -70,3 +70,9 @@ class NewlineNode(Node):
 @dataclass(kw_only=True)
 class BlockquoteNode(Node):
     pass
+
+
+@dataclass(kw_only=True)
+class TableNode(Node):
+    header: List[str]
+    rows: List[List[str]]

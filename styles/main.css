@@ -72,6 +72,20 @@ li:before {
   color: var(--gray);
 }
 
+table {
+  border-collapse: collapse;
+  margin-left: 0.5ch;
+}
+
+tr {
+  height: 1ch;
+}
+
+td, th {
+  border: 0.25ch solid var(--gray);
+  padding: 0.375ch;
+}
+
 code {
   padding: 0 !important;
 }
