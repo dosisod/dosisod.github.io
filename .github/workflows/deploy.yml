@@ -28,6 +28,7 @@ jobs:
           export TZ="America/Los_Angeles"
           shopt -s globstar
           python3 -m md2html 404.md index.md blog/**/*.md
+          sed -i "/html/d" .gitignore
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4.3.0
