@@ -440,3 +440,7 @@ some text <x>
     html = markdown_to_html(markdown)
 
     assert "<x>" not in html
+
+
+def test_convert_html_comment_doesnt_throw_assertion():
+    markdown_to_html("<!-- comment -->")

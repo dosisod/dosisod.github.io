@@ -350,6 +350,9 @@ Code could not be highlighted. This could be for a number of reasons:
 def convert_node(node: Node) -> str:
     line = node.contents
 
+    if isinstance(node, CommentNode):
+        return ""
+
     if isinstance(node, HeaderNode):
         return f"<h{node.level}>{line}</h{node.level}>"
 
