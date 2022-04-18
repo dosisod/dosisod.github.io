@@ -80,12 +80,43 @@ def test_table_header_check_seperator_pipe(row):
         group_blocked_nodes(iter(nodes))
 
 
+@pytest.mark.parametrize(
+    "row",
+    [
+        "|--|",
+        "|xxx|",
+        "|-x-|",
+        "|:--:|",
+        "|::---|",
+        "|---::|",
+        "|x---|",
+        "|---x|",
+    ],
+)
+def test_table_header_check_seperator_is_formatted_correctly(row):
+    nodes = make_nodes(["| A |", row])
+
+    msg = "header seperator must have:"
+
+    with pytest.raises(ValueError, match=msg) as exc:
+        group_blocked_nodes(iter(nodes))
+
+
 def test_table_header():
     nodes = make_nodes(["| A | B | C |", "|---|---|---|"])
 
     got_nodes = group_blocked_nodes(iter(nodes))
 
-    assert got_nodes == [TableNode(header=["A", "B", "C"], rows=[])]
+    assert got_nodes == [
+        TableNode(
+            header=[
+                HeaderCell("A"),
+                HeaderCell("B"),
+                HeaderCell("C"),
+            ],
+            rows=[],
+        )
+    ]
 
 
 def test_table_header_seperator_needs_same_number_of_cells():
@@ -100,7 +131,9 @@ def test_table_with_rows():
 
     got_nodes = group_blocked_nodes(iter(nodes))
 
-    assert got_nodes == [TableNode(header=["A"], rows=[["row 1"], ["row 2"]])]
+    assert got_nodes == [
+        TableNode(header=[HeaderCell("A")], rows=[["row 1"], ["row 2"]])
+    ]
 
 
 def test_table_with_trailing_content():
@@ -109,8 +142,28 @@ def test_table_with_trailing_content():
     got_nodes = group_blocked_nodes(iter(nodes))
 
     assert got_nodes == [
-        TableNode(header=["A"], rows=[["row 1"]]),
+        TableNode(header=[HeaderCell("A")], rows=[["row 1"]]),
         Node(contents="some text"),
+    ]
+
+
+def test_table_with_alignment():
+    nodes = make_nodes(
+        ["|default|left|center|right|", "|---|:---|:---:|---:|"]
+    )
+
+    got_nodes = group_blocked_nodes(iter(nodes))
+
+    assert got_nodes == [
+        TableNode(
+            header=[
+                HeaderCell("default", alignment=HeaderAlignment.DEFAULT),
+                HeaderCell("left", alignment=HeaderAlignment.LEFT),
+                HeaderCell("center", alignment=HeaderAlignment.CENTER),
+                HeaderCell("right", alignment=HeaderAlignment.RIGHT),
+            ],
+            rows=[],
+        ),
     ]
 
 
@@ -120,7 +173,7 @@ def test_table_with_trailing_content_after_seperator():
     got_nodes = group_blocked_nodes(iter(nodes))
 
     assert got_nodes == [
-        TableNode(header=["A"], rows=[]),
+        TableNode(header=[HeaderCell("A")], rows=[]),
         Node(contents="some text"),
     ]
 
@@ -401,6 +454,17 @@ def test_expand_inline_markdown_in_blockquote():
 def test_expand_inline_markdown_in_table():
     markdown = "|*hello*|\n|---|\n|*world*|"
     html = "<table><tr><th><em>hello</em></th></tr><tr><td><em>world</em></td></tr></table>"
+
+    assert markdown_to_html(markdown) == html
+
+
+def test_convert_table_with_alignment():
+    markdown = """\
+|default|left|center|right|
+|-------|:---|:----:|----:|
+|1|2|3|4|"""
+
+    html = '<table><tr><th>default</th><th style="text-align: left;">left</th><th style="text-align: center;">center</th><th style="text-align: right;">right</th></tr><tr><td>1</td><td style="text-align: left;">2</td><td style="text-align: center;">3</td><td style="text-align: right;">4</td></tr></table>'
 
     assert markdown_to_html(markdown) == html
 

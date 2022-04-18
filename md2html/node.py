@@ -1,3 +1,4 @@
+from enum import auto, Enum
 from dataclasses import dataclass, field
 from typing import List
 
@@ -72,7 +73,20 @@ class BlockquoteNode(Node):
     pass
 
 
+class HeaderAlignment(Enum):
+    DEFAULT = auto()
+    LEFT = auto()
+    CENTER = auto()
+    RIGHT = auto()
+
+
+@dataclass
+class HeaderCell:
+    name: str
+    alignment: HeaderAlignment = HeaderAlignment.DEFAULT
+
+
 @dataclass(kw_only=True)
 class TableNode(Node):
-    header: List[str]
+    header: List[HeaderCell]
     rows: List[List[str]]

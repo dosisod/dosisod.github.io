@@ -85,9 +85,6 @@ def group_blocked_nodes(nodes: Iterator[Node]) -> List[Node]:
         def split_row(row: str) -> List[str]:
             return [x.strip() for x in row.split("|")[1:-1]]
 
-        header: List[str] = split_row(first.contents)
-        rows: List[List[str]] = []
-
         seperator_node = next(nodes, None)
 
         if not seperator_node:
@@ -97,10 +94,37 @@ def group_blocked_nodes(nodes: Iterator[Node]) -> List[Node]:
             raise ValueError("line must start and end with pipe")
 
         seperator_cells = split_row(seperator_node.contents)
+
+        def is_valid_seperator_cell(cell: str) -> bool:
+            return bool(re.match("^:?-{3,}:?$", cell.strip()))
+
+        if not all([is_valid_seperator_cell(x) for x in seperator_cells]):
+            raise ValueError(
+                "header seperator must have:\n\n"
+                "* At least 3 dashes\n"
+                "* (optional) starting/ending ':'\n"
+                "* (optional) whitespace at start/end\n"
+            )
+
+        header = [HeaderCell(name) for name in split_row(first.contents)]
+
         if len(seperator_cells) != len(header):
             raise ValueError(
                 f"expected {len(header)} cells, got {len(seperator_cells)} instead"
             )
+
+        for i, name in enumerate(seperator_cells):
+            match (name.startswith(":"), name.endswith(":")):
+                case (True, True):
+                    header[i].alignment = HeaderAlignment.CENTER
+                case (True, False):
+                    header[i].alignment = HeaderAlignment.LEFT
+                case (False, True):
+                    header[i].alignment = HeaderAlignment.RIGHT
+                case _:
+                    header[i].alignment = HeaderAlignment.DEFAULT
+
+        rows: List[List[str]] = []
 
         while node := next(nodes, None):
             if not is_valid_table_row(node.contents):
@@ -291,7 +315,7 @@ def escape_nodes(nodes: List[Node]) -> None:
 
         elif isinstance(node, TableNode):
             for i, cell in enumerate(node.header):
-                node.header[i] = escape(cell)
+                node.header[i].name = escape(cell.name)
 
             for i, row in enumerate(node.rows):
                 node.rows[i] = [escape(cell) for cell in row]
@@ -308,7 +332,7 @@ def expand_nodes(nodes: List[Node]) -> None:
 
         elif isinstance(node, TableNode):
             for i, cell in enumerate(node.header):
-                node.header[i] = expand_inline(cell)
+                node.header[i].name = expand_inline(cell.name)
 
             for i, row in enumerate(node.rows):
                 node.rows[i] = [expand_inline(cell) for cell in row]
@@ -399,13 +423,24 @@ def convert_node(node: Node) -> str:
             return f'<pre class="hljs">{code}</pre>'
 
     elif isinstance(node, TableNode):
+        alignment_to_style = {
+            HeaderAlignment.DEFAULT: "",
+            HeaderAlignment.LEFT: ' style="text-align: left;"',
+            HeaderAlignment.CENTER: ' style="text-align: center;"',
+            HeaderAlignment.RIGHT: ' style="text-align: right;"',
+        }
 
-        def make_row(cells: List[str], type: str) -> str:
-            row = [f"<{type}>{x}</{type}>" for x in cells]
+        def make_row(cells: List[str], type: str, style: str = "") -> str:
+            get_style = lambda i: alignment_to_style[node.header[i].alignment]  # type: ignore
+
+            row = [
+                f"<{type}{get_style(i)}>{text}</{type}>"
+                for i, text in enumerate(cells)
+            ]
 
             return f"<tr>{''.join(row)}</tr>"
 
-        rows = [make_row(node.header, "th")]
+        rows = [make_row([cell.name for cell in node.header], "th")]
         rows.extend([make_row(row, "td") for row in node.rows])
 
         return f"<table>{''.join(rows)}</table>"
