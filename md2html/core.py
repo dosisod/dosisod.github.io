@@ -13,127 +13,132 @@ def is_valid_table_row(row: str) -> bool:
     return bool(re.match(r"^\|.*\|$", row))
 
 
-def group_blocked_nodes(nodes: Iterator[Node]) -> List[Node]:
-    def iter_code_block(first: Node, nodes: Iterator[Node]) -> Node:
-        lang = first.contents[3:]
-        next_node = next(nodes, None)
+def iter_code_block(first: Node, nodes: Iterator[Node]) -> Node:
+    lang = first.contents[3:]
+    next_node = next(nodes, None)
 
-        if not next_node:
-            raise ValueError("codeblock end not reached")
-
-        codeblock = next_node.contents
-
-        for node in nodes:
-            if node.contents.startswith("```"):
-                return CodeblockNode(data=[lang, codeblock])
-
-            else:
-                codeblock += f"\n{node.contents}"
-
+    if not next_node:
         raise ValueError("codeblock end not reached")
 
-    def iter_python_blocks(nodes: Iterator[Node]) -> Node:
-        next_node = next(nodes, None)
+    codeblock = next_node.contents
 
-        if not next_node:
-            raise ValueError("python block end not reached")
+    for node in nodes:
+        if node.contents.startswith("```"):
+            return CodeblockNode(data=[lang, codeblock])
 
-        code = next_node.contents
+        else:
+            codeblock += f"\n{node.contents}"
 
-        for node in nodes:
-            if node.contents == "!!!":
-                return PythonNode(contents=code)
+    raise ValueError("codeblock end not reached")
 
-            else:
-                code += f"\n{node.contents}"
 
+def iter_python_blocks(nodes: Iterator[Node]) -> Node:
+    next_node = next(nodes, None)
+
+    if not next_node:
         raise ValueError("python block end not reached")
 
-    def iter_block_quote(
-        first: Node, nodes: Iterator[Node]
-    ) -> Tuple[Node, Optional[Node]]:
-        blockquote = first.contents[2:]
+    code = next_node.contents
 
-        for node in nodes:
-            if not node.contents.startswith("> "):
-                return (BlockquoteNode(contents=blockquote), node)
+    for node in nodes:
+        if node.contents == "!!!":
+            return PythonNode(contents=code)
 
-            blockquote += f"\n{node.contents[2:]}"
+        else:
+            code += f"\n{node.contents}"
 
-        return (BlockquoteNode(contents=blockquote), None)
+    raise ValueError("python block end not reached")
 
-    def iter_html_comment(first: Node, nodes: Iterator[Node]) -> Node:
-        if first.contents.endswith("-->"):
-            return CommentNode(contents=first.contents[4:-3])
 
-        comment = first.contents[4:]
+def iter_block_quote(
+    first: Node, nodes: Iterator[Node]
+) -> Tuple[Node, Optional[Node]]:
+    blockquote = first.contents[2:]
 
-        for node in nodes:
-            if node.contents.endswith("-->"):
-                comment += f"\n{node.contents[:-3]}"
-                next(nodes)
-                return CommentNode(contents=comment)
+    for node in nodes:
+        if not node.contents.startswith("> "):
+            return (BlockquoteNode(contents=blockquote), node)
 
-            else:
-                comment += f"\n{node.contents}"
+        blockquote += f"\n{node.contents[2:]}"
 
-        raise ValueError("html comment not closed")
+    return (BlockquoteNode(contents=blockquote), None)
 
-    def iter_table(
-        first: Node, nodes: Iterator[Node]
-    ) -> Tuple[Node, Optional[Node]]:
-        def split_row(row: str) -> List[str]:
-            return [x.strip() for x in row.split("|")[1:-1]]
 
-        seperator_node = next(nodes, None)
+def iter_html_comment(first: Node, nodes: Iterator[Node]) -> Node:
+    if first.contents.endswith("-->"):
+        return CommentNode(contents=first.contents[4:-3])
 
-        if not seperator_node:
-            raise ValueError("table missing required header seperator")
+    comment = first.contents[4:]
 
-        if not is_valid_table_row(seperator_node.contents):
-            raise ValueError("line must start and end with pipe")
+    for node in nodes:
+        if node.contents.endswith("-->"):
+            comment += f"\n{node.contents[:-3]}"
+            next(nodes)
+            return CommentNode(contents=comment)
 
-        seperator_cells = split_row(seperator_node.contents)
+        else:
+            comment += f"\n{node.contents}"
 
-        def is_valid_seperator_cell(cell: str) -> bool:
-            return bool(re.match("^:?-{3,}:?$", cell.strip()))
+    raise ValueError("html comment not closed")
 
-        if not all([is_valid_seperator_cell(x) for x in seperator_cells]):
-            raise ValueError(
-                "header seperator must have:\n\n"
-                "* At least 3 dashes\n"
-                "* (optional) starting/ending ':'\n"
-                "* (optional) whitespace at start/end\n"
-            )
 
-        header = [HeaderCell(name) for name in split_row(first.contents)]
+def iter_table(
+    first: Node, nodes: Iterator[Node]
+) -> Tuple[Node, Optional[Node]]:
+    def split_row(row: str) -> List[str]:
+        return [x.strip() for x in row.split("|")[1:-1]]
 
-        if len(seperator_cells) != len(header):
-            raise ValueError(
-                f"expected {len(header)} cells, got {len(seperator_cells)} instead"
-            )
+    seperator_node = next(nodes, None)
 
-        for i, name in enumerate(seperator_cells):
-            match (name.startswith(":"), name.endswith(":")):
-                case (True, True):
-                    header[i].alignment = HeaderAlignment.CENTER
-                case (True, False):
-                    header[i].alignment = HeaderAlignment.LEFT
-                case (False, True):
-                    header[i].alignment = HeaderAlignment.RIGHT
-                case _:
-                    header[i].alignment = HeaderAlignment.DEFAULT
+    if not seperator_node:
+        raise ValueError("table missing required header seperator")
 
-        rows: List[List[str]] = []
+    if not is_valid_table_row(seperator_node.contents):
+        raise ValueError("line must start and end with pipe")
 
-        while node := next(nodes, None):
-            if not is_valid_table_row(node.contents):
-                return (TableNode(header=header, rows=rows), node)
+    seperator_cells = split_row(seperator_node.contents)
 
-            rows.append(split_row(node.contents))
+    def is_valid_seperator_cell(cell: str) -> bool:
+        return bool(re.match("^:?-{3,}:?$", cell.strip()))
 
-        return (TableNode(header=header, rows=rows), None)
+    if not all([is_valid_seperator_cell(x) for x in seperator_cells]):
+        raise ValueError(
+            "header seperator must have:\n\n"
+            "* At least 3 dashes\n"
+            "* (optional) starting/ending ':'\n"
+            "* (optional) whitespace at start/end\n"
+        )
 
+    header = [HeaderCell(name) for name in split_row(first.contents)]
+
+    if len(seperator_cells) != len(header):
+        raise ValueError(
+            f"expected {len(header)} cells, got {len(seperator_cells)} instead"
+        )
+
+    for i, name in enumerate(seperator_cells):
+        match (name.startswith(":"), name.endswith(":")):
+            case (True, True):
+                header[i].alignment = HeaderAlignment.CENTER
+            case (True, False):
+                header[i].alignment = HeaderAlignment.LEFT
+            case (False, True):
+                header[i].alignment = HeaderAlignment.RIGHT
+            case _:
+                header[i].alignment = HeaderAlignment.DEFAULT
+
+    rows: List[List[str]] = []
+
+    while node := next(nodes, None):
+        if not is_valid_table_row(node.contents):
+            return (TableNode(header=header, rows=rows), node)
+
+        rows.append(split_row(node.contents))
+
+    return (TableNode(header=header, rows=rows), None)
+
+
+def group_blocked_nodes(nodes: Iterator[Node]) -> List[Node]:
     grouped_nodes = []
 
     for node in nodes:
