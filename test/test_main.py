@@ -6,7 +6,7 @@ import timeit
 
 import pytest
 
-from md2html.core import convert_file, main
+from md2html.core import main
 
 
 @patch("builtins.print")

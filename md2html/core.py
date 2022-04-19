@@ -2,7 +2,6 @@ from concurrent.futures import ThreadPoolExecutor
 from html import escape
 from pathlib import Path
 from subprocess import run
-from sys import argv
 from typing import List, Tuple, Iterator, Optional
 import re
 
@@ -403,12 +402,12 @@ def convert_node(node: Node) -> str:
         return f'<p><input type="checkbox"{checked}>{line}</p>'
 
     elif isinstance(node, BulletNode):
-        items = "\n".join([f"<li>{l}</li>" for l in node.data])
+        items = "\n".join([f"<li>{x}</li>" for x in node.data])
 
         return f"<ul>\n{items}\n</ul>"
 
     elif isinstance(node, NumListNode):
-        items = "\n".join([f"<li>{l}</li>" for l in node.data])
+        items = "\n".join([f"<li>{x}</li>" for x in node.data])
 
         return f"<ol>\n{items}\n</ol>"
 
@@ -435,8 +434,11 @@ def convert_node(node: Node) -> str:
             HeaderAlignment.RIGHT: ' style="text-align: right;"',
         }
 
+        table_node = node
+
         def make_row(cells: List[str], type: str, style: str = "") -> str:
-            get_style = lambda i: alignment_to_style[node.header[i].alignment]  # type: ignore
+            def get_style(i: int) -> str:
+                return alignment_to_style[table_node.header[i].alignment]
 
             row = [
                 f"<{type}{get_style(i)}>{text}</{type}>"

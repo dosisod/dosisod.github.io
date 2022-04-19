@@ -66,7 +66,7 @@ def test_group_blockquote_blocks():
 def test_table_header_with_missing_header_seperator():
     nodes = make_nodes(["| A | B | C |"])
 
-    with pytest.raises(ValueError, match="missing .* header") as exc:
+    with pytest.raises(ValueError, match="missing .* header"):
         group_blocked_nodes(iter(nodes))
 
 
@@ -76,7 +76,7 @@ def test_table_header_check_seperator_pipe(row):
 
     msg = "line must start and end with pipe"
 
-    with pytest.raises(ValueError, match=msg) as exc:
+    with pytest.raises(ValueError, match=msg):
         group_blocked_nodes(iter(nodes))
 
 
@@ -98,7 +98,7 @@ def test_table_header_check_seperator_is_formatted_correctly(row):
 
     msg = "header seperator must have:"
 
-    with pytest.raises(ValueError, match=msg) as exc:
+    with pytest.raises(ValueError, match=msg):
         group_blocked_nodes(iter(nodes))
 
 
@@ -421,7 +421,12 @@ def test_convert_node():
 def test_convert_table_node():
     markdown = "| A | B | C |\n|---|---|---|\n| 1 | 2 | 3 |"
 
-    html = "<table><tr><th>A</th><th>B</th><th>C</th></tr><tr><td>1</td><td>2</td><td>3</td></tr></table>"
+    html = (
+        "<table>"
+        "<tr><th>A</th><th>B</th><th>C</th></tr>"
+        "<tr><td>1</td><td>2</td><td>3</td></tr>"
+        "</table>"
+    )
 
     assert markdown_to_html(markdown) == html
 
@@ -439,7 +444,7 @@ def test_expand_inline_code_in_lists():
 
 def test_inline_markdown_expanded():
     html = markdown_to_html("*hello* **there** `world`")
-    expected = '<p><em>hello</em> <strong>there</strong> <code class="hljs">world</code></p>'
+    expected = '<p><em>hello</em> <strong>there</strong> <code class="hljs">world</code></p>'  # noqa: E501
 
     assert html == expected
 
@@ -453,7 +458,12 @@ def test_expand_inline_markdown_in_blockquote():
 
 def test_expand_inline_markdown_in_table():
     markdown = "|*hello*|\n|---|\n|*world*|"
-    html = "<table><tr><th><em>hello</em></th></tr><tr><td><em>world</em></td></tr></table>"
+    html = (
+        "<table>"
+        "<tr><th><em>hello</em></th></tr>"
+        "<tr><td><em>world</em></td></tr>"
+        "</table>"
+    )
 
     assert markdown_to_html(markdown) == html
 
@@ -464,13 +474,28 @@ def test_convert_table_with_alignment():
 |-------|:---|:----:|----:|
 |1|2|3|4|"""
 
-    html = '<table><tr><th>default</th><th style="text-align: left;">left</th><th style="text-align: center;">center</th><th style="text-align: right;">right</th></tr><tr><td>1</td><td style="text-align: left;">2</td><td style="text-align: center;">3</td><td style="text-align: right;">4</td></tr></table>'
+    html = (
+        "<table>"
+        "<tr>"
+        "<th>default</th>"
+        '<th style="text-align: left;">left</th>'
+        '<th style="text-align: center;">center</th>'
+        '<th style="text-align: right;">right</th>'
+        "</tr>"
+        "<tr>"
+        "<td>1</td>"
+        '<td style="text-align: left;">2</td>'
+        '<td style="text-align: center;">3</td>'
+        '<td style="text-align: right;">4</td>'
+        "</tr>"
+        "</table>"
+    )
 
     assert markdown_to_html(markdown) == html
 
 
 def test_escape_html():
-    markdown = f"""
+    markdown = """
 # <x>
 
 ## <x>

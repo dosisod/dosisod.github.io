@@ -7,6 +7,7 @@ from git.exc import GitCommandError
 
 from md2html.core import get_title
 
+
 def gen_recent_blogs() -> str:
     repo = Repo()
 
@@ -15,8 +16,6 @@ def gen_recent_blogs() -> str:
     html = "<ul>"
 
     for commit in commits:
-        blobs = commit.tree.blobs
-
         try:
             def get_changes(type):
                 return [
@@ -40,7 +39,7 @@ def gen_recent_blogs() -> str:
         for change_type, change in changes:
             filename = change.a_path if change_type == "R" else change.b_path
 
-            if re.match(f"blog.*md", filename):
+            if re.match("blog.*md", filename):
                 date = commit.authored_datetime
 
                 if change_type == "R":
@@ -70,13 +69,14 @@ def gen_recent_blogs() -> str:
 
     return html
 
+
 def gen_updated_date() -> str:
     # From: https://stackoverflow.com/a/52045942
     def day_suffix(day):
         suffixes = ["th", "st", "nd", "rd"]
 
         if day % 10 in [1, 2, 3] and day not in [11, 12, 13]:
-            return sufixes[day % 10]
+            return suffixes[day % 10]
 
         return suffixes[0]
 

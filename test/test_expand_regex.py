@@ -40,7 +40,7 @@ def test_expand_code():
 
 def test_expand_code_multiple():
     content = "hello `there` world `goodbye` world"
-    expected = 'hello <code class="hljs">there</code> world <code class="hljs">goodbye</code> world'
+    expected = 'hello <code class="hljs">there</code> world <code class="hljs">goodbye</code> world'  # noqa: E501
 
     assert expand_code(content) == expected
 
