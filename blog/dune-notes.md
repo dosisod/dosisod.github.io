@@ -1,15 +1,15 @@
 # Dune Notes
 
 These are my personal notes I took while reading through Dune. I had already
-watched both the David Lynch and Denis Villeneuve movies before starting I started
-this, so some of the chapter summaries gloss over or completely ignore certain
-things which I thought weren't that important.
+watched both the David Lynch and Denis Villeneuve movies before I started reading
+Dune, so some of the chapter summaries gloss over or completely ignore certain
+things which I deemed unimportant.
 
 Also note that the chapters in Dune aren't titled or numbered, so the chapters
 you see are just in ascending order.
 
 > This is only for reference. It is **NOT** a review, or a replacement for reading
-> the book!
+> the book! You can pick up a copy [here](https://amazon.com/dp/0441013597).
 
 ## Chapter 1 (page 1)
 
