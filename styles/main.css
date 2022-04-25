@@ -96,7 +96,7 @@ pre {
 }
 
 blockquote {
-  border-left: 0.5ch solid var(--gray);
+  border-left: 0.5ch solid var(--accent4);
   padding: 1ch 1ch 1ch 1.5ch;
   margin: 0;
   font-style: italic;
