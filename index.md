@@ -9,7 +9,7 @@ You can follow me on [GitHub](https://github.com/dosisod).
 
 ## Currently reading
 
-* [God Emperor of Dune](https://www.amazon.com/dp/0593098250)
+* [Heretics of Dune](https://www.amazon.com/dp/0593201760)
 * [The Dragon Book](https://suif.stanford.edu/dragonbook/)
 * [The Pragmatic Programmer](https://www.amazon.com/dp/0135957052)
 * [Meditations](http://classics.mit.edu/Antoninus/meditations.html)
