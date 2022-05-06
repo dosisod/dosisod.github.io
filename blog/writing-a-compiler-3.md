@@ -322,3 +322,4 @@ language, and how we will structure our AST nodes. After that, we will write an
 AST parser to create said nodes.
 
 [[prev](./writing-a-compiler-2.html)]
+[[next](./writing-a-compiler-4.html)]
