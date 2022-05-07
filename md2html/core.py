@@ -286,6 +286,13 @@ def expand_bold(html: str) -> str:
     return re.sub(md_bold_regex, bold_regex, html)
 
 
+def expand_strikethrough(html: str) -> str:
+    md_strike_regex = r"~~([^~]+)~~"
+    strike_regex = r"<s>\1</s>"
+
+    return re.sub(md_strike_regex, strike_regex, html)
+
+
 def expand_italics(html: str) -> str:
     md_italics_regex = r"\*([^[\*]+)\*"
     italics_regex = r"<em>\1</em>"
@@ -301,7 +308,9 @@ def expand_code(html: str) -> str:
 
 
 def expand_inline(line: str) -> str:
-    return expand_code(expand_italics(expand_bold(expand_links(line))))
+    return expand_code(
+        expand_italics(expand_bold(expand_strikethrough(expand_links(line))))
+    )
 
 
 def escape_nodes(nodes: List[Node]) -> None:

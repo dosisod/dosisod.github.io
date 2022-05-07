@@ -443,8 +443,13 @@ def test_expand_inline_code_in_lists():
 
 
 def test_inline_markdown_expanded():
-    html = markdown_to_html("*hello* **there** `world`")
-    expected = '<p><em>hello</em> <strong>there</strong> <code class="hljs">world</code></p>'  # noqa: E501
+    html = markdown_to_html("*hello* **there** `world` ~~strikethrough~~")
+    expected = (
+        "<p><em>hello</em> "
+        "<strong>there</strong> "
+        '<code class="hljs">world</code> '
+        "<s>strikethrough</s></p>"
+    )
 
     assert html == expected
 
