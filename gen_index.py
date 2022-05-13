@@ -1,5 +1,6 @@
 from datetime import datetime
 from pathlib import Path
+from typing import List, NamedTuple
 import re
 
 from git import Repo
@@ -8,45 +9,51 @@ from git.exc import GitCommandError
 from md2html.core import get_title
 
 
-def gen_recent_blogs() -> str:
-    repo = Repo()
+repo = Repo()
 
+
+class Entry(NamedTuple):
+    date: datetime
+    path: Path
+    title: str
+
+
+def get_changes(type, commit):
+    try:
+        return commit.diff(f"{commit}~1").iter_change_type(type)
+
+    except GitCommandError:
+        # Probably means we hit the initial commit
+        return []
+
+
+def git_created_date(filepath, rev: str = "HEAD"):
+    for commit in repo.iter_commits(rev, paths=filepath):
+        for change in get_changes("R", commit):
+            if change.a_path == filepath:
+                return git_created_date(change.b_path, f"{commit}~1")
+
+    return commit.authored_datetime
+
+
+def gen_recent_blogs() -> str:
     commits = repo.iter_commits('HEAD')
 
-    html = "<ul>"
+    entries: List[Entry] = []
 
     for commit in commits:
-        try:
-            def get_changes(type):
-                return [
-                    (type, change)
-                    for change
-                    in commit.diff(f"{commit}~1").iter_change_type(type)
-                ]
+        # Compare current commit with last commit. This will mean that
+        # the "added" files will actually show as "deleted", hence
+        # the "D" argument.
+        added = [("D", x) for x in get_changes("D", commit)]
+        renamed = [("R", x) for x in get_changes("R", commit)]
 
-            # Compare current commit with last commit. This will mean that
-            # the "added" files will actually show as "deleted", hence
-            # the "D" argument.
-            added = get_changes("D")
-            renamed = get_changes("R")
-
-            changes = added + renamed
-
-        except GitCommandError:
-            # Probably means we hit the initial commit
-            continue
+        changes = added + renamed
 
         for change_type, change in changes:
             filename = change.a_path if change_type == "R" else change.b_path
 
             if re.match("blog.*md", filename):
-                date = commit.authored_datetime
-
-                if change_type == "R":
-                    date = list(repo.iter_commits(
-                        "HEAD", change.b_path
-                    ))[-1].authored_datetime
-
                 path = Path(filename)
 
                 if not path.exists():
@@ -57,17 +64,20 @@ def gen_recent_blogs() -> str:
                     # first line. This should be changed at some point.
                     title = get_title(f.readline())
 
-                html += f'''
+                entries.append(Entry(git_created_date(filename), path, title))
+
+    def build_entry(entry: Entry) -> str:
+        return f'''
   <li>
     <span>
-      <span class="gray">{date.strftime('%b %e %Y')}</span>
-      <a href="./{path.with_suffix('.html')}">{title}</a>
+      <span class="gray">{entry.date.strftime('%b %e %Y')}</span>
+      <a href="./{entry.path.with_suffix('.html')}">{entry.title}</a>
     </span>
   </li>'''
 
-    html += "\n</ul>"
+    entries = sorted(entries, key=lambda e: e.date, reverse=True)
 
-    return html
+    return f"<ul>{''.join([build_entry(e) for e in entries])}\n</ul>"
 
 
 def gen_updated_date() -> str:
