@@ -273,7 +273,7 @@ def group_number_list_nodes(nodes: List[Node]) -> List[Node]:
 
 
 def expand_links(html: str) -> str:
-    md_url_regex = r"\[([^[\]]*)\]\(([^()]*)\)"
+    md_url_regex = r"\[(\S*)\]\((\S*)\)"
     a_tag_regex = r'<a href="\2">\1</a>'
 
     return re.sub(md_url_regex, a_tag_regex, html)

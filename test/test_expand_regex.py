@@ -57,3 +57,10 @@ def test_expand_multile_links():
     expected = '<a href="2">1</a> <a href="4">3</a>'
 
     assert expand_links(content) == expected
+
+
+def test_expand_links_with_brackets_and_parens():
+    content = "[a[b]c](d(e)f)"
+    expected = '<a href="d(e)f">a[b]c</a>'
+
+    assert expand_links(content) == expected
