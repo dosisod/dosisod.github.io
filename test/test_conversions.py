@@ -416,6 +416,7 @@ def test_convert_node():
     run("1. hello\n2. world", "<ol>\n<li>hello</li>\n<li>world</li>\n</ol>")
 
     run("```\nhello world\n```", '<pre class="hljs">hello world</pre>')
+    run("```\nhello\\nworld\n```", '<pre class="hljs">hello\\\\nworld</pre>')
 
 
 def test_convert_table_node():

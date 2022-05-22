@@ -426,14 +426,13 @@ def convert_node(node: Node) -> str:
     elif isinstance(node, CodeblockNode):
         lang = node.data[0]
         code = node.data[1]
+        escaped = code.replace("\\", "\\\\")
 
-        if lang:
-            escaped = code.replace("\\", "\\\\")
-
-            return hightlight_code(escaped, lang)
-
-        else:
-            return f'<pre class="hljs">{code}</pre>'
+        return (
+            hightlight_code(escaped, lang)
+            if lang
+            else f'<pre class="hljs">{escaped}</pre>'
+        )
 
     elif isinstance(node, TableNode):
         alignment_to_style = {
