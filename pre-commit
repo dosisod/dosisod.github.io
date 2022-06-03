@@ -4,5 +4,5 @@ set -e
 
 flake8
 mypy -p md2html
-black md2html test --check --diff --color -l 79
-pytest --cov=$PWD --cov-report term --cov-report html
+black md2html test gen_index.py --check --diff --color -l 79
+pytest --cov="$PWD" --cov-report term --cov-report html

@@ -37,7 +37,7 @@ def git_created_date(filepath, rev: str = "HEAD"):
 
 
 def gen_recent_blogs() -> str:
-    commits = repo.iter_commits('HEAD')
+    commits = repo.iter_commits("HEAD")
 
     entries: List[Entry] = []
 
@@ -67,13 +67,13 @@ def gen_recent_blogs() -> str:
                 entries.append(Entry(git_created_date(filename), path, title))
 
     def build_entry(entry: Entry) -> str:
-        return f'''
+        return f"""
   <li>
     <span>
       <span class="gray">{entry.date.strftime('%b %e %Y')}</span>
       <a href="./{entry.path.with_suffix('.html')}">{entry.title}</a>
     </span>
-  </li>'''
+  </li>"""
 
     entries = sorted(entries, key=lambda e: e.date, reverse=True)
 
@@ -91,4 +91,8 @@ def gen_updated_date() -> str:
         return suffixes[0]
 
     now = datetime.now()
-    return now.strftime('%B %dXXX %Y').replace("XXX", day_suffix(now.day))
+    return (
+        now.strftime("%B %_dXXX %Y")
+        .replace("XXX", day_suffix(now.day))
+        .replace("  ", " ")
+    )
