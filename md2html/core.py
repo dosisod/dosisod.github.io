@@ -444,7 +444,7 @@ def convert_node(node: Node) -> str:
 
         table_node = node
 
-        def make_row(cells: List[str], type: str, style: str = "") -> str:
+        def make_row(cells: List[str], type: str) -> str:
             def get_style(i: int) -> str:
                 return alignment_to_style[table_node.header[i].alignment]
 
