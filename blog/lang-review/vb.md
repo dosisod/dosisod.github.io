@@ -346,27 +346,39 @@ Basically, you attach `Handles SomeEvent` to the end of your sub-procedure, and 
 event is fired!
 
 ```vb
-Public Class UserEvents
-    Public Event UserRegister(ByVal name As String)
+Public Class UserRepo
+    Public Event UserRegistered(ByVal name As String)
+
+    Public Sub Add(username As String)
+        RaiseEvent UserRegistered(username)
+    End Sub
 End Class
 
 Module VBModule
-    Sub AddUserToDataBase(name As String) Handles Events.UserRegister
-        Console.WriteLine(name)
+    WithEvents repo As New UserRepo
+
+    Sub AddUserToDataBase(name As String) Handles repo.UserRegistered
+        Console.WriteLine($"Adding user {name} to database")
+    End Sub
+
+    Sub SendWelcomeEmail(name As String) Handles repo.UserRegistered
+        Console.WriteLine($"Sending Welcome email to {name}")
     End Sub
 
     Sub Main()
-        Dim WithEvents Events As New UserEvents
-        RaiseEvent Events.UserRegister("Alice")
-        RaiseEvent Events.UserRegister("Bob")
-        RaiseEvent Events.UserRegister("Charlie")
+        repo.Add("Alice")
+        repo.Add("Bob")
+        repo.Add("Charlie")
     End Sub
 End Module
 ```
 
-> Note that this code is untested. All of these VB examples were checked using
+> ~~Note that this code is untested. All of these VB examples were checked using
 > online VB compilers, which uses [Mono](https://www.mono-project.com/docs/about-mono/languages/visualbasic/),
-> which has lacking support for certain VB features.
+> Which has lacking support for certain VB features.~~
+
+> Update: I found this cool site called [Coding Rooms](https://www.codingrooms.com/), which is an online
+> IDE which supports live code-sharing, and so on. You can run this demo [here](https://app.codingrooms.com/w/5v3GRGdtCVsj).
 
 This is really nice, because it allows for the caller and the callee to not interact with one another.
 You just register the event you want to listen to, and when it is fired, your function gets called!
