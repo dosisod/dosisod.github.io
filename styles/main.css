@@ -13,6 +13,10 @@
   color: var(--fg);
 }
 
+p, h1, h2, h3, h4, ol, ul {
+  line-height: 1.5em;
+}
+
 html, body {
   height: 100%;
   width: 100%;
@@ -29,6 +33,7 @@ main {
 
 a {
   text-decoration: underline var(--accent1);
+  text-underline-position: under;
 }
 
 p, span {
