@@ -92,4 +92,4 @@ At the end of this series, we will have created a simple programming language
 in Python, which supports 2 backends: a Python backend, and an [LLVM](https://llvm.org/)
 backend, which allows for building executables, and JIT compilation of our code.
 
-[[next](./writing-a-compiler-1.html)]
+[[next](./part-1.html)]

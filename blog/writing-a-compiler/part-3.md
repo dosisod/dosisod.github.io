@@ -321,5 +321,5 @@ In the next blog post, we will discuss the general structure of our new programm
 language, and how we will structure our AST nodes. After that, we will write an
 AST parser to create said nodes.
 
-[[prev](./writing-a-compiler-2.html)]
-[[next](./writing-a-compiler-4.html)]
+[[prev](./part-2.html)]
+[[next](./part-4.html)]

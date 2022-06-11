@@ -258,5 +258,5 @@ def test_tokenize_unknown_token():
 In the next blog we will further improve upon our tokenizer, and start actually
 classifying the tokens based on their contents.
 
-[[prev](./writing-a-compiler-1.html)]
-[[next](./writing-a-compiler-3.html)]
+[[prev](./part-1.html)]
+[[next](./part-3.html)]

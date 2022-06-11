@@ -57,3 +57,24 @@ def test_expand_multile_links():
     expected = '<a href="2">1</a> <a href="4">3</a>'
 
     assert expand_links(content) == expected
+
+
+def test_expand_footnote_ref():
+    content = "abc [^1] def"
+    expected = 'abc <a id="footnote-ref-1" href="#footnote-1">[1]</a> def'
+
+    assert expand_footnode_ref(content) == expected
+
+
+def test_expand_footnote_ref_with_no_eol():
+    content = "abc [^1]"
+    expected = 'abc <a id="footnote-ref-1" href="#footnote-1">[1]</a>'
+
+    assert expand_footnode_ref(content) == expected
+
+
+def test_expand_footnote():
+    content = "[^1]: abc"
+    expected = '<a id="footnote-1" href="#footnote-ref-1">[1]</a>: abc'
+
+    assert expand_footnote(content) == expected

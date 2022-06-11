@@ -141,4 +141,4 @@ few blogs.
 Next time, we will actually flesh out these node objects, and start to turn our token stream into
 AST nodes!
 
-[[prev](./writing-a-compiler-3.html)]
+[[prev](./part-3.html)]

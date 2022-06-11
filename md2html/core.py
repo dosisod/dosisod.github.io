@@ -6,6 +6,7 @@ from typing import List, Tuple, Iterator, Optional
 import re
 
 from .node import *
+from .pipe import pipe
 
 
 def is_valid_table_row(row: str) -> bool:
@@ -279,6 +280,20 @@ def expand_links(html: str) -> str:
     return re.sub(md_url_regex, a_tag_regex, html)
 
 
+def expand_footnode_ref(html: str) -> str:
+    md_footnote_ref_regex = r"\[\^(\d+)\]([^:]|$)"
+    a_tag_regex = r'<a id="footnote-ref-\1" href="#footnote-\1">[\1]</a>\2'
+
+    return re.sub(md_footnote_ref_regex, a_tag_regex, html)
+
+
+def expand_footnote(html: str) -> str:
+    md_footnote_regex = r"\[\^(\d+)\]:"
+    a_tag_regex = r'<a id="footnote-\1" href="#footnote-ref-\1">[\1]</a>:'
+
+    return re.sub(md_footnote_regex, a_tag_regex, html)
+
+
 def expand_bold(html: str) -> str:
     md_bold_regex = r"\*\*([^[\*]+)\*\*"
     bold_regex = r"<strong>\1</strong>"
@@ -308,8 +323,15 @@ def expand_code(html: str) -> str:
 
 
 def expand_inline(line: str) -> str:
-    return expand_code(
-        expand_italics(expand_bold(expand_strikethrough(expand_links(line))))
+    return pipe(
+        line,
+        expand_footnode_ref,
+        expand_footnote,
+        expand_links,
+        expand_strikethrough,
+        expand_bold,
+        expand_italics,
+        expand_code,
     )
 
 
