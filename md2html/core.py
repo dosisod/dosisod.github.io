@@ -346,6 +346,9 @@ def escape_node(node: Node) -> None:
         case CodeblockNode(contents=contents, language=""):
             node.contents = escape(contents)
 
+        case CodeblockNode(language=_):
+            pass
+
         case ListNode(data=data):
             for i, item in enumerate(data):
                 data[i] = escape(item)

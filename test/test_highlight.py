@@ -48,3 +48,11 @@ def test_converter_is_actually_ran():
     # the syntax highlighing. There is a probably better way to check
     # that it actually ran, but this should be good enough for now.
     assert "hljs-number" in html
+
+
+def test_codeblocks_are_not_doubly_escaped():
+    block = make_code_block("<p>some text</p>", language="html")
+
+    html = markdown_to_html(block)
+
+    assert "amp" not in html
