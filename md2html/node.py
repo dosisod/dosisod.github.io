@@ -44,8 +44,8 @@ class TextNode(Node):
 
 
 @dataclass(kw_only=True)
-class CodeblockNode(DataNode):
-    pass
+class CodeblockNode(Node):
+    language: str = ""
 
 
 @dataclass(kw_only=True)

@@ -30,7 +30,8 @@ def test_group_codeblock():
 
     assert len(got_nodes) == 1
     assert isinstance(got_nodes[0], CodeblockNode)
-    assert got_nodes[0].data == ["", "some\ncode"]
+    assert got_nodes[0].contents == "some\ncode"
+    assert not got_nodes[0].language
 
 
 def test_group_codeblock_with_language():
@@ -40,7 +41,8 @@ def test_group_codeblock_with_language():
 
     assert len(got_nodes) == 1
     assert isinstance(got_nodes[0], CodeblockNode)
-    assert got_nodes[0].data == ["python", "code"]
+    assert got_nodes[0].contents == "code"
+    assert got_nodes[0].language == "python"
 
 
 def test_group_python_blocks():
@@ -215,7 +217,7 @@ def test_preserve_nodes_next_to_codeblock():
 
     assert got_nodes == [
         Node(contents="pre"),
-        CodeblockNode(data=["", "code"]),
+        CodeblockNode(contents="code"),
         Node(contents="post"),
     ]
 

@@ -24,7 +24,7 @@ def iter_code_block(first: Node, nodes: Iterator[Node]) -> Node:
 
     for node in nodes:
         if node.contents.startswith("```"):
-            return CodeblockNode(data=[lang, codeblock])
+            return CodeblockNode(contents=codeblock, language=lang)
 
         else:
             codeblock += f"\n{node.contents}"
@@ -338,45 +338,57 @@ def expand_inline(line: str) -> str:
     )
 
 
-def escape_nodes(nodes: List[Node]) -> None:
-    for node in nodes:
-        if isinstance(node, (HtmlNode, PythonNode)):
+def escape_node(node: Node) -> None:
+    match node:
+        case HtmlNode() | PythonNode():
             pass
 
-        elif isinstance(node, DataNode):
-            if isinstance(node, CodeblockNode) and not node.data[0]:
-                node.data[1] = escape(node.data[1])
+        case CodeblockNode(contents=contents, language=""):
+            node.contents = escape(contents)
 
-            elif isinstance(node, ListNode):
-                for i, item in enumerate(node.data):
-                    node.data[i] = escape(item)
+        case ListNode(data=data):
+            for i, item in enumerate(data):
+                data[i] = escape(item)
 
-        elif isinstance(node, TableNode):
-            for i, cell in enumerate(node.header):
-                node.header[i].name = escape(cell.name)
+        case TableNode(header=header, rows=rows):
+            for i, cell in enumerate(header):
+                header[i].name = escape(cell.name)
 
-            for i, row in enumerate(node.rows):
-                node.rows[i] = [escape(cell) for cell in row]
+            for i, row in enumerate(rows):
+                rows[i] = [escape(cell) for cell in row]
 
-        else:
+        case _:
             node.contents = escape(node.contents)
+
+
+def escape_nodes(nodes: List[Node]) -> None:
+    for node in nodes:
+        escape_node(node)
+
+
+def expand_node(node: Node) -> None:
+    match node:
+        case CodeblockNode():
+            pass
+
+        case TableNode(header=header, rows=rows):
+            for i, cell in enumerate(header):
+                header[i].name = expand_inline(cell.name)
+
+            for i, row in enumerate(rows):
+                rows[i] = [expand_inline(cell) for cell in row]
+
+        case ListNode(data=rows):
+            for i, item in enumerate(rows):
+                rows[i] = expand_inline(item)
+
+        case _:
+            node.contents = expand_inline(node.contents)
 
 
 def expand_nodes(nodes: List[Node]) -> None:
     for node in nodes:
-        if isinstance(node, ListNode) and isinstance(node, DataNode):
-            for i, item in enumerate(node.data):
-                node.data[i] = expand_inline(item)
-
-        elif isinstance(node, TableNode):
-            for i, cell in enumerate(node.header):
-                node.header[i].name = expand_inline(cell.name)
-
-            for i, row in enumerate(node.rows):
-                node.rows[i] = [expand_inline(cell) for cell in row]
-
-        elif not isinstance(node, CodeblockNode):
-            node.contents = expand_inline(node.contents)
+        expand_node(node)
 
 
 def run_python_block(code: str) -> str:
@@ -409,84 +421,80 @@ Code could not be highlighted. This could be for a number of reasons:
     return pipe.stdout.decode()
 
 
+def rows_to_list_items(rows: List[str]) -> str:
+    return "\n".join([f"<li>{row}</li>" for row in rows])
+
+
 def convert_node(node: Node) -> str:
-    line = node.contents
+    match node:
+        case CommentNode():
+            return ""
 
-    if isinstance(node, CommentNode):
-        return ""
+        case HeaderNode(contents=line, level=level):
+            return f"<h{level}>{line}</h{level}>"
 
-    if isinstance(node, HeaderNode):
-        return f"<h{node.level}>{line}</h{node.level}>"
+        case TextNode(contents=line):
+            return f"<p>{line}</p>"
 
-    if isinstance(node, TextNode):
-        return f"<p>{line}</p>"
+        case NewlineNode():
+            return "<br>"
 
-    if isinstance(node, NewlineNode):
-        return "<br>"
+        case HtmlNode(contents=line):
+            return line
 
-    if isinstance(node, HtmlNode):
-        return line
+        case BlockquoteNode(contents=line):
+            return f"<blockquote>{line}</blockquote>"
 
-    if isinstance(node, BlockquoteNode):
-        return f"<blockquote>{line}</blockquote>"
+        case CheckboxNode(checked=True, contents=line):
+            return f'<p><input type="checkbox" checked>{line}</p>'
 
-    if isinstance(node, CheckboxNode):
-        checked = " checked" if node.checked else ""
+        case CheckboxNode(checked=False, contents=line):
+            return f'<p><input type="checkbox">{line}</p>'
 
-        return f'<p><input type="checkbox"{checked}>{line}</p>'
+        case BulletNode(data=rows):
+            return f"<ul>\n{rows_to_list_items(rows)}\n</ul>"
 
-    if isinstance(node, BulletNode):
-        items = "\n".join([f"<li>{x}</li>" for x in node.data])
+        case NumListNode(data=rows):
+            return f"<ol>\n{rows_to_list_items(rows)}\n</ol>"
 
-        return f"<ul>\n{items}\n</ul>"
+        case PythonNode(contents=code):
+            return run_python_block(code)
 
-    if isinstance(node, NumListNode):
-        items = "\n".join([f"<li>{x}</li>" for x in node.data])
+        case CodeblockNode(contents=code, language=language):
+            escaped = code.replace("\\", "\\\\")
 
-        return f"<ol>\n{items}\n</ol>"
+            return (
+                hightlight_code(escaped, language)
+                if language
+                else f'<pre class="hljs">{escaped}</pre>'
+            )
 
-    if isinstance(node, PythonNode):
-        return run_python_block(line)
+        case TableNode(header=header, rows=rows):
+            alignment_to_style = {
+                HeaderAlignment.DEFAULT: "",
+                HeaderAlignment.LEFT: ' style="text-align: left;"',
+                HeaderAlignment.CENTER: ' style="text-align: center;"',
+                HeaderAlignment.RIGHT: ' style="text-align: right;"',
+            }
 
-    if isinstance(node, CodeblockNode):
-        lang = node.data[0]
-        code = node.data[1]
-        escaped = code.replace("\\", "\\\\")
+            def make_row(cells: List[str], type: str) -> str:
+                def get_style(i: int) -> str:
+                    return alignment_to_style[header[i].alignment]
 
-        return (
-            hightlight_code(escaped, lang)
-            if lang
-            else f'<pre class="hljs">{escaped}</pre>'
-        )
+                row = [
+                    f"<{type}{get_style(i)}>{text}</{type}>"
+                    for i, text in enumerate(cells)
+                ]
 
-    if isinstance(node, TableNode):
-        alignment_to_style = {
-            HeaderAlignment.DEFAULT: "",
-            HeaderAlignment.LEFT: ' style="text-align: left;"',
-            HeaderAlignment.CENTER: ' style="text-align: center;"',
-            HeaderAlignment.RIGHT: ' style="text-align: right;"',
-        }
+                return f"<tr>{''.join(row)}</tr>"
 
-        table_node = node
+            table_rows = [make_row([cell.name for cell in node.header], "th")]
+            table_rows.extend([make_row(row, "td") for row in rows])
 
-        def make_row(cells: List[str], type: str) -> str:
-            def get_style(i: int) -> str:
-                return alignment_to_style[table_node.header[i].alignment]
+            return f"<table>{''.join(table_rows)}</table>"
 
-            row = [
-                f"<{type}{get_style(i)}>{text}</{type}>"
-                for i, text in enumerate(cells)
-            ]
-
-            return f"<tr>{''.join(row)}</tr>"
-
-        rows = [make_row([cell.name for cell in node.header], "th")]
-        rows.extend([make_row(row, "td") for row in node.rows])
-
-        return f"<table>{''.join(rows)}</table>"
-
-    if isinstance(node, DividerNode):
-        return "<hr>"
+        case DividerNode():
+            return "<hr>"
 
     assert False  # pragma: no cover
 
