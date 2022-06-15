@@ -56,6 +56,8 @@ Attackers can latch onto the "minor/patch versions are always safe" mindset, and
 only bumping the patch version. This has happened many times with NPM packages, where someone gets unauthorized access,
 "takes over" a package, and pushes a malicious update [^1].
 
+---
+
 ## Calendar Versioning [(CalVer)](https://calver.org)
 
 Instead of versioning based on semantics, you version based on the day that version was released. For example:
@@ -92,6 +94,8 @@ YEAR.MONTH.DAY.NUMBER_OF_RELEASES_TODAY
 Also, CalVer only makes sense for libraries and applications which have a linear timeline: supporting multiple "branches" of CalVer
 doesn't make sense, because any changes to these branches will be based off of semantics, not based off time.
 
+---
+
 ## Zero Versioning ([ZeroVer](https://0ver.org/))
 
 ZeroVer, or 0Ver, is like SemVer, but it uses a `0.` prefix. In traditional SemVer, anything below a `1.0` release
@@ -107,6 +111,8 @@ Very easy. You can be lazy as you want, as users are supposed to just accept tha
 ### Cons of ZeroVer
 
 Some people might avoid your software if they don't think it is stable.
+
+---
 
 ## UnoVer
 
@@ -140,6 +146,8 @@ No matter what scheme you chose, make sure to stay consistent!
 Also, if you are using GitHub, you should look into using
 [Dependabot](https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuring-dependabot-version-updates).
 Once configured, it will automatically create pull requests whenever a new package version comes out!
+
+---
 
 [^1]: Note that package take-overs can happen no matter the versioning system, but they are more likely to become an
 issue when using SemVer. For example, in NPM, you can say "use version `1.0.x` of package `Y`", which will always

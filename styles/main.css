@@ -1,6 +1,7 @@
 :root {
   --bg: #1a1a1a;
   --fg: #dddddd;
+  --divider: #222222;
   --accent1: #ffaa00;
   --accent2: #e69900;
   --accent3: #cc8800;
@@ -124,3 +125,7 @@ input[type="checkbox"] {
 
 .tag:before { content: "["; }
 .tag:after { content: "]"; }
+
+hr {
+  border: 1px solid var(--divider);
+}

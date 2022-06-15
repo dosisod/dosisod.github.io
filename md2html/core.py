@@ -215,6 +215,9 @@ def classify_node(node: Node) -> Node:
     if node.contents.startswith("- [x] "):
         return CheckboxNode(checked=True, contents=node.contents[6:])
 
+    if node.contents == "---":
+        return DividerNode()
+
     return TextNode(contents=node.contents)
 
 
@@ -415,37 +418,37 @@ def convert_node(node: Node) -> str:
     if isinstance(node, HeaderNode):
         return f"<h{node.level}>{line}</h{node.level}>"
 
-    elif isinstance(node, TextNode):
+    if isinstance(node, TextNode):
         return f"<p>{line}</p>"
 
-    elif isinstance(node, NewlineNode):
+    if isinstance(node, NewlineNode):
         return "<br>"
 
-    elif isinstance(node, HtmlNode):
+    if isinstance(node, HtmlNode):
         return line
 
-    elif isinstance(node, BlockquoteNode):
+    if isinstance(node, BlockquoteNode):
         return f"<blockquote>{line}</blockquote>"
 
-    elif isinstance(node, CheckboxNode):
+    if isinstance(node, CheckboxNode):
         checked = " checked" if node.checked else ""
 
         return f'<p><input type="checkbox"{checked}>{line}</p>'
 
-    elif isinstance(node, BulletNode):
+    if isinstance(node, BulletNode):
         items = "\n".join([f"<li>{x}</li>" for x in node.data])
 
         return f"<ul>\n{items}\n</ul>"
 
-    elif isinstance(node, NumListNode):
+    if isinstance(node, NumListNode):
         items = "\n".join([f"<li>{x}</li>" for x in node.data])
 
         return f"<ol>\n{items}\n</ol>"
 
-    elif isinstance(node, PythonNode):
+    if isinstance(node, PythonNode):
         return run_python_block(line)
 
-    elif isinstance(node, CodeblockNode):
+    if isinstance(node, CodeblockNode):
         lang = node.data[0]
         code = node.data[1]
         escaped = code.replace("\\", "\\\\")
@@ -456,7 +459,7 @@ def convert_node(node: Node) -> str:
             else f'<pre class="hljs">{escaped}</pre>'
         )
 
-    elif isinstance(node, TableNode):
+    if isinstance(node, TableNode):
         alignment_to_style = {
             HeaderAlignment.DEFAULT: "",
             HeaderAlignment.LEFT: ' style="text-align: left;"',
@@ -481,6 +484,9 @@ def convert_node(node: Node) -> str:
         rows.extend([make_row(row, "td") for row in node.rows])
 
         return f"<table>{''.join(rows)}</table>"
+
+    if isinstance(node, DividerNode):
+        return "<hr>"
 
     assert False  # pragma: no cover
 

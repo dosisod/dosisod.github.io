@@ -539,3 +539,7 @@ some text <x>
 
 def test_convert_html_comment_doesnt_throw_assertion():
     markdown_to_html("<!-- comment -->")
+
+
+def test_convert_divider():
+    assert markdown_to_html("---") == "<hr>"

@@ -65,7 +65,12 @@ class HeaderNode(Node):
 
 @dataclass(kw_only=True)
 class NewlineNode(Node):
-    contents: str = ""
+    pass
+
+
+@dataclass(kw_only=True)
+class DividerNode(Node):
+    pass
 
 
 @dataclass(kw_only=True)
