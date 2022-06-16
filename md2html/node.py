@@ -1,6 +1,5 @@
 from enum import auto, Enum
 from dataclasses import dataclass, field
-from typing import List
 
 
 @dataclass(kw_only=True)
@@ -15,7 +14,7 @@ class CommentNode(Node):
 
 @dataclass(kw_only=True)
 class DataNode(Node):
-    data: List[str] = field(default_factory=list)
+    data: list[str] = field(default_factory=list)
 
 
 @dataclass(kw_only=True)
@@ -93,5 +92,5 @@ class HeaderCell:
 
 @dataclass(kw_only=True)
 class TableNode(Node):
-    header: List[HeaderCell]
-    rows: List[List[str]]
+    header: list[HeaderCell]
+    rows: list[list[str]]

@@ -2,7 +2,7 @@ from concurrent.futures import ThreadPoolExecutor
 from html import escape
 from pathlib import Path
 from subprocess import run
-from typing import List, Tuple, Iterator, Optional
+from typing import Iterator, Optional
 import re
 
 from .node import *
@@ -52,7 +52,7 @@ def iter_python_blocks(nodes: Iterator[Node]) -> Node:
 
 def iter_block_quote(
     first: Node, nodes: Iterator[Node]
-) -> Tuple[Node, Optional[Node]]:
+) -> tuple[Node, Optional[Node]]:
     blockquote = first.contents[2:]
 
     for node in nodes:
@@ -84,8 +84,8 @@ def iter_html_comment(first: Node, nodes: Iterator[Node]) -> Node:
 
 def iter_table(
     first: Node, nodes: Iterator[Node]
-) -> Tuple[Node, Optional[Node]]:
-    def split_row(row: str) -> List[str]:
+) -> tuple[Node, Optional[Node]]:
+    def split_row(row: str) -> list[str]:
         return [x.strip() for x in row.split("|")[1:-1]]
 
     seperator_node = next(nodes, None)
@@ -127,7 +127,7 @@ def iter_table(
             case _:
                 header[i].alignment = HeaderAlignment.DEFAULT
 
-    rows: List[List[str]] = []
+    rows: list[list[str]] = []
 
     while node := next(nodes, None):
         if not is_valid_table_row(node.contents):
@@ -138,7 +138,7 @@ def iter_table(
     return (TableNode(header=header, rows=rows), None)
 
 
-def group_blocked_nodes(nodes: Iterator[Node]) -> List[Node]:
+def group_blocked_nodes(nodes: Iterator[Node]) -> list[Node]:
     grouped_nodes = []
 
     for node in nodes:
@@ -221,12 +221,12 @@ def classify_node(node: Node) -> Node:
     return TextNode(contents=node.contents)
 
 
-def classify_nodes(nodes: List[Node]) -> List[Node]:
+def classify_nodes(nodes: list[Node]) -> list[Node]:
     return [classify_node(node) for node in nodes]
 
 
-def group_text_nodes(nodes: List[Node]) -> List[Node]:
-    done: List[Node] = []
+def group_text_nodes(nodes: list[Node]) -> list[Node]:
+    done: list[Node] = []
 
     for node in nodes:
         if isinstance(node, TextNode):
@@ -242,8 +242,8 @@ def group_text_nodes(nodes: List[Node]) -> List[Node]:
     return done
 
 
-def group_bullet_nodes(nodes: List[Node]) -> List[Node]:
-    done: List[Node] = []
+def group_bullet_nodes(nodes: list[Node]) -> list[Node]:
+    done: list[Node] = []
 
     for node in nodes:
         if isinstance(node, BulletNode):
@@ -259,8 +259,8 @@ def group_bullet_nodes(nodes: List[Node]) -> List[Node]:
     return done
 
 
-def group_number_list_nodes(nodes: List[Node]) -> List[Node]:
-    done: List[Node] = []
+def group_number_list_nodes(nodes: list[Node]) -> list[Node]:
+    done: list[Node] = []
 
     for node in nodes:
         if isinstance(node, NumListNode):
@@ -364,7 +364,7 @@ def escape_node(node: Node) -> None:
             node.contents = escape(node.contents)
 
 
-def escape_nodes(nodes: List[Node]) -> None:
+def escape_nodes(nodes: list[Node]) -> None:
     for node in nodes:
         escape_node(node)
 
@@ -389,7 +389,7 @@ def expand_node(node: Node) -> None:
             node.contents = expand_inline(node.contents)
 
 
-def expand_nodes(nodes: List[Node]) -> None:
+def expand_nodes(nodes: list[Node]) -> None:
     for node in nodes:
         expand_node(node)
 
@@ -424,7 +424,7 @@ Code could not be highlighted. This could be for a number of reasons:
     return pipe.stdout.decode()
 
 
-def rows_to_list_items(rows: List[str]) -> str:
+def rows_to_list_items(rows: list[str]) -> str:
     return "\n".join([f"<li>{row}</li>" for row in rows])
 
 
@@ -480,7 +480,7 @@ def convert_node(node: Node) -> str:
                 HeaderAlignment.RIGHT: ' style="text-align: right;"',
             }
 
-            def make_row(cells: List[str], type: str) -> str:
+            def make_row(cells: list[str], type: str) -> str:
                 def get_style(i: int) -> str:
                     return alignment_to_style[header[i].alignment]
 
@@ -502,7 +502,7 @@ def convert_node(node: Node) -> str:
     assert False  # pragma: no cover
 
 
-def setup_nodes(md: str) -> List[Node]:
+def setup_nodes(md: str) -> list[Node]:
     lines = md.split("\n")
     return [Node(contents=line) for line in lines]
 
@@ -539,7 +539,7 @@ def convert_file(filename: str) -> None:
         f.write(html)
 
 
-def main(argv: List[str]) -> None:
+def main(argv: list[str]) -> None:
     if len(argv) < 2:
         print(f"usage: {argv[0]} <file.md> [...files.md]")
         return

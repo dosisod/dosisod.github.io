@@ -1,6 +1,6 @@
 from datetime import datetime
 from pathlib import Path
-from typing import List, NamedTuple
+from typing import NamedTuple
 import re
 
 from git import Repo
@@ -39,7 +39,7 @@ def git_created_date(filepath, rev: str = "HEAD"):
 def gen_recent_blogs() -> str:
     commits = repo.iter_commits("HEAD")
 
-    entries: List[Entry] = []
+    entries: list[Entry] = []
 
     for commit in commits:
         # Compare current commit with last commit. This will mean that
