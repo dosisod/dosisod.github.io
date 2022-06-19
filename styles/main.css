@@ -129,3 +129,19 @@ input[type="checkbox"] {
 hr {
   border: 1px solid var(--divider);
 }
+
+@media screen and (max-width: 700px) {
+  * {
+    /* magic number, don't ask what it means */
+    font-size: 2vw;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+
+  main {
+    padding: 1em 1em 0 1em;
+    width: calc(100% - 2em);
+  }
+}
