@@ -142,3 +142,4 @@ Next time, we will actually flesh out these node objects, and start to turn our 
 AST nodes!
 
 [[prev](./part-3.html)]
+[[next](./part-5.html)]
