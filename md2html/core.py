@@ -524,6 +524,36 @@ def get_title(md: str) -> str:
     return md.split("\n")[0][2:]
 
 
+# TODO(dosisod): The "core" logic should not concern itself with GitHub, move
+# it elsewhere
+def add_github_commenting(html: str, filename: str) -> str:
+    github_comment_code = """\
+<hr>
+
+<script src="https://utteranc.es/client.js"
+  repo="dosisod/dosisod.github.io"
+  issue-term="title"
+  theme="gruvbox-dark"
+  crossorigin="anonymous"
+  async>
+</script>
+
+<noscript>
+  <br>
+  <em>
+    Comment with GitHub functionality is
+    disabled when JavaScript is turned off.
+  </em>
+</noscript>
+"""
+
+    return re.sub(
+        "GITHUB_COMMENT",
+        "" if "index.md" in filename else github_comment_code,
+        html,
+    )
+
+
 def convert_file(filename: str) -> None:
     file = Path(filename)
 
@@ -534,6 +564,7 @@ def convert_file(filename: str) -> None:
     template = re.sub("TITLE", get_title(markdown), template)
 
     html = re.sub("MAIN_CONTENT", content, template)
+    html = add_github_commenting(html, filename)
 
     with file.with_suffix(".html").open("w+") as f:
         f.write(html)
