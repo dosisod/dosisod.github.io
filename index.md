@@ -9,7 +9,7 @@ You can follow me on [GitHub](https://github.com/dosisod).
 
 ## Currently reading
 
-* [Speaker for the Dead](https://www.amazon.com/dp/1250773059)
+* [Stand on Zanzibar](https://www.amazon.com/dp/1250781221)
 * [Atomic Habits](https://www.amazon.com/dp/B09GG8HM95)
 * [The Dragon Book](https://suif.stanford.edu/dragonbook/)
 * [The Pragmatic Programmer](https://www.amazon.com/dp/0135957052)
