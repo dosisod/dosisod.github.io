@@ -2,7 +2,7 @@ from concurrent.futures import ThreadPoolExecutor
 from html import escape
 from pathlib import Path
 from subprocess import run
-from typing import Iterator, Optional
+from typing import Iterator
 import re
 
 from .node import *
@@ -52,7 +52,7 @@ def iter_python_blocks(nodes: Iterator[Node]) -> Node:
 
 def iter_block_quote(
     first: Node, nodes: Iterator[Node]
-) -> tuple[Node, Optional[Node]]:
+) -> tuple[Node, Node | None]:
     blockquote = first.contents[2:]
 
     for node in nodes:
@@ -82,9 +82,7 @@ def iter_html_comment(first: Node, nodes: Iterator[Node]) -> Node:
     raise ValueError("html comment not closed")
 
 
-def iter_table(
-    first: Node, nodes: Iterator[Node]
-) -> tuple[Node, Optional[Node]]:
+def iter_table(first: Node, nodes: Iterator[Node]) -> tuple[Node, Node | None]:
     def split_row(row: str) -> list[str]:
         return [x.strip() for x in row.split("|")[1:-1]]
 
