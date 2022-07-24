@@ -1,5 +1,5 @@
 from sys import argv
 
-from .core import main
+from .main import main
 
 main(argv)

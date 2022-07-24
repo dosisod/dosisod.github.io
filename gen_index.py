@@ -6,7 +6,7 @@ import re
 from git import Repo
 from git.exc import GitCommandError
 
-from md2html.core import get_title
+from md2html.core import get_title, markdown_to_nodes
 
 
 repo = Repo()
@@ -59,10 +59,7 @@ def gen_recent_blogs() -> str:
                 if not path.exists():
                     continue
 
-                with path.open() as f:
-                    # Assumes title is in the form "# header", and on the
-                    # first line. This should be changed at some point.
-                    title = get_title(f.readline())
+                title = get_title(markdown_to_nodes(path.read_text()))
 
                 entries.append(Entry(git_created_date(filename), path, title))
 

@@ -2,7 +2,12 @@ from unittest.mock import patch
 
 import pytest
 
-from md2html.core import markdown_to_html
+from md2html.core import markdown_to_nodes
+from md2html.html import markdown_to_html as _markdown_to_html
+
+
+def markdown_to_html(md: str) -> str:
+    return _markdown_to_html(markdown_to_nodes(md))
 
 
 # TODO: fix needing extra newline
@@ -10,7 +15,7 @@ def make_code_block(body: str, language: str = "") -> str:
     return f"```{language}\n{body}\n```\n"
 
 
-@patch("md2html.core.hightlight_code")
+@patch("md2html.html.hightlight_code")
 def test_convert_code_block_language_set(mocked):
     block = make_code_block("hello world", language="python")
 
@@ -21,7 +26,7 @@ def test_convert_code_block_language_set(mocked):
     mocked.assert_called_with("hello world", "python")
 
 
-@patch("md2html.core.hightlight_code")
+@patch("md2html.html.hightlight_code")
 def test_highlighter_escapes_backslashes(mocked):
     block = make_code_block("hello\\nworld", language="python")
 

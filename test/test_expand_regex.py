@@ -1,4 +1,5 @@
 from md2html.core import *
+from md2html.html import *
 
 
 def test_expand_bold():

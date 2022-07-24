@@ -6,6 +6,12 @@ from dataclasses import dataclass, field
 class Node:
     contents: str = ""
 
+    def is_classified(self) -> bool:
+        # since we know "node" derives from Node, we can check if the type is
+        # anything other then Node, and if it is, we will know it is derived,
+        # and thus is already classified.
+        return type(self) != Node
+
 
 @dataclass(kw_only=True)
 class CommentNode(Node):

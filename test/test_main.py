@@ -6,7 +6,7 @@ import timeit
 
 import pytest
 
-from md2html.core import main
+from md2html.main import convert_file, main
 
 
 @patch("builtins.print")
@@ -41,14 +41,14 @@ def test_file_is_created_properly(tempfile):
     assert "Hello world" in html
 
 
-@patch("md2html.core.convert_file")
+@patch("md2html.main.convert_file")
 def test_convert_multiple_files(mocked):
     main(["argv0", "a", "b", "c"])
 
     assert mocked.call_args_list == [call("a"), call("b"), call("c")]
 
 
-@patch("md2html.core.convert_file")
+@patch("md2html.main.convert_file")
 def test_file_multi_threaded(mocked):
     """
     Threading works differently on different machines, so this test (might)
@@ -79,3 +79,19 @@ def test_file_multi_threaded(mocked):
 def test_exception_is_thrown_when_file_doesnt_exist():
     with pytest.raises(FileNotFoundError):
         main(["argv0", "file_doesnt_exist"])
+
+
+def test_github_comment_feature_is_disabled_on_some_files():
+    md_file = Path("./test/index.md")
+    html_file = md_file.with_suffix(".html")
+
+    md_file.write_text("# Some title")
+
+    convert_file(str(md_file))
+
+    ok = "github" not in html_file.read_text()
+
+    md_file.unlink()
+    html_file.unlink()
+
+    assert ok

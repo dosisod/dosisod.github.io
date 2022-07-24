@@ -1,7 +1,12 @@
 import pytest
 
 from md2html.core import *
+from md2html.html import markdown_to_html as _markdown_to_html
 from md2html.node import *
+
+
+def markdown_to_html(md: str) -> str:
+    return _markdown_to_html(markdown_to_nodes(md))
 
 
 def make_node(s):
@@ -26,7 +31,7 @@ def test_setup_nodes():
 def test_group_codeblock():
     nodes = make_nodes(["```", "some", "code", "```"])
 
-    got_nodes = group_blocked_nodes(iter(nodes))
+    got_nodes = group_blocked_nodes(nodes)
 
     assert len(got_nodes) == 1
     assert isinstance(got_nodes[0], CodeblockNode)
@@ -37,7 +42,7 @@ def test_group_codeblock():
 def test_group_codeblock_with_language():
     nodes = make_nodes(["```python", "code", "```"])
 
-    got_nodes = group_blocked_nodes(iter(nodes))
+    got_nodes = group_blocked_nodes(nodes)
 
     assert len(got_nodes) == 1
     assert isinstance(got_nodes[0], CodeblockNode)
@@ -48,7 +53,7 @@ def test_group_codeblock_with_language():
 def test_group_python_blocks():
     nodes = make_nodes(["!!!", "some", "python", "!!!"])
 
-    got_nodes = group_blocked_nodes(iter(nodes))
+    got_nodes = group_blocked_nodes(nodes)
 
     assert len(got_nodes) == 1
     assert isinstance(got_nodes[0], PythonNode)
@@ -58,7 +63,7 @@ def test_group_python_blocks():
 def test_group_blockquote_blocks():
     nodes = make_nodes(["> this", "> is a", "> blockquote"])
 
-    got_nodes = group_blocked_nodes(iter(nodes))
+    got_nodes = group_blocked_nodes(nodes)
 
     assert len(got_nodes) == 1
     assert isinstance(got_nodes[0], BlockquoteNode)
@@ -69,7 +74,7 @@ def test_table_header_with_missing_header_seperator():
     nodes = make_nodes(["| A | B | C |"])
 
     with pytest.raises(ValueError, match="missing .* header"):
-        group_blocked_nodes(iter(nodes))
+        group_blocked_nodes(nodes)
 
 
 @pytest.mark.parametrize("row", ["x| y |", "| y |x"])
@@ -79,7 +84,7 @@ def test_table_header_check_seperator_pipe(row):
     msg = "line must start and end with pipe"
 
     with pytest.raises(ValueError, match=msg):
-        group_blocked_nodes(iter(nodes))
+        group_blocked_nodes(nodes)
 
 
 @pytest.mark.parametrize(
@@ -101,13 +106,13 @@ def test_table_header_check_seperator_is_formatted_correctly(row):
     msg = "header seperator must have:"
 
     with pytest.raises(ValueError, match=msg):
-        group_blocked_nodes(iter(nodes))
+        group_blocked_nodes(nodes)
 
 
 def test_table_header():
     nodes = make_nodes(["| A | B | C |", "|---|---|---|"])
 
-    got_nodes = group_blocked_nodes(iter(nodes))
+    got_nodes = group_blocked_nodes(nodes)
 
     assert got_nodes == [
         TableNode(
@@ -125,13 +130,13 @@ def test_table_header_seperator_needs_same_number_of_cells():
     nodes = make_nodes(["| A |", "|---|---|"])
 
     with pytest.raises(ValueError, match="expected 1 cells, got 2 instead"):
-        group_blocked_nodes(iter(nodes))
+        group_blocked_nodes(nodes)
 
 
 def test_table_with_rows():
     nodes = make_nodes(["| A |", "|---|", "| row 1 |", "| row 2 |"])
 
-    got_nodes = group_blocked_nodes(iter(nodes))
+    got_nodes = group_blocked_nodes(nodes)
 
     assert got_nodes == [
         TableNode(header=[HeaderCell("A")], rows=[["row 1"], ["row 2"]])
@@ -141,7 +146,7 @@ def test_table_with_rows():
 def test_table_with_trailing_content():
     nodes = make_nodes(["| A |", "|---|", "| row 1 |", "some text"])
 
-    got_nodes = group_blocked_nodes(iter(nodes))
+    got_nodes = group_blocked_nodes(nodes)
 
     assert got_nodes == [
         TableNode(header=[HeaderCell("A")], rows=[["row 1"]]),
@@ -154,7 +159,7 @@ def test_table_with_alignment():
         ["|default|left|center|right|", "|---|:---|:---:|---:|"]
     )
 
-    got_nodes = group_blocked_nodes(iter(nodes))
+    got_nodes = group_blocked_nodes(nodes)
 
     assert got_nodes == [
         TableNode(
@@ -172,7 +177,7 @@ def test_table_with_alignment():
 def test_table_with_trailing_content_after_seperator():
     nodes = make_nodes(["| A |", "|---|", "some text"])
 
-    got_nodes = group_blocked_nodes(iter(nodes))
+    got_nodes = group_blocked_nodes(nodes)
 
     assert got_nodes == [
         TableNode(header=[HeaderCell("A")], rows=[]),
@@ -183,7 +188,7 @@ def test_table_with_trailing_content_after_seperator():
 def test_group_html_comments():
     nodes = make_nodes(["<!--this", "is a", "comment-->", ""])
 
-    got_nodes = group_blocked_nodes(iter(nodes))
+    got_nodes = group_blocked_nodes(nodes)
 
     assert len(got_nodes) == 1
     assert isinstance(got_nodes[0], CommentNode)
@@ -193,7 +198,7 @@ def test_group_html_comments():
 def test_group_html_comments_one_line():
     nodes = make_nodes(["<!--this is a comment-->"])
 
-    got_nodes = group_blocked_nodes(iter(nodes))
+    got_nodes = group_blocked_nodes(nodes)
 
     assert len(got_nodes) == 1
     assert isinstance(got_nodes[0], CommentNode)
@@ -203,7 +208,7 @@ def test_group_html_comments_one_line():
 def test_group_html_comments_two_lines():
     nodes = make_nodes(["<!--this is\na comment-->"])
 
-    got_nodes = group_blocked_nodes(iter(nodes))
+    got_nodes = group_blocked_nodes(nodes)
 
     assert len(got_nodes) == 1
     assert isinstance(got_nodes[0], CommentNode)
@@ -213,7 +218,7 @@ def test_group_html_comments_two_lines():
 def test_preserve_nodes_next_to_codeblock():
     nodes = make_nodes(["pre", "```", "code", "```", "post"])
 
-    got_nodes = group_blocked_nodes(iter(nodes))
+    got_nodes = group_blocked_nodes(nodes)
 
     assert got_nodes == [
         Node(contents="pre"),
@@ -225,7 +230,7 @@ def test_preserve_nodes_next_to_codeblock():
 def test_preserve_nodes_next_to_raw_python():
     nodes = make_nodes(["pre", "!!!", "code", "!!!", "post"])
 
-    got_nodes = group_blocked_nodes(iter(nodes))
+    got_nodes = group_blocked_nodes(nodes)
 
     assert got_nodes == [
         Node(contents="pre"),
@@ -237,7 +242,7 @@ def test_preserve_nodes_next_to_raw_python():
 def test_preserve_nodes_next_to_blockquote():
     nodes = make_nodes(["pre", "> line", "post"])
 
-    got_nodes = group_blocked_nodes(iter(nodes))
+    got_nodes = group_blocked_nodes(nodes)
 
     assert got_nodes == [
         Node(contents="pre"),
@@ -250,35 +255,35 @@ def test_exception_throw_if_codeblock_end_isnt_hit():
     nodes = make_nodes(["```", "code"])
 
     with pytest.raises(ValueError):
-        group_blocked_nodes(iter(nodes))
+        group_blocked_nodes(nodes)
 
 
 def test_exception_throw_if_codeblock_without_body_is_missing_end():
     nodes = make_nodes(["```"])
 
     with pytest.raises(ValueError):
-        group_blocked_nodes(iter(nodes))
+        group_blocked_nodes(nodes)
 
 
 def test_exception_throw_if_raw_python_end_isnt_hit():
     nodes = make_nodes(["!!!", "code"])
 
     with pytest.raises(ValueError):
-        group_blocked_nodes(iter(nodes))
+        group_blocked_nodes(nodes)
 
 
 def test_exception_throw_if_raw_python_without_body_is_missing_end():
     nodes = make_nodes(["!!!"])
 
     with pytest.raises(ValueError):
-        group_blocked_nodes(iter(nodes))
+        group_blocked_nodes(nodes)
 
 
 def test_exception_throw_if_html_comment_not_closed():
     nodes = make_nodes(["<!--"])
 
     with pytest.raises(ValueError):
-        group_blocked_nodes(iter(nodes))
+        group_blocked_nodes(nodes)
 
 
 def test_classify_nodes():
@@ -402,7 +407,8 @@ def test_convert_node():
 
     run("hello", "<p>hello</p>")
 
-    run("", "<br>")
+    run("", "")
+    run("\n", "<br>")
 
     run("<html>", "<html>")
 
@@ -545,3 +551,10 @@ def test_convert_html_comment_doesnt_throw_assertion():
 
 def test_convert_divider():
     assert markdown_to_html("---") == "<hr>"
+
+
+def test_get_title_fails_when_no_header_is_found():
+    nodes = markdown_to_nodes("no header here")
+
+    with pytest.raises(ValueError, match="missing title"):
+        get_title(nodes)
