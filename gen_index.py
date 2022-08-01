@@ -1,10 +1,12 @@
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import NamedTuple
+from typing import Iterator, Literal
 import re
 
-from git import Repo
+from git import Diff, Repo
 from git.exc import GitCommandError
+from git.objects.commit import Commit
 
 from md2html.core import get_title, markdown_to_nodes
 
@@ -12,23 +14,26 @@ from md2html.core import get_title, markdown_to_nodes
 repo = Repo()
 
 
-class Entry(NamedTuple):
+@dataclass
+class Entry:
     date: datetime
     path: Path
     title: str
 
 
-def get_changes(type, commit):
+def get_changes(type: Literal["R", "D"], commit: Commit) -> Iterator[Diff]:
     try:
         return commit.diff(f"{commit}~1").iter_change_type(type)
 
     except GitCommandError:
         # Probably means we hit the initial commit
-        return []
+        return iter([])
 
 
-def git_created_date(filepath, rev: str = "HEAD"):
-    for commit in repo.iter_commits(rev, paths=filepath):
+def git_created_date(
+    filepath: str | None, rev: str | None = "HEAD"
+) -> datetime:
+    for commit in repo.iter_commits(rev, paths=filepath or ""):
         for change in get_changes("R", commit):
             if change.a_path == filepath:
                 return git_created_date(change.b_path, f"{commit}~1")
@@ -51,7 +56,9 @@ def gen_recent_blogs() -> str:
         changes = added + renamed
 
         for change_type, change in changes:
-            filename = change.a_path if change_type == "R" else change.b_path
+            filename = (
+                change.a_path if change_type == "R" else change.b_path
+            ) or ""
 
             if re.match("blog.*md", filename):
                 path = Path(filename)
@@ -79,7 +86,7 @@ def gen_recent_blogs() -> str:
 
 def gen_updated_date() -> str:
     # From: https://stackoverflow.com/a/52045942
-    def day_suffix(day):
+    def day_suffix(day: int) -> str:
         suffixes = ["th", "st", "nd", "rd"]
 
         if day % 10 in [1, 2, 3] and day not in [11, 12, 13]:

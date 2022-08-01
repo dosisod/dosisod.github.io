@@ -25,7 +25,9 @@ jobs:
         run: flake8
 
       - name: Mypy
-        run: mypy -p md2html
+        run: |
+          mypy -p md2html
+          mypy gen_index.py
 
       - name: Black
         run: black md2html test --check --diff --color -l 79
