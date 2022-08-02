@@ -7,6 +7,11 @@ from .pipe import pipe
 
 
 def expand_links(html: str) -> str:
+    md_url_regex = r"\[\]\(([^()]*)\)"
+    a_tag_regex = r'<a href="\1">\1</a>'
+
+    html = re.sub(md_url_regex, a_tag_regex, html)
+
     md_url_regex = r"\[([^[\]]*)\]\(([^()]*)\)"
     a_tag_regex = r'<a href="\2">\1</a>'
 

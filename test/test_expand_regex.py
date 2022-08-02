@@ -79,3 +79,10 @@ def test_expand_footnote():
     expected = '<a id="footnote-1" href="#footnote-ref-1">[1]</a>: abc'
 
     assert expand_footnote(content) == expected
+
+
+def test_expand_shorthand_link():
+    content = "[](abc)"
+    expected = '<a href="abc">abc</a>'
+
+    assert expand_links(content) == expected

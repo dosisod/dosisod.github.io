@@ -66,7 +66,7 @@ will continue to see widespread adoption, especially the newer versions of Pytho
 
 ---
 
-[^1]: [https://www.python.org/doc/sunset-python-2/](https://www.python.org/doc/sunset-python-2/)
+[^1]: [](https://www.python.org/doc/sunset-python-2/)
 
 [^2]: When I say "supporting", I am also talking about tools that parse Python 2 code,
 even if the tools themselves are written in Python 3.
