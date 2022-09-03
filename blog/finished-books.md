@@ -2,6 +2,7 @@
 
 Most recently finished books are at the top.
 
+* [Stand on Zanzibar](https://www.amazon.com/dp/1250781221)
 * [Atomic Habits](https://www.amazon.com/dp/B09GG8HM95)
 * [Speaker for the Dead](https://www.amazon.com/dp/1250773059)
 * [Chapterhouse: Dune](https://www.amazon.com/dp/0593098277)

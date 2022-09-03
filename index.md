@@ -9,7 +9,7 @@ You can follow me on [GitHub](https://github.com/dosisod).
 
 ## Currently reading
 
-* [Stand on Zanzibar](https://www.amazon.com/dp/1250781221)
+* [Neuromancer](https://www.amazon.com/dp/0441569595)
 * [The Dragon Book](https://suif.stanford.edu/dragonbook/)
 * [The Pragmatic Programmer](https://www.amazon.com/dp/0135957052)
 * [Meditations](http://classics.mit.edu/Antoninus/meditations.html)
