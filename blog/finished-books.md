@@ -2,6 +2,7 @@
 
 Most recently finished books are at the top.
 
+* [1984](https://www.amazon.com/dp/0451524934)
 * [The Pragmatic Programmer](https://www.amazon.com/dp/0135957052)
 * [Neuromancer](https://www.amazon.com/dp/0441569595)
 * [Stand on Zanzibar](https://www.amazon.com/dp/1250781221)
