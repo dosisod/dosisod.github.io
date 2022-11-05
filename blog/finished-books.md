@@ -2,6 +2,7 @@
 
 Most recently finished books are at the top.
 
+* [The Black Swan](https://www.amazon.com/dp/081297381X)
 * [1984](https://www.amazon.com/dp/0451524934)
 * [The Pragmatic Programmer](https://www.amazon.com/dp/0135957052)
 * [Neuromancer](https://www.amazon.com/dp/0441569595)

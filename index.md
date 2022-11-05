@@ -9,7 +9,7 @@ You can follow me on [GitHub](https://github.com/dosisod).
 
 ## Currently reading
 
-* [The Black Swan](https://www.amazon.com/dp/081297381X)
+* [A Clockwork Orange](https://www.amazon.com/dp/0393341763)
 * [The Dragon Book](https://suif.stanford.edu/dragonbook/)
 * [Meditations](http://classics.mit.edu/Antoninus/meditations.html)
 
