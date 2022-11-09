@@ -19,14 +19,14 @@ def expand_links(html: str) -> str:
 
 
 def expand_footnode_ref(html: str) -> str:
-    md_footnote_ref_regex = r"\[\^(\d+)\]([^:]|$)"
-    a_tag_regex = r'<a id="footnote-ref-\1" href="#footnote-\1">[\1]</a>\2'
+    md_footnote_ref_regex = r"\[\^(\d+)\]"
+    a_tag_regex = r'<a id="footnote-ref-\1" href="#footnote-\1">[\1]</a>'
 
     return re.sub(md_footnote_ref_regex, a_tag_regex, html)
 
 
 def expand_footnote(html: str) -> str:
-    md_footnote_regex = r"\[\^(\d+)\]:"
+    md_footnote_regex = r"^\[\^(\d+)\]:"
     a_tag_regex = r'<a id="footnote-\1" href="#footnote-ref-\1">[\1]</a>:'
 
     return re.sub(md_footnote_regex, a_tag_regex, html)
@@ -63,8 +63,8 @@ def expand_code(html: str) -> str:
 def expand_inline(line: str) -> str:
     return pipe(
         line,
-        expand_footnode_ref,
         expand_footnote,
+        expand_footnode_ref,
         expand_links,
         expand_strikethrough,
         expand_bold,
