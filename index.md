@@ -9,7 +9,7 @@ You can follow me on [GitHub](https://github.com/dosisod).
 
 ## Currently reading
 
-* [A Clockwork Orange](https://www.amazon.com/dp/0393341763)
+* [Soul Catcher](https://www.amazon.com/dp/1614750645)
 * [The Dragon Book](https://suif.stanford.edu/dragonbook/)
 * [Meditations](http://classics.mit.edu/Antoninus/meditations.html)
 
@@ -23,5 +23,6 @@ from gen_index import gen_recent_blogs, gen_updated_date
 html += gen_recent_blogs()
 html += f'<br><span class="gray">Updated {gen_updated_date()}</span>'
 !!!
+
 
 <style>.gray { white-space: pre-wrap; }</style>
