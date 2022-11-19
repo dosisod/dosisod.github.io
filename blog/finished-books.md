@@ -2,6 +2,7 @@
 
 Most recently finished books are at the top.
 
+* [Soul Catcher](https://www.amazon.com/dp/1614750645)
 * [A Clockwork Orange](https://www.amazon.com/dp/0393341763)
 * [The Black Swan](https://www.amazon.com/dp/081297381X)
 * [1984](https://www.amazon.com/dp/0451524934)

@@ -9,7 +9,7 @@ You can follow me on [GitHub](https://github.com/dosisod).
 
 ## Currently reading
 
-* [Soul Catcher](https://www.amazon.com/dp/1614750645)
+* [The Road](https://www.amazon.com/dp/0307387895)
 * [The Dragon Book](https://suif.stanford.edu/dragonbook/)
 * [Meditations](http://classics.mit.edu/Antoninus/meditations.html)
 
