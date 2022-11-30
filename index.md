@@ -9,7 +9,7 @@ You can follow me on [GitHub](https://github.com/dosisod).
 
 ## Currently reading
 
-* [The Road](https://www.amazon.com/dp/0307387895)
+* [Fantastic Numbers and Where to Find Them](https://www.amazon.com/dp/0374600562)
 * [The Dragon Book](https://suif.stanford.edu/dragonbook/)
 * [Meditations](http://classics.mit.edu/Antoninus/meditations.html)
 
