@@ -213,54 +213,54 @@ def classify_nodes(nodes: list[Node]) -> list[Node]:
 
 
 def group_text_nodes(nodes: list[Node]) -> list[Node]:
-    done: list[Node] = []
+    groups: list[Node] = []
 
     for node in nodes:
         if isinstance(node, TextNode):
-            if len(done) == 0 or not isinstance(done[-1], TextNode):
-                done.append(node)
+            if not groups or not isinstance(groups[-1], TextNode):
+                groups.append(node)
 
             else:
-                done[-1].contents += f"\n{node.contents}"
+                groups[-1].contents += f"\n{node.contents}"
 
         else:
-            done.append(node)
+            groups.append(node)
 
-    return done
+    return groups
 
 
 def group_bullet_nodes(nodes: list[Node]) -> list[Node]:
-    done: list[Node] = []
+    groups: list[Node] = []
 
     for node in nodes:
         if isinstance(node, BulletNode):
-            if len(done) == 0 or not isinstance(done[-1], BulletNode):
-                done.append(BulletNode(data=[node.contents]))
+            if not groups or not isinstance(groups[-1], BulletNode):
+                groups.append(BulletNode(data=[node.contents]))
 
             else:
-                done[-1].data.append(node.contents)
+                groups[-1].data.append(node.contents)
 
         else:
-            done.append(node)
+            groups.append(node)
 
-    return done
+    return groups
 
 
 def group_number_list_nodes(nodes: list[Node]) -> list[Node]:
-    done: list[Node] = []
+    groups: list[Node] = []
 
     for node in nodes:
         if isinstance(node, NumListNode):
-            if len(done) == 0 or not isinstance(done[-1], NumListNode):
-                done.append(NumListNode(data=[node.contents]))
+            if not groups or not isinstance(groups[-1], NumListNode):
+                groups.append(NumListNode(data=[node.contents]))
 
             else:
-                done[-1].data.append(node.contents)
+                groups[-1].data.append(node.contents)
 
         else:
-            done.append(node)
+            groups.append(node)
 
-    return done
+    return groups
 
 
 def setup_nodes(markdown: str) -> list[Node]:

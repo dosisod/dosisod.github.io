@@ -34,3 +34,6 @@ jobs:
 
       - name: Pytest
         run: pytest --cov=$PWD --cov-report term --cov-report html
+
+      - name: Refurb
+        run: refurb md2html test
