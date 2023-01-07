@@ -9,9 +9,8 @@ You can follow me on [GitHub](https://github.com/dosisod).
 
 ## Currently reading
 
-* [Fantastic Numbers and Where to Find Them](https://www.amazon.com/dp/0374600562)
-* [The Dragon Book](https://suif.stanford.edu/dragonbook/)
-* [Meditations](http://classics.mit.edu/Antoninus/meditations.html)
+* [Fluent Python](https://www.amazon.com/dp/1492056359)
+* [Altered Carbon](https://www.amazon.com/dp/0345457684)
 
 Click [here](/blog/finished-books.html) for a list of books I've read.
 
