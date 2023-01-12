@@ -1,7 +1,10 @@
 import pytest
 
 from md2html.core import *
-from md2html.html import markdown_to_html as _markdown_to_html
+from md2html.html import (
+    markdown_to_html as _markdown_to_html,
+    text_to_fragment,
+)
 from md2html.node import *
 
 
@@ -400,10 +403,10 @@ def test_convert_node():
     def run(s, html):
         assert markdown_to_html(s) == html
 
-    run("# hello", "<h1>hello</h1>")
-    run("## hello", "<h2>hello</h2>")
-    run("### hello", "<h3>hello</h3>")
-    run("#### hello", "<h4>hello</h4>")
+    run("# hello", '<a id="hello" href="#hello"><h1>hello</h1></a>')
+    run("## hello", '<a id="hello" href="#hello"><h2>hello</h2></a>')
+    run("### hello", '<a id="hello" href="#hello"><h3>hello</h3></a>')
+    run("#### hello", '<a id="hello" href="#hello"><h4>hello</h4></a>')
 
     run("hello", "<p>hello</p>")
 
@@ -558,3 +561,16 @@ def test_get_title_fails_when_no_header_is_found():
 
     with pytest.raises(ValueError, match="missing title"):
         get_title(nodes)
+
+
+def test_text_to_fragment():
+    tests = {
+        "abc": "abc",
+        "123": "123",
+        "hello world": "hello-world",
+        "Hello World!": "hello-world",
+        "(this)(is)(a)(test)": "this-is-a-test",
+    }
+
+    for test, expected in tests.items():
+        assert text_to_fragment(test) == expected

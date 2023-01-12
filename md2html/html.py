@@ -163,13 +163,22 @@ def rows_to_list_items(rows: list[str]) -> str:
     return "\n".join([f"<li>{row}</li>" for row in rows])
 
 
+def text_to_fragment(text: str) -> str:
+    mangled = re.sub("[^a-z0-9]", "-", text.lower())
+
+    return "-".join(x for x in mangled.split("-") if x)
+
+
 def convert_node(node: Node) -> str:
     match node:
         case CommentNode():
             return ""
 
         case HeaderNode(contents=line, level=level):
-            return f"<h{level}>{line}</h{level}>"
+            header = f"<h{level}>{line}</h{level}>"
+            fragment = text_to_fragment(line)
+
+            return f'<a id="{fragment}" href="#{fragment}">{header}</a>'
 
         case TextNode(contents=line):
             return f"<p>{line}</p>"
