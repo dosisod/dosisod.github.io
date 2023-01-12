@@ -175,10 +175,10 @@ def convert_node(node: Node) -> str:
             return ""
 
         case HeaderNode(contents=line, level=level):
-            header = f"<h{level}>{line}</h{level}>"
+            heading = f"<h{level}>{line}</h{level}>"
             fragment = text_to_fragment(line)
 
-            return f'<a id="{fragment}" href="#{fragment}">{header}</a>'
+            return f'<a id="{fragment}" href="#{fragment}">{heading}</a>'
 
         case TextNode(contents=line):
             return f"<p>{line}</p>"
