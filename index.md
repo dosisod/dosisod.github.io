@@ -11,6 +11,7 @@ You can follow me on [GitHub](https://github.com/dosisod).
 
 * [Fluent Python](https://www.amazon.com/dp/1492056359)
 * [Altered Carbon](https://www.amazon.com/dp/0345457684)
+* [The Metamorphosis](https://www.amazon.com/dp/B0BNV21F6X)
 
 Click [here](/blog/finished-books.html) for a list of books I've read.
 
