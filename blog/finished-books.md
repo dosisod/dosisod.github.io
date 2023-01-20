@@ -2,6 +2,7 @@
 
 Most recently finished books are at the top.
 
+* [The Metamorphosis](https://www.amazon.com/dp/B0BNV21F6X)
 * [Meditations](https://web.archive.org/web/20220602114947/http://classics.mit.edu/Antoninus/meditations.mb.txt)
 * [Fantastic Numbers and Where to Find Them](https://www.amazon.com/dp/0374600562)
 * [The Road](https://www.amazon.com/dp/0307387895)
