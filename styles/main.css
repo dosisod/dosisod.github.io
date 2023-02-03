@@ -42,6 +42,10 @@ a[id] {
   text-decoration: none !important;
 }
 
+a[id^="footnote"] {
+  text-decoration: underline var(--accent1) !important;
+}
+
 a:focus {
   color: var(--accent1);
   font-weight: bold;
