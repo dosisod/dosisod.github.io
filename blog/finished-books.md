@@ -2,6 +2,8 @@
 
 Most recently finished books are at the top.
 
+* [Fluent Python](https://www.amazon.com/dp/1492056359)
+* [Altered Carbon](https://www.amazon.com/dp/0345457684)
 * [The Metamorphosis](https://www.amazon.com/dp/B0BNV21F6X)
 * [Meditations](https://web.archive.org/web/20220602114947/http://classics.mit.edu/Antoninus/meditations.mb.txt)
 * [Fantastic Numbers and Where to Find Them](https://www.amazon.com/dp/0374600562)

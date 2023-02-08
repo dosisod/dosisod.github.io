@@ -9,8 +9,7 @@ You can follow me on [GitHub](https://github.com/dosisod).
 
 ## Currently reading
 
-* [Fluent Python](https://www.amazon.com/dp/1492056359)
-* [Altered Carbon](https://www.amazon.com/dp/0345457684)
+* [Zen and the Art of Motorcycle Maintenance](https://www.amazon.com/dp/0060839872)
 
 Click [here](/blog/finished-books.html) for a list of books I've read.
 
