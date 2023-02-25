@@ -1,4 +1,4 @@
-from typing import Iterator
+from collections.abc import Iterator
 import re
 
 from .node import *
@@ -22,8 +22,7 @@ def iter_code_block(first: Node, nodes: Iterator[Node]) -> Node:
         if node.contents.startswith("```"):
             return CodeblockNode(contents=codeblock, language=lang)
 
-        else:
-            codeblock += f"\n{node.contents}"
+        codeblock += f"\n{node.contents}"
 
     raise ValueError("codeblock end not reached")
 
@@ -40,8 +39,7 @@ def iter_python_blocks(nodes: Iterator[Node]) -> Node:
         if node.contents == "!!!":
             return PythonNode(contents=code)
 
-        else:
-            code += f"\n{node.contents}"
+        code += f"\n{node.contents}"
 
     raise ValueError("python block end not reached")
 
@@ -72,8 +70,7 @@ def iter_html_comment(first: Node, nodes: Iterator[Node]) -> Node:
             next(nodes)
             return CommentNode(contents=comment)
 
-        else:
-            comment += f"\n{node.contents}"
+        comment += f"\n{node.contents}"
 
     raise ValueError("html comment not closed")
 

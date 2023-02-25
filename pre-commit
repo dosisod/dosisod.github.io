@@ -2,9 +2,4 @@
 
 set -e
 
-flake8
-mypy -p md2html
-mypy gen_index.py
-black md2html test gen_index.py --check --diff --color -l 79
-pytest --cov="$PWD" --cov-report term --cov-report html
-refurb md2html test
+make

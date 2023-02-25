@@ -1,7 +1,8 @@
+from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Iterator, Literal
+from typing import Literal
 import re
 
 from git import Diff, Repo
@@ -94,7 +95,8 @@ def gen_updated_date() -> str:
 
         return suffixes[0]
 
-    now = datetime.now()
+    now = datetime.now()  # noqa: DTZ005
+
     return (
         now.strftime("%B %_dXXX %Y")
         .replace("XXX", day_suffix(now.day))

@@ -1,0 +1,36 @@
+[tool.mypy]
+allow_redefinition = true
+check_untyped_defs = true
+allow_untyped_defs = false
+disallow_any_decorated = true
+disallow_any_explicit = true
+disallow_any_generics = true
+disallow_any_unimported = true
+disallow_incomplete_defs = true
+disallow_subclassing_any = true
+namespace_packages = true
+no_implicit_optional = true
+strict_equality = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unreachable = true
+warn_unused_configs = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = "test.*"
+allow_untyped_defs = true
+
+[tool.coverage.run]
+omit = ["md2html/__main__.py"]
+
+[tool.pytest.ini_options]
+addopts = "--cov=md2html --cov-report=html --cov-report=term-missing --cov-fail-under=100"
+
+[tool.ruff]
+extend-select = [
+  "W", "N", "UP", "YTT", "S", "BLE", "B",
+  "C4", "DTZ", "ISC", "PIE", "PT", "RET",
+  "SIM", "PTH", "PLE", "RUF",
+]
+extend-ignore = ["F405", "F403", "E731", "S101", "PT011"]

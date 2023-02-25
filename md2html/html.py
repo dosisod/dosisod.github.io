@@ -133,7 +133,7 @@ def run_python_block(code: str) -> str:
     html = ""
 
     _locals = locals()
-    exec(code, globals(), _locals)
+    exec(code, globals(), _locals)  # noqa: S102
 
     return _locals["html"]  # type: ignore
 
@@ -243,7 +243,7 @@ def convert_node(node: Node) -> str:
         case DividerNode():
             return "<hr>"
 
-    assert False  # pragma: no cover
+    raise AssertionError()  # pragma: no cover
 
 
 def markdown_to_html(nodes: list[Node]) -> str:

@@ -15,7 +15,7 @@ def test_print_usage_if_not_enough_args(mocked_print):
     assert mocked_print.call_args[0][0].startswith("usage:")
 
 
-@pytest.fixture
+@pytest.fixture()
 def tempfile():
     filename = mkstemp()[1]
     file = Path(filename)
@@ -55,25 +55,25 @@ def test_file_multi_threaded(mocked):
     fail on some machines. In general though, if threading is enabled, we
     should expect that all threaded calls to "convert_file" will collectively
     run faster then the same calls ran in parallel. We also check that the
-    tests took more then SLEEP_FOR_MS time, just to make sure the sleep is
+    tests took more then sleep_for_ms time, just to make sure the sleep is
     working correctly.
     """
 
-    MAX_THREADS = 10
-    SLEEP_FOR_MS = 500
+    max_threads = 10
+    sleep_for_ms = 500
 
     ms_to_second = lambda ms: ms / 1_000
 
-    mocked.side_effect = lambda _: sleep(ms_to_second(SLEEP_FOR_MS))
+    mocked.side_effect = lambda _: sleep(ms_to_second(sleep_for_ms))
 
     start_time = timeit.default_timer()
-    main(["argv0", *(["filename"] * MAX_THREADS)])
+    main(["argv0", *(["filename"] * max_threads)])
     elapsed_time = timeit.default_timer() - start_time
 
-    assert mocked.call_count == MAX_THREADS
+    assert mocked.call_count == max_threads
 
-    assert elapsed_time > ms_to_second(SLEEP_FOR_MS)
-    assert elapsed_time < ms_to_second(MAX_THREADS * SLEEP_FOR_MS)
+    assert elapsed_time > ms_to_second(sleep_for_ms)
+    assert elapsed_time < ms_to_second(max_threads * sleep_for_ms)
 
 
 def test_exception_is_thrown_when_file_doesnt_exist():
