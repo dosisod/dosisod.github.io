@@ -23,7 +23,7 @@ def make_nodes(strs):
 def test_setup_nodes():
     nodes = setup_nodes("a\nb\nc")
 
-    assert all([isinstance(node, Node) for node in nodes])
+    assert all(isinstance(node, Node) for node in nodes)
 
     assert len(nodes) == 3
     assert nodes[0].contents == "a"

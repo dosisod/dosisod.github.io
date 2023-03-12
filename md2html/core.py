@@ -92,7 +92,7 @@ def iter_table(first: Node, nodes: Iterator[Node]) -> tuple[Node, Node | None]:
     def is_valid_seperator_cell(cell: str) -> bool:
         return bool(re.match("^:?-{3,}:?$", cell.strip()))
 
-    if not all([is_valid_seperator_cell(x) for x in seperator_cells]):
+    if not all(is_valid_seperator_cell(x) for x in seperator_cells):
         raise ValueError(
             "header seperator must have:\n\n"
             "* At least 3 dashes\n"
