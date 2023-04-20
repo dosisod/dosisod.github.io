@@ -9,7 +9,7 @@ You can follow me on [GitHub](https://github.com/dosisod).
 
 ## Currently reading
 
-* [Zen and the Art of Motorcycle Maintenance](https://www.amazon.com/dp/0060839872)
+* [The Tetris Effect](https://www.amazon.com/dp/B01DWX9T7G)
 
 Click [here](/blog/finished-books.html) for a list of books I've read.
 
