@@ -9,7 +9,7 @@ You can follow me on [GitHub](https://github.com/dosisod).
 
 ## Currently reading
 
-* [The Tetris Effect](https://www.amazon.com/dp/B01DWX9T7G)
+* [Crime and Punishment](https://standardebooks.org/ebooks/fyodor-dostoevsky/crime-and-punishment/constance-garnett/text/single-page)
 
 Click [here](/blog/finished-books.html) for a list of books I've read.
 

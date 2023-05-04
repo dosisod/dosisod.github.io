@@ -2,6 +2,7 @@
 
 Most recently finished books are at the top.
 
+* [The Tetris Effect](https://www.amazon.com/dp/B01DWX9T7G)
 * [Zen and the Art of Motorcycle Maintenance](https://www.amazon.com/dp/0060839872)
 * [Fluent Python](https://www.amazon.com/dp/1492056359)
 * [Altered Carbon](https://www.amazon.com/dp/0345457684)
