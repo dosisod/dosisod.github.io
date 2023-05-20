@@ -163,6 +163,25 @@ def rows_to_list_items(rows: list[str]) -> str:
     return "\n".join([f"<li>{row}</li>" for row in rows])
 
 
+def build_num_list(rows: list[str]) -> str:
+    width = len(str(len(rows))) + 2
+
+    items: list[str] = []
+
+    for i, row in enumerate(rows, start=1):
+        space = " " * (width - len(str(i)) - 1)
+
+        items.append(f'<li i="{i}.{space}">{row}</li>')
+
+    return "\n".join(
+        [
+            f'<ol style="margin-left: {width}ch">',
+            *items,
+            "</ol>",
+        ]
+    )
+
+
 def text_to_fragment(text: str) -> str:
     mangled = re.sub("[^a-z0-9]", "-", text.lower())
 
@@ -202,7 +221,7 @@ def convert_node(node: Node) -> str:
             return f"<ul>\n{rows_to_list_items(rows)}\n</ul>"
 
         case NumListNode(data=rows):
-            return f"<ol>\n{rows_to_list_items(rows)}\n</ol>"
+            return build_num_list(rows)
 
         case PythonNode(contents=code):
             return run_python_block(code)

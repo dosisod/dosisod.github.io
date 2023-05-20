@@ -424,7 +424,17 @@ def test_convert_node():
 
     run("* hello\n* world", "<ul>\n<li>hello</li>\n<li>world</li>\n</ul>")
 
-    run("1. hello\n2. world", "<ol>\n<li>hello</li>\n<li>world</li>\n</ol>")
+    run(
+        "1. hello\n2. world",
+        "\n".join(
+            [
+                '<ol style="margin-left: 3ch">',
+                '<li i="1. ">hello</li>',
+                '<li i="2. ">world</li>',
+                "</ol>",
+            ]
+        ),
+    )
 
     run("```\nhello world\n```", '<pre class="hljs">hello world</pre>')
     run("```\nhello\\nworld\n```", '<pre class="hljs">hello\\\\nworld</pre>')
@@ -450,7 +460,7 @@ def test_expand_inline_code_in_lists():
 
     assert (
         markdown_to_html("1. *hello*")
-        == "<ol>\n<li><em>hello</em></li>\n</ol>"
+        == '<ol style="margin-left: 3ch">\n<li i="1. "><em>hello</em></li>\n</ol>'
     )
 
 

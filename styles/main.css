@@ -78,16 +78,16 @@ ol, ul {
   list-style: none;
 }
 
-ol {
-  counter-reset: numbered-list;
+ul {
+  margin-left: 2ch;
 }
 
-ol > li::before {
-  counter-increment: numbered-list;
-  content: counter(numbered-list) ". ";
+ol > li::marker {
+  content: attr(i);
+  color: var(--gray);
 }
 
-li::marker {
+ul > li::marker {
   content: "* ";
   color: var(--gray);
 }
