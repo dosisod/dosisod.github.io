@@ -81,7 +81,7 @@ def test_table_header_with_missing_header_seperator():
 
 
 @pytest.mark.parametrize("row", ["x| y |", "| y |x"])
-def test_table_header_check_seperator_pipe(row):
+def test_table_header_check_seperator_pipe(row: str) -> None:
     nodes = make_nodes(["| A |", row])
 
     msg = "line must start and end with pipe"
@@ -103,7 +103,7 @@ def test_table_header_check_seperator_pipe(row):
         "|---x|",
     ],
 )
-def test_table_header_check_seperator_is_formatted_correctly(row):
+def test_table_header_check_seperator_is_formatted_correctly(row: str) -> None:
     nodes = make_nodes(["| A |", row])
 
     msg = "header seperator must have:"
@@ -315,7 +315,7 @@ def test_classify_nodes():
 
 
 def test_group_text_nodes():
-    nodes = [
+    nodes: list[Node] = [
         TextNode(contents="hello"),
         TextNode(contents="world"),
     ]
@@ -342,7 +342,7 @@ def test_only_group_adjacent_nodes():
 
 
 def test_group_bullet_nodes():
-    nodes = [
+    nodes: list[Node] = [
         BulletNode(contents="item"),
         BulletNode(contents="another item"),
         BulletNode(contents="last item"),
@@ -372,7 +372,7 @@ def test_group_only_adjacent_bullet_nodes():
 
 
 def test_group_numbered_list_nodes():
-    nodes = [
+    nodes: list[Node] = [
         NumListNode(contents="item 1"),
         NumListNode(contents="item 2"),
         NumListNode(contents="item 3"),

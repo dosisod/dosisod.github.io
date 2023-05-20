@@ -15,26 +15,26 @@ def make_code_block(body: str, language: str = "") -> str:
     return f"```{language}\n{body}\n```\n"
 
 
-@patch("md2html.html.hightlight_code")
-def test_convert_code_block_language_set(mocked):
-    block = make_code_block("hello world", language="python")
+def test_convert_code_block_language_set():
+    with patch("md2html.html.hightlight_code") as highlight:
+        block = make_code_block("hello world", language="python")
 
-    mocked.return_value = "anything"
+        highlight.return_value = "anything"
 
-    markdown_to_html(block)
+        markdown_to_html(block)
 
-    mocked.assert_called_with("hello world", "python")
+        highlight.assert_called_with("hello world", "python")
 
 
-@patch("md2html.html.hightlight_code")
-def test_highlighter_escapes_backslashes(mocked):
-    block = make_code_block("hello\\nworld", language="python")
+def test_highlighter_escapes_backslashes():
+    with patch("md2html.html.hightlight_code") as highlight:
+        block = make_code_block("hello\\nworld", language="python")
 
-    mocked.return_value = "anything"
+        highlight.return_value = "anything"
 
-    markdown_to_html(block)
+        markdown_to_html(block)
 
-    mocked.assert_called_with("hello\\\\nworld", "python")
+        highlight.assert_called_with("hello\\\\nworld", "python")
 
 
 def test_invalid_language_throws_error():

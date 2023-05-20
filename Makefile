@@ -7,6 +7,7 @@ ruff:
 
 mypy:
 	mypy -p md2html
+	mypy -p test
 	mypy gen_index.py
 
 black:

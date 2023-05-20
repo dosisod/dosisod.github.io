@@ -140,7 +140,7 @@ def run_python_block(code: str) -> str:
 
 def hightlight_code(code: str, language: str) -> str:
     pipe = run(
-        ["node", "highlighter/index.js", language],
+        ["node", "highlighter/index.js", language],  # noqa: S603, S607
         capture_output=True,
         input=code.encode(),
     )

@@ -1,3 +1,4 @@
+from collections.abc import Iterator
 from tempfile import mkstemp
 from unittest.mock import call, patch
 from pathlib import Path
@@ -9,14 +10,15 @@ import pytest
 from md2html.main import convert_file, main
 
 
-@patch("builtins.print")
-def test_print_usage_if_not_enough_args(mocked_print):
-    main(["argv0"])
-    assert mocked_print.call_args[0][0].startswith("usage:")
+def test_print_usage_if_not_enough_args() -> None:
+    with patch("builtins.print") as p:
+        main(["argv0"])
+
+        assert p.call_args[0][0].startswith("usage:")
 
 
 @pytest.fixture()
-def tempfile():
+def tempfile() -> Iterator[Path]:
     filename = mkstemp()[1]
     file = Path(filename)
 
@@ -41,15 +43,14 @@ def test_file_is_created_properly(tempfile):
     assert "Hello world" in html
 
 
-@patch("md2html.main.convert_file")
-def test_convert_multiple_files(mocked):
-    main(["argv0", "a", "b", "c"])
+def test_convert_multiple_files():
+    with patch("md2html.main.convert_file") as mock:
+        main(["argv0", "a", "b", "c"])
 
-    assert mocked.call_args_list == [call("a"), call("b"), call("c")]
+        assert mock.call_args_list == [call("a"), call("b"), call("c")]
 
 
-@patch("md2html.main.convert_file")
-def test_file_multi_threaded(mocked):
+def test_file_multi_threaded():
     """
     Threading works differently on different machines, so this test (might)
     fail on some machines. In general though, if threading is enabled, we
@@ -64,16 +65,17 @@ def test_file_multi_threaded(mocked):
 
     ms_to_second = lambda ms: ms / 1_000
 
-    mocked.side_effect = lambda _: sleep(ms_to_second(sleep_for_ms))
+    with patch("md2html.main.convert_file") as convert_file:
+        convert_file.side_effect = lambda _: sleep(ms_to_second(sleep_for_ms))
 
-    start_time = timeit.default_timer()
-    main(["argv0", *(["filename"] * max_threads)])
-    elapsed_time = timeit.default_timer() - start_time
+        start_time = timeit.default_timer()
+        main(["argv0", *(["filename"] * max_threads)])
+        elapsed_time = timeit.default_timer() - start_time
 
-    assert mocked.call_count == max_threads
+        assert convert_file.call_count == max_threads
 
-    assert elapsed_time > ms_to_second(sleep_for_ms)
-    assert elapsed_time < ms_to_second(max_threads * sleep_for_ms)
+        assert elapsed_time > ms_to_second(sleep_for_ms)
+        assert elapsed_time < ms_to_second(max_threads * sleep_for_ms)
 
 
 def test_exception_is_thrown_when_file_doesnt_exist():
