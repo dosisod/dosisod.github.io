@@ -82,12 +82,12 @@ ol {
   counter-reset: numbered-list;
 }
 
-ol > li:before {
+ol > li::before {
   counter-increment: numbered-list;
   content: counter(numbered-list) ". ";
 }
 
-li:before {
+li::marker {
   content: "* ";
   color: var(--gray);
 }
