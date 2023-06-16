@@ -10,6 +10,7 @@ You can follow me on [GitHub](https://github.com/dosisod).
 ## Currently reading
 
 * [Crime and Punishment](https://standardebooks.org/ebooks/fyodor-dostoevsky/crime-and-punishment/constance-garnett/text/single-page)
+* [GDPR](https://gdpr-info.eu)
 
 Click [here](/blog/finished-books.html) for a list of books I've read.
 
