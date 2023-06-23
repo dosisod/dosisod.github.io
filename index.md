@@ -7,6 +7,8 @@ thoughts, or whatever else I want (this is my site after all).
 
 You can follow me on [GitHub](https://github.com/dosisod).
 
+Currently working on [Cicada](https://cicada.sh), a FOSS CI/CD platform.
+
 ## Currently reading
 
 * [Crime and Punishment](https://standardebooks.org/ebooks/fyodor-dostoevsky/crime-and-punishment/constance-garnett/text/single-page)
