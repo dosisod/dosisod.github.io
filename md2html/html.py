@@ -1,4 +1,4 @@
-from html import escape
+from html import escape as _escape
 from subprocess import run
 import re
 
@@ -71,6 +71,13 @@ def expand_inline(line: str) -> str:
         expand_italics,
         expand_code,
     )
+
+
+def escape(s: str) -> str:
+    # unescape markdown underscore escapes
+    s = re.sub(r"\\_", "_", s)
+
+    return _escape(s)
 
 
 def escape_node(node: Node) -> None:
