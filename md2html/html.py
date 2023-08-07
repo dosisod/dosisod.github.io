@@ -1,5 +1,6 @@
 from html import escape as _escape
 from subprocess import run
+from typing import ClassVar
 import re
 
 from .node import *
@@ -80,62 +81,6 @@ def escape(s: str) -> str:
     return _escape(s)
 
 
-def escape_node(node: Node) -> None:
-    match node:
-        case HtmlNode() | PythonNode():
-            pass
-
-        case CodeblockNode(contents=contents, language=""):
-            node.contents = escape(contents)
-
-        case CodeblockNode(language=_):
-            pass
-
-        case ListNode(data=data):
-            for i, item in enumerate(data):
-                data[i] = escape(item)
-
-        case TableNode(header=header, rows=rows):
-            for i, cell in enumerate(header):
-                header[i].name = escape(cell.name)
-
-            for i, row in enumerate(rows):
-                rows[i] = [escape(cell) for cell in row]
-
-        case _:
-            node.contents = escape(node.contents)
-
-
-def escape_nodes(nodes: list[Node]) -> None:
-    for node in nodes:
-        escape_node(node)
-
-
-def expand_node(node: Node) -> None:
-    match node:
-        case CodeblockNode():
-            pass
-
-        case TableNode(header=header, rows=rows):
-            for i, cell in enumerate(header):
-                header[i].name = expand_inline(cell.name)
-
-            for i, row in enumerate(rows):
-                rows[i] = [expand_inline(cell) for cell in row]
-
-        case ListNode(data=rows):
-            for i, item in enumerate(rows):
-                rows[i] = expand_inline(item)
-
-        case _:
-            node.contents = expand_inline(node.contents)
-
-
-def expand_nodes(nodes: list[Node]) -> None:
-    for node in nodes:
-        expand_node(node)
-
-
 def run_python_block(code: str) -> str:
     html = ""
 
@@ -166,10 +111,6 @@ Code could not be highlighted. This could be for a number of reasons:
     return pipe.stdout.decode()
 
 
-def rows_to_list_items(rows: list[str]) -> str:
-    return "\n".join([f"<li>{row}</li>" for row in rows])
-
-
 def build_num_list(rows: list[str]) -> str:
     width = len(str(len(rows))) + 2
 
@@ -195,85 +136,101 @@ def text_to_fragment(text: str) -> str:
     return "-".join(x for x in mangled.split("-") if x)
 
 
-def convert_node(node: Node) -> str:
-    match node:
-        case CommentNode():
-            return ""
+class HTMLGeneratorVisitor(NodeVisitor[str]):
+    alignment_to_style: ClassVar[dict[HeaderAlignment, str]] = {
+        HeaderAlignment.DEFAULT: "",
+        HeaderAlignment.LEFT: ' style="text-align: left;"',
+        HeaderAlignment.CENTER: ' style="text-align: center;"',
+        HeaderAlignment.RIGHT: ' style="text-align: right;"',
+    }
 
-        case HeaderNode(contents=line, level=level):
-            heading = f"<h{level}>{line}</h{level}>"
-            fragment = text_to_fragment(line)
+    def visit_comment_node(self, node: CommentNode) -> str:
+        return ""
 
-            return f'<a id="{fragment}" href="#{fragment}">{heading}</a>'
+    def visit_bullet_list_node(self, node: BulletNode) -> str:
+        rows = [expand_inline(escape(row)) for row in node.data]
+        items = "\n".join(f"<li>{row}</li>" for row in rows)
 
-        case TextNode(contents=line):
-            return f"<p>{line}</p>"
+        return f"<ul>\n{items}\n</ul>"
 
-        case NewlineNode():
-            return "<br>"
+    def visit_num_list_node(self, node: NumListNode) -> str:
+        rows = [expand_inline(escape(row)) for row in node.data]
 
-        case HtmlNode(contents=line):
-            return line
+        # TODO: move this logic to a custom html visitor
+        return build_num_list(rows)
 
-        case BlockquoteNode(contents=line):
-            return f"<blockquote>{line}</blockquote>"
+    def visit_checkbox_node(self, node: CheckboxNode) -> str:
+        data = expand_inline(escape(node.contents))
+        attr = " checked" if node.checked else ""
 
-        case CheckboxNode(checked=True, contents=line):
-            return f'<p><input type="checkbox" checked>{line}</p>'
+        return f'<p><input type="checkbox"{attr}>{data}</p>'
 
-        case CheckboxNode(checked=False, contents=line):
-            return f'<p><input type="checkbox">{line}</p>'
+    def visit_text_node(self, node: TextNode) -> str:
+        data = expand_inline(escape(node.contents))
 
-        case BulletNode(data=rows):
-            return f"<ul>\n{rows_to_list_items(rows)}\n</ul>"
+        return f"<p>{data}</p>"
 
-        case NumListNode(data=rows):
-            return build_num_list(rows)
+    def visit_codeblock_node(self, node: CodeblockNode) -> str:
+        if node.language:
+            escaped = node.contents.replace("\\", "\\\\")
 
-        case PythonNode(contents=code):
-            return run_python_block(code)
+            return hightlight_code(escaped, node.language)
 
-        case CodeblockNode(contents=code, language=language):
-            escaped = code.replace("\\", "\\\\")
+        escaped = escape(node.contents).replace("\\", "\\\\")
 
-            return (
-                hightlight_code(escaped, language)
-                if language
-                else f'<pre class="hljs">{escaped}</pre>'
-            )
+        return f'<pre class="hljs">{escaped}</pre>'
 
-        case TableNode(header=header, rows=rows):
-            alignment_to_style = {
-                HeaderAlignment.DEFAULT: "",
-                HeaderAlignment.LEFT: ' style="text-align: left;"',
-                HeaderAlignment.CENTER: ' style="text-align: center;"',
-                HeaderAlignment.RIGHT: ' style="text-align: right;"',
-            }
+    def visit_python_node(self, node: PythonNode) -> str:
+        return run_python_block(node.contents)
 
-            def make_row(cells: list[str], type: str) -> str:
-                def get_style(i: int) -> str:
-                    return alignment_to_style[header[i].alignment]
+    def visit_html_node(self, node: HtmlNode) -> str:
+        return node.contents
 
-                row = [
-                    f"<{type}{get_style(i)}>{text}</{type}>"
-                    for i, text in enumerate(cells)
-                ]
+    def visit_header_node(self, node: HeaderNode) -> str:
+        data = expand_inline(escape(node.contents))
 
-                return f"<tr>{''.join(row)}</tr>"
+        heading = f"<h{node.level}>{data}</h{node.level}>"
+        fragment = text_to_fragment(data)
 
-            table_rows = [make_row([cell.name for cell in node.header], "th")]
-            table_rows.extend([make_row(row, "td") for row in rows])
+        return f'<a id="{fragment}" href="#{fragment}">{heading}</a>'
 
-            return f"<table>{''.join(table_rows)}</table>"
+    def visit_newline_node(self, node: NewlineNode) -> str:
+        return "<br>"
 
-        case DividerNode():
-            return "<hr>"
+    def visit_divider_node(self, node: DividerNode) -> str:
+        return "<hr>"
 
-    raise AssertionError()  # pragma: no cover
+    def visit_blockquote_node(self, node: BlockquoteNode) -> str:
+        data = expand_inline(escape(node.contents))
+
+        return f"<blockquote>{data}</blockquote>"
+
+    def visit_table_node(self, node: TableNode) -> str:
+        def get_header_style(i: int) -> str:
+            return self.alignment_to_style[node.header[i].alignment]
+
+        def make_row(cells: list[str], type: str) -> str:
+            cells = [expand_inline(escape(cell)) for cell in cells]
+
+            row = [
+                f"<{type}{get_header_style(i)}>{cell}</{type}>"
+                for i, cell in enumerate(cells)
+            ]
+
+            return f"<tr>{''.join(row)}</tr>"
+
+        header = [cell.name for cell in node.header]
+
+        rows = [
+            *make_row(header, "th"),
+            *[make_row(row, "td") for row in node.rows],
+        ]
+
+        # TODO: add newline after each row
+        return f"<table>{''.join(rows)}</table>"
 
 
 def markdown_to_html(nodes: list[Node]) -> str:
-    escape_nodes(nodes)
-    expand_nodes(nodes)
+    visitor = HTMLGeneratorVisitor()
 
-    return "\n".join([convert_node(node) for node in nodes])
+    return "\n".join(node.accept(visitor) for node in nodes)
