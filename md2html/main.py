@@ -17,7 +17,7 @@ def add_github_commenting(nodes: list[Node], filename: str) -> None:
 <script src="https://utteranc.es/client.js"
   repo="dosisod/dosisod.github.io"
   issue-term="title"
-  theme="gruvbox-dark"
+  theme="github-light"
   crossorigin="anonymous"
   async>
 </script>

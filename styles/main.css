@@ -1,12 +1,12 @@
 :root {
-  --bg: #1a1a1a;
-  --fg: #dddddd;
-  --divider: #222222;
-  --accent1: #ffaa00;
-  --accent2: #e69900;
-  --accent3: #cc8800;
-  --accent4: #b37700;
-  --gray: #565656;
+  --bg: #fafafa;
+  --fg: #0d0d0d;
+  --divider: #bbb;
+  --accent1: #2266ff;
+  --accent2: #1155ee;
+  --accent3: #0044dd;
+  --accent4: #0033cc;
+  --gray: #555;
 }
 
 * {
@@ -57,9 +57,10 @@ p, span {
 
 h1, h2, h3, h4 {
   font-size: 1rem;
+  font-weight: bold;
+  font-style: italic;
   padding: 0;
   margin: 0;
-  font-weight: bold;
 }
 
 h1 { color: var(--accent1); }
@@ -108,11 +109,13 @@ td, th {
 
 code {
   padding: 0 !important;
+  background: #eee !important;
 }
 
 pre {
   padding: 1ch;
   overflow-x: auto;
+  background: #eee !important;
 }
 
 img {
@@ -121,7 +124,7 @@ img {
 }
 
 blockquote {
-  border-left: 0.5ch solid var(--accent4);
+  border-left: 0.5ch solid var(--accent1);
   padding: 1ch 1ch 1ch 1.5ch;
   margin: 0;
   font-style: italic;

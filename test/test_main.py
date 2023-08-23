@@ -91,7 +91,7 @@ def test_github_comment_feature_is_disabled_on_some_files():
 
     convert_file(str(md_file))
 
-    ok = "github" not in html_file.read_text()
+    ok = "utteranc" not in html_file.read_text()
 
     md_file.unlink()
     html_file.unlink()
