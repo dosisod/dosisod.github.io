@@ -134,43 +134,43 @@ class TableNode(Node):
 
 class NodeVisitor(Generic[T]):
     def visit_node(self, node: Node) -> T:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def visit_comment_node(self, node: CommentNode) -> T:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def visit_bullet_list_node(self, node: BulletNode) -> T:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def visit_num_list_node(self, node: NumListNode) -> T:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def visit_checkbox_node(self, node: CheckboxNode) -> T:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def visit_text_node(self, node: TextNode) -> T:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def visit_codeblock_node(self, node: CodeblockNode) -> T:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def visit_python_node(self, node: PythonNode) -> T:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def visit_html_node(self, node: HtmlNode) -> T:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def visit_header_node(self, node: HeaderNode) -> T:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def visit_newline_node(self, node: NewlineNode) -> T:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def visit_divider_node(self, node: DividerNode) -> T:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def visit_blockquote_node(self, node: BlockquoteNode) -> T:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def visit_table_node(self, node: TableNode) -> T:
-        raise NotImplementedError()
+        raise NotImplementedError

@@ -28,7 +28,7 @@ def tempfile() -> Iterator[Path]:
         file.unlink()
 
 
-def test_file_is_created_properly(tempfile):
+def test_file_is_created_properly(tempfile: Path) -> None:
     with tempfile.open("w") as f:
         f.write("# Hello world")
 
@@ -43,14 +43,14 @@ def test_file_is_created_properly(tempfile):
     assert "Hello world" in html
 
 
-def test_convert_multiple_files():
+def test_convert_multiple_files() -> None:
     with patch("md2html.main.convert_file") as mock:
         main(["argv0", "a", "b", "c"])
 
         assert mock.call_args_list == [call("a"), call("b"), call("c")]
 
 
-def test_file_multi_threaded():
+def test_file_multi_threaded() -> None:
     """
     Threading works differently on different machines, so this test (might)
     fail on some machines. In general though, if threading is enabled, we
@@ -78,12 +78,12 @@ def test_file_multi_threaded():
         assert elapsed_time < ms_to_second(max_threads * sleep_for_ms)
 
 
-def test_exception_is_thrown_when_file_doesnt_exist():
+def test_exception_is_thrown_when_file_doesnt_exist() -> None:
     with pytest.raises(FileNotFoundError):
         main(["argv0", "file_doesnt_exist"])
 
 
-def test_github_comment_feature_is_disabled_on_some_files():
+def test_github_comment_feature_is_disabled_on_some_files() -> None:
     md_file = Path("./test/index.md")
     html_file = md_file.with_suffix(".html")
 

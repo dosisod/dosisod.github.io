@@ -26,7 +26,7 @@ omit = ["md2html/__main__.py"]
 
 [tool.coverage.report]
 exclude_lines = [
-  "raise NotImplementedError\\(\\)",
+  "raise NotImplementedError",
   "pragma: no cover",
 ]
 skip_covered = true
@@ -36,9 +36,31 @@ skip_empty = true
 addopts = "--cov=md2html --cov-report=html --cov-report=term-missing --cov-fail-under=100"
 
 [tool.ruff]
-extend-select = [
-  "W", "N", "UP", "YTT", "S", "BLE", "B",
-  "C4", "DTZ", "ISC", "PIE", "PT", "RET",
-  "SIM", "PTH", "PLE", "RUF",
+select = ["ALL"]
+
+extend-ignore = [
+  "ANN101",
+  "COM812",
+  "D100", "D101", "D102", "D103", "D104",
+  "D202", "D203", "D205", "D211", "D212",
+  "E731",
+  "F403", "F405",
+  "FIX002",
+  "INP001",
+  "TRY003",
+  "EM101", "EM102",
+  "PT011",
+  "PLR2004",
+  "S101",
+  "TD002", "TD003",
+  "PLR0911",
+
+  # TODO : Address these
+  "C901",
+  "I001",
 ]
-extend-ignore = ["F405", "F403", "E731", "S101", "PT011"]
+
+target-version = "py311"
+
+[tool.ruff.per-file-ignores]
+"md2html/html.py" = ["ARG002"]

@@ -53,7 +53,7 @@ def convert_file(filename: str) -> None:
 
 def main(argv: list[str]) -> None:
     if len(argv) < 2:
-        print(f"usage: {argv[0]} <file.md> [...files.md]")
+        print(f"usage: {argv[0]} <file.md> [...files.md]")  # noqa: T201
         return
 
     with ThreadPoolExecutor() as executor:

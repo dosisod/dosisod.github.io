@@ -1,14 +1,14 @@
 from md2html.pipe import pipe
 
 
-def test_pipe_single_func():
+def test_pipe_single_func() -> None:
     def add_1(x: int) -> int:
         return x + 1
 
     assert pipe(1, add_1) == 2
 
 
-def test_pipe_multiple_funcs():
+def test_pipe_multiple_funcs() -> None:
     def add_1(x: int) -> int:
         return x + 1
 

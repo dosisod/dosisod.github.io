@@ -22,9 +22,9 @@ class Entry:
     title: str
 
 
-def get_changes(type: Literal["R", "D"], commit: Commit) -> Iterator[Diff]:
+def get_changes(typ: Literal["R", "D"], commit: Commit) -> Iterator[Diff]:
     try:
-        return commit.diff(f"{commit}~1").iter_change_type(type)
+        return commit.diff(f"{commit}~1").iter_change_type(typ)
 
     except GitCommandError:
         # Probably means we hit the initial commit

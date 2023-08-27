@@ -87,11 +87,11 @@ def run_python_block(code: str) -> str:
     _locals = locals()
     exec(code, globals(), _locals)  # noqa: S102
 
-    return _locals["html"]  # type: ignore
+    return _locals["html"]  # type: ignore[no-any-return]
 
 
 def hightlight_code(code: str, language: str) -> str:
-    pipe = run(
+    pipe = run(  # noqa: PLW1510
         ["node", "highlighter/index.js", language],  # noqa: S603, S607
         capture_output=True,
         input=code.encode(),
@@ -209,11 +209,11 @@ class HTMLGeneratorVisitor(NodeVisitor[str]):
         def get_header_style(i: int) -> str:
             return self.alignment_to_style[node.header[i].alignment]
 
-        def make_row(cells: list[str], type: str) -> str:
+        def make_row(cells: list[str], tag: str) -> str:
             cells = [expand_inline(escape(cell)) for cell in cells]
 
             row = [
-                f"<{type}{get_header_style(i)}>{cell}</{type}>"
+                f"<{tag}{get_header_style(i)}>{cell}</{tag}>"
                 for i, cell in enumerate(cells)
             ]
 
