@@ -595,7 +595,7 @@ tells him that he could've died, if the sandworm had decided to turn towards
 him, there would've been nothing you could've done. Stilgar asks if he will
 try and best him, and Paul says that he trusts him, that he will avoid doing
 it at all costs. Paul says that they will travel 20 thumpers south. Stilgar
-trys him, saying "what if I say we will go north instead?", and Paul stands
+tries him, saying "what if I say we will go north instead?", and Paul stands
 by his decision. He knows he must remain strong over the Fremen, who all see
 him as a god. They see an approaching ornithopter, and get off the sandworm,
 hiding in the sand. They conclude that the thopter is a smuggler, and decide
@@ -720,7 +720,7 @@ dance around, and Feyd lounges, switching knife hands as he does it. Paul begins
 realize the strength of the opponent he is up against. Feyd manages to land a blow against
 Paul, and it is revealed that the blade is soporific, meaning that it is slightly poisonous,
 and will cause muscle fatigue shortly. Paul lands a blow on Feyd, which has an acid on it.
-Feyd has a flip dart on his waistband, and trys to use it against Paul once they get into
+Feyd has a flip dart on his waistband, and tries to use it against Paul once they get into
 close quarters. He avoids it, but now Feyd is on top of Paul. Paul says "I will not say it!",
 and Feyd is shocked. Paul flips him around, gets on top of him, and shoves a knife from under
 his jaw, into his brain. The Emperor talks to Count Senring, telling him to kill him. Paul

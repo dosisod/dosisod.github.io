@@ -90,7 +90,7 @@ def run_python_block(code: str) -> str:
     return _locals["html"]  # type: ignore[no-any-return]
 
 
-def hightlight_code(code: str, language: str) -> str:
+def highlight_code(code: str, language: str) -> str:
     pipe = run(  # noqa: PLW1510
         ["node", "highlighter/index.js", language],  # noqa: S603, S607
         capture_output=True,
@@ -174,7 +174,7 @@ class HTMLGeneratorVisitor(NodeVisitor[str]):
         if node.language:
             escaped = node.contents.replace("\\", "\\\\")
 
-            return hightlight_code(escaped, node.language)
+            return highlight_code(escaped, node.language)
 
         escaped = escape(node.contents).replace("\\", "\\\\")
 

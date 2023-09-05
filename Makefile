@@ -1,6 +1,9 @@
 all: test
 
-test: ruff mypy black pytest refurb
+test: typos ruff mypy black pytest refurb
+
+typos:
+	typos --format brief
 
 ruff:
 	ruff md2html test gen_index.py

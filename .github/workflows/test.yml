@@ -21,6 +21,9 @@ jobs:
           pip install -r requirements.txt
           pip install -r dev-requirements.txt
 
+      - name: Typos
+        run: make typos
+
       - name: Ruff
         run: make ruff
 

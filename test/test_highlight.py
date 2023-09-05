@@ -16,7 +16,7 @@ def make_code_block(body: str, language: str = "") -> str:
 
 
 def test_convert_code_block_language_set() -> None:
-    with patch("md2html.html.hightlight_code") as highlight:
+    with patch("md2html.html.highlight_code") as highlight:
         block = make_code_block("hello world", language="python")
 
         highlight.return_value = "anything"
@@ -27,7 +27,7 @@ def test_convert_code_block_language_set() -> None:
 
 
 def test_highlighter_escapes_backslashes() -> None:
-    with patch("md2html.html.hightlight_code") as highlight:
+    with patch("md2html.html.highlight_code") as highlight:
         block = make_code_block("hello\\nworld", language="python")
 
         highlight.return_value = "anything"
@@ -50,7 +50,7 @@ def test_converter_is_actually_ran() -> None:
     html = markdown_to_html(block)
 
     # "hljs-number" is one of the CSS styles that is applied as part of
-    # the syntax highlighing. There is a probably better way to check
+    # the syntax highlighting. There is a probably better way to check
     # that it actually ran, but this should be good enough for now.
     assert "hljs-number" in html
 

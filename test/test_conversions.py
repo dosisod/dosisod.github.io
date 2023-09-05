@@ -73,7 +73,7 @@ def test_group_blockquote_blocks() -> None:
     assert got_nodes[0].contents == "this\nis a\nblockquote"
 
 
-def test_table_header_with_missing_header_seperator() -> None:
+def test_table_header_with_missing_header_separator() -> None:
     nodes = make_nodes(["| A | B | C |"])
 
     with pytest.raises(ValueError, match="missing .* header"):
@@ -81,7 +81,7 @@ def test_table_header_with_missing_header_seperator() -> None:
 
 
 @pytest.mark.parametrize("row", ["x| y |", "| y |x"])
-def test_table_header_check_seperator_pipe(row: str) -> None:
+def test_table_header_check_separator_pipe(row: str) -> None:
     nodes = make_nodes(["| A |", row])
 
     msg = "line must start and end with pipe"
@@ -103,10 +103,10 @@ def test_table_header_check_seperator_pipe(row: str) -> None:
         "|---x|",
     ],
 )
-def test_table_header_check_seperator_is_formatted_correctly(row: str) -> None:
+def test_table_header_check_separator_is_formatted_correctly(row: str) -> None:
     nodes = make_nodes(["| A |", row])
 
-    msg = "header seperator must have:"
+    msg = "header separator must have:"
 
     with pytest.raises(ValueError, match=msg):
         group_blocked_nodes(nodes)
@@ -129,7 +129,7 @@ def test_table_header() -> None:
     ]
 
 
-def test_table_header_seperator_needs_same_number_of_cells() -> None:
+def test_table_header_separator_needs_same_number_of_cells() -> None:
     nodes = make_nodes(["| A |", "|---|---|"])
 
     with pytest.raises(ValueError, match="expected 1 cells, got 2 instead"):
@@ -177,7 +177,7 @@ def test_table_with_alignment() -> None:
     ]
 
 
-def test_table_with_trailing_content_after_seperator() -> None:
+def test_table_with_trailing_content_after_separator() -> None:
     nodes = make_nodes(["| A |", "|---|", "some text"])
 
     got_nodes = group_blocked_nodes(nodes)

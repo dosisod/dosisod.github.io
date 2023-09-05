@@ -13,7 +13,7 @@ Let's begin!
 ## Before We Begin ...
 
 I briefly mentioned dataclasses in part 2 of this series, but I think it would be best to
-go into more depth with it before we dive deeper. With dataclasses, we can define very consice,
+go into more depth with it before we dive deeper. With dataclasses, we can define very concise,
 very rich classes, primarily using types. What does this look like in practice?
 
 ```python

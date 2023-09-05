@@ -252,6 +252,6 @@ The last one. Same position as 13 and 14.
 That's it! These pictures turned out a lot better than I expected, which means it
 only goes downhill from here. Next time I need to go shooting in manual mode. My camera
 did a great job in auto, but I need to figure out what shutter speed to use (I had my
-apeture all the way open, so I might want to play with that as well).
+aperture all the way open, so I might want to play with that as well).
 
 <br>

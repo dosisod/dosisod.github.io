@@ -18,3 +18,4 @@ ruff==0.0.287
 toml==0.10.2
 tomli==2.0.1
 typing_extensions==4.7.1
+typos==1.16.10

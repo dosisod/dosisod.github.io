@@ -53,7 +53,7 @@ def test_expand_single_link() -> None:
     assert expand_links(content) == expected
 
 
-def test_expand_multile_links() -> None:
+def test_expand_multiple_links() -> None:
     content = "[1](2) [3](4)"
     expected = '<a href="2">1</a> <a href="4">3</a>'
 

@@ -79,22 +79,22 @@ def iter_table(first: Node, nodes: Iterator[Node]) -> tuple[Node, Node | None]:
     def split_row(row: str) -> list[str]:
         return [x.strip() for x in row.split("|")[1:-1]]
 
-    seperator_node = next(nodes, None)
+    separator_node = next(nodes, None)
 
-    if not seperator_node:
-        raise ValueError("table missing required header seperator")
+    if not separator_node:
+        raise ValueError("table missing required header separator")
 
-    if not is_valid_table_row(seperator_node.contents):
+    if not is_valid_table_row(separator_node.contents):
         raise ValueError("line must start and end with pipe")
 
-    seperator_cells = split_row(seperator_node.contents)
+    separator_cells = split_row(separator_node.contents)
 
-    def is_valid_seperator_cell(cell: str) -> bool:
+    def is_valid_separator_cell(cell: str) -> bool:
         return bool(re.match("^:?-{3,}:?$", cell.strip()))
 
-    if not all(is_valid_seperator_cell(x) for x in seperator_cells):
+    if not all(is_valid_separator_cell(x) for x in separator_cells):
         raise ValueError(
-            "header seperator must have:\n\n"
+            "header separator must have:\n\n"
             "* At least 3 dashes\n"
             "* (optional) starting/ending ':'\n"
             "* (optional) whitespace at start/end\n"
@@ -102,12 +102,12 @@ def iter_table(first: Node, nodes: Iterator[Node]) -> tuple[Node, Node | None]:
 
     header = [HeaderCell(name) for name in split_row(first.contents)]
 
-    if len(seperator_cells) != len(header):
+    if len(separator_cells) != len(header):
         raise ValueError(
-            f"expected {len(header)} cells, got {len(seperator_cells)} instead"
+            f"expected {len(header)} cells, got {len(separator_cells)} instead"
         )
 
-    for i, name in enumerate(seperator_cells):
+    for i, name in enumerate(separator_cells):
         match (name.startswith(":"), name.endswith(":")):
             case (True, True):
                 header[i].alignment = HeaderAlignment.CENTER
