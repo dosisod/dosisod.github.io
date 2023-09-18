@@ -31,7 +31,15 @@ jobs:
           python3 -m md2html 404.md index.md blog/**/*.md
           sed -i "/html/d" .gitignore
 
+      # Fixes issue where LFS metadata files are pushed to gh-pages branch, not
+      # the files themselves.
+      - name: Disable LFS
+        run: |
+          rm -rf .gitattributes
+          git lfs uninstall
+
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4.4.1
         with:
           folder: .
+          single-commit: true
