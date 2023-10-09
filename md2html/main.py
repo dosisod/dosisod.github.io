@@ -7,8 +7,8 @@ from .core import markdown_to_nodes, get_title
 from .html import markdown_to_html
 
 
-def add_github_commenting(nodes: list[Node], filename: str) -> None:
-    if filename in ("index.md", "404.md"):
+def add_github_commenting(nodes: list[Node], file: Path) -> None:
+    if str(file) in ("index.md", "404.md"):
         return
 
     github_comment_code = """\
@@ -39,7 +39,7 @@ def convert_file(filename: str) -> None:
 
     markdown = file.read_text()
     nodes = markdown_to_nodes(markdown)
-    add_github_commenting(nodes, file.name)
+    add_github_commenting(nodes, file)
 
     html = markdown_to_html(nodes)
 
