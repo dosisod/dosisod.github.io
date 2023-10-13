@@ -1,8 +1,10 @@
 from collections.abc import Iterator
-from tempfile import mkstemp
+from contextlib import contextmanager
+from tempfile import mkstemp, NamedTemporaryFile
 from unittest.mock import call, patch
 from pathlib import Path
 from time import sleep
+import shutil
 import timeit
 
 import pytest
@@ -84,6 +86,26 @@ def test_exception_is_thrown_when_file_doesnt_exist() -> None:
 
 
 def test_github_comment_feature_is_disabled_on_some_files() -> None:
+    tests = ("index.md", "404.md")
+
+    for test in tests:
+        md_file = Path(test)
+        html_file = md_file.with_suffix(".html")
+
+        with backup(test):
+            md_file.write_text("# Some title")
+
+            convert_file(str(md_file))
+
+            ok = "utteranc" not in html_file.read_text()
+
+            md_file.unlink()
+            html_file.unlink()
+
+            assert ok
+
+
+def test_github_comment_feature_is_enabled_on_nested_index_files() -> None:
     md_file = Path("./test/index.md")
     html_file = md_file.with_suffix(".html")
 
@@ -91,9 +113,21 @@ def test_github_comment_feature_is_disabled_on_some_files() -> None:
 
     convert_file(str(md_file))
 
-    ok = "utteranc" not in html_file.read_text()
+    ok = "utteranc" in html_file.read_text()
 
     md_file.unlink()
     html_file.unlink()
 
     assert ok
+
+
+@contextmanager
+def backup(file: Path | str) -> Iterator[None]:
+    with NamedTemporaryFile() as tmp:
+        shutil.copy2(file, tmp.name)
+
+        try:
+            yield
+
+        finally:
+            shutil.copy2(tmp.name, file)
