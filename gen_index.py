@@ -90,7 +90,7 @@ def gen_updated_date() -> str:
     def day_suffix(day: int) -> str:
         suffixes = ["th", "st", "nd", "rd"]
 
-        if day % 10 in [1, 2, 3] and day not in [11, 12, 13]:
+        if day % 10 in {1, 2, 3} and day not in {11, 12, 13}:
             return suffixes[day % 10]
 
         return suffixes[0]

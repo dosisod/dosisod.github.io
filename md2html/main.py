@@ -8,7 +8,7 @@ from .html import markdown_to_html
 
 
 def add_github_commenting(nodes: list[Node], file: Path) -> None:
-    if str(file) in ("index.md", "404.md"):
+    if str(file) in {"index.md", "404.md"}:
         return
 
     github_comment_code = """\

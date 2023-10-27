@@ -179,7 +179,7 @@ def classify_node(node: Node) -> Node:
     if node.contents.startswith("#### "):
         return HeaderNode(level=4, contents=node.contents[5:])
 
-    if node.contents == "":
+    if not node.contents:
         return NewlineNode()
 
     if node.contents.startswith("* "):

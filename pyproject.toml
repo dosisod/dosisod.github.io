@@ -36,14 +36,17 @@ skip_empty = true
 addopts = "--cov=md2html --cov-report=html --cov-report=term-missing --cov-fail-under=100"
 
 [tool.ruff]
+preview = true
+
 select = ["ALL"]
 
 extend-ignore = [
   "ANN101",
   "COM812",
+  "CPY001",
   "D100", "D101", "D102", "D103", "D104",
   "D202", "D203", "D205", "D211", "D212",
-  "E731",
+  "E203", "E731",
   "F403", "F405",
   "FIX002",
   "INP001",
@@ -53,7 +56,7 @@ extend-ignore = [
   "PLR2004",
   "S101",
   "TD002", "TD003",
-  "PLR0911",
+  "PLR0911", "PLR6301",
 
   # TODO : Address these
   "C901",
