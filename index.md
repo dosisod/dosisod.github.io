@@ -11,7 +11,8 @@ Currently working on [Cicada](https://cicada.sh), a FOSS CI/CD platform.
 
 ## Currently reading
 
-* [Crime and Punishment](https://standardebooks.org/ebooks/fyodor-dostoevsky/crime-and-punishment/constance-garnett/text/single-page)
+* [Alice's Adventures In Wonderland](https://standardebooks.org/ebooks/lewis-carroll/alices-adventures-in-wonderland/john-tenniel/text/single-page)
+* [The Strange Case of Dr. Jekyll and Mr. Hyde](https://standardebooks.org/ebooks/robert-louis-stevenson/the-strange-case-of-dr-jekyll-and-mr-hyde/text/single-page)
 * [GDPR](https://gdpr-info.eu)
 
 Click [here](/blog/finished-books.html) for a list of books I've read.
