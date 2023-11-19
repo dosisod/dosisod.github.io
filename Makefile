@@ -21,3 +21,6 @@ pytest:
 
 refurb:
 	refurb md2html test
+
+clean:
+	rm -rf .mypy_cache .ruff_cache .pytest_cache .coverage
