@@ -12,6 +12,7 @@ Currently working on [Cicada](https://cicada.sh), a FOSS CI/CD platform.
 ## Currently reading
 
 * [Pride and Prejudice](https://standardebooks.org/ebooks/jane-austen/pride-and-prejudice/text/single-page)
+* [A Scanner Darkly](https://www.harpercollins.com/products/a-scanner-darkly-philip-k-dick)
 * [GDPR](https://gdpr-info.eu)
 
 Click [here](/blog/finished-books.html) for a list of books I've read.
