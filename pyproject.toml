@@ -38,9 +38,9 @@ addopts = "--cov=md2html --cov-report=html --cov-report=term-missing --cov-fail-
 [tool.ruff]
 preview = true
 
-select = ["ALL"]
+lint.select = ["ALL"]
 
-extend-ignore = [
+lint.extend-ignore = [
   "ANN101",
   "COM812",
   "CPY001",
@@ -65,5 +65,5 @@ extend-ignore = [
 
 target-version = "py311"
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "md2html/html.py" = ["ARG002"]
