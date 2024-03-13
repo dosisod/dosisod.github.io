@@ -11,6 +11,7 @@ Currently working on [Cicada](https://cicada.sh), a FOSS CI/CD platform.
 
 ## Currently reading
 
+* [Metropolis](https://standardebooks.org/ebooks/thea-von-harbou/metropolis/the-readers-library/text/single-page)
 * [Pride and Prejudice](https://standardebooks.org/ebooks/jane-austen/pride-and-prejudice/text/single-page)
 * [A Scanner Darkly](https://www.harpercollins.com/products/a-scanner-darkly-philip-k-dick)
 * [GDPR](https://gdpr-info.eu)
