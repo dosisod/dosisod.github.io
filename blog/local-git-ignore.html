@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="og:title" content="How to Hide Files In Git Locally" />
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/github.css" />
+  <title>How to Hide Files In Git Locally</title>
+</head>
+<body>
+
+<main>
+<a id="how-to-hide-files-in-git-locally" href="#how-to-hide-files-in-git-locally"><h1>How to Hide Files In Git Locally</h1></a>
+<br>
+<p>This is a very small tip on how to cleanup your <code class="hljs">.gitignore</code> files.</p>
+<br>
+<p>Usually you just add everything that you want to ignore from version control into the <code class="hljs">.gitignore</code> file,
+and all is well. But what happens when you want to ignore a certain file or folder, and it only applies to your current
+setup, or your current IDE? You shouldn&#x27;t need to pollute the <code class="hljs">.gitignore</code> file in version control because
+you want to hide something locally.</p>
+<br>
+<p>To fix this, look no further then the <code class="hljs">.git/info/exclude</code> file! If you <code class="hljs">cat</code> it out, it will explain itself:</p>
+<br>
+<pre class="hljs"># git ls-files --others --exclude-from=.git/info/exclude
+# Lines that start with &#x27;#&#x27; are comments.
+# For a project mostly in C, the following would be a good set of
+# exclude patterns (uncomment them if you want to use them):
+# *.[oa]
+# *~</pre>
+<br>
+<p>Just like your <code class="hljs">.gitignore</code>, just add a line for each file you want to ignore, and only your system will be affected!</p>
+<br>
+<p>As an added bonus, if there is a list of files you want to hide (locally) across many projects, you can
+add them to your <code class="hljs">~/.config/git/ignore</code> file instead!</p>
+<hr>
+
+<script src="https://utteranc.es/client.js"
+  repo="dosisod/dosisod.github.io"
+  issue-term="title"
+  theme="github-light"
+  crossorigin="anonymous"
+  async>
+</script>
+
+<noscript>
+  <br>
+  <em>
+    Comment with GitHub functionality is
+    disabled when JavaScript is turned off.
+  </em>
+</noscript>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="og:title" content="Lost at C: Variable Length Array" />
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/github.css" />
+  <title>Lost at C: Variable Length Array</title>
+</head>
+<body>
+
+<main>
+<a id="lost-at-c-variable-length-array" href="#lost-at-c-variable-length-array"><h1>Lost at C: Variable Length Array</h1></a>
+<br>
+<p>Variable Length Array, or VLA for short, is a somewhat controversial feature
+of C. As with all features of C, they can be used for good, or for bad.</p>
+<br>
+<p>So what is a VLA anyways?</p>
+<br>
+<a id="what-is-an-array" href="#what-is-an-array"><h2>What is an Array?</h2></a>
+<br>
+<p>Before we can understand VLA&#x27;s, we need to understand arrays. Here is how you
+define an array in C:</p>
+<br>
+<pre class="hljs"><span class="hljs-type">int</span> some_array[<span class="hljs-number">8</span>];</pre>
+
+<br>
+<p>This will create an identifier called <code class="hljs">some_array</code>, which gives you a way to access
+the 8 new integers created on the stack:</p>
+<br>
+<pre class="hljs"><span class="hljs-type">int</span> first = some_array[<span class="hljs-number">0</span>];
+<span class="hljs-type">int</span> second = some_array[<span class="hljs-number">1</span>]:
+
+<span class="hljs-comment">// or</span>
+
+<span class="hljs-type">int</span> first_deref = *some_array;
+<span class="hljs-type">int</span> second_deref = *(some_array + <span class="hljs-number">1</span>);</pre>
+
+<br>
+<p>In the first 2 lines, we use the subscript operator (<code class="hljs">[]</code>), whereas in the next 2 lines,
+we use pointer arithmetic. These forms are equivalent, though you will often see
+<code class="hljs">*some_array</code> used to dereference the first element of an array.</p>
+<br>
+<p>Also, you can initialize arrays like so:</p>
+<br>
+<pre class="hljs"><span class="hljs-type">int</span> some_array[<span class="hljs-number">8</span>] = {<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>, <span class="hljs-number">7</span>};
+
+<span class="hljs-comment">// or, if all elements are zero:</span>
+
+<span class="hljs-type">int</span> some_array[<span class="hljs-number">8</span>] = {<span class="hljs-number">0</span>};</pre>
+
+<br>
+<a id="drawbacks-of-arrays" href="#drawbacks-of-arrays"><h2>Drawbacks of Arrays</h2></a>
+<br>
+<p>There are some things which C arrays cannot do, namely, once created, they cannot be resized.
+Also, these arrays are created on the stack, which is significantly smaller compared to the
+amount of storage available on the heap. If you use up too much stack memory, your program
+might crash, or worse, not crash, and start acting erratically.</p>
+<br>
+<p>You can dynamically allocate your arrays using <code class="hljs">malloc()</code>, which will store your data on
+the heap instead of the stack. You can then resize your arrays using <code class="hljs">realloc()</code>. This
+obviously works, but now you need to manage the memory of this array:</p>
+<br>
+<pre class="hljs"><span class="hljs-type">int</span> *some_array = <span class="hljs-built_in">malloc</span>(len * <span class="hljs-keyword">sizeof</span>(<span class="hljs-type">int</span>));
+<span class="hljs-built_in">memset</span>(some_array, <span class="hljs-number">0</span>, len);
+
+<span class="hljs-comment">// use array</span>
+
+<span class="hljs-built_in">free</span>(some_array);</pre>
+
+<br>
+<p>Surely there is a way for us to dynamically create arrays without having to manage
+their memory, right?</p>
+<br>
+<a id="vla" href="#vla"><h2>VLA</h2></a>
+<br>
+<p>With C99 came the addition of Variable Length Arrays. As the name implies, the length of the
+array can vary (only when initially defining it though):</p>
+<br>
+<pre class="hljs"><span class="hljs-type">int</span> some_len = <span class="hljs-number">128</span>;
+<span class="hljs-type">int</span> some_vla[some_int];</pre>
+
+<br>
+<p>This will allocate 128 ints in the stack. Note that you cannot use an initializer with VLA&#x27;s,
+you will have to use <code class="hljs">memset()</code>:</p>
+<br>
+<pre class="hljs"><span class="hljs-built_in">memset</span>(some_vla, <span class="hljs-number">0</span>, some_len);</pre>
+
+<br>
+<a id="so-why-are-vla-x27-s-so-bad" href="#so-why-are-vla-x27-s-so-bad"><h2>So Why Are VLA&#x27;s So Bad?</h2></a>
+<br>
+<p>Take the following example:</p>
+<br>
+<pre class="hljs"><span class="hljs-type">int</span> length = <span class="hljs-comment">// read integer value from user</span>
+<span class="hljs-type">int</span> vla[length];</pre>
+
+<br>
+<p>This could become problematic if the user enters a large number, especially if this
+function is called recursively, or if you are allocating an array of large structs.</p>
+<br>
+<p>Also, since the stacksize of the function is unknown, there could be some performance
+degradation as a result.</p>
+<br>
+<a id="an-alternative" href="#an-alternative"><h2>An alternative?</h2></a>
+<br>
+<p>If you really need to use VLA&#x27;s, an alternative is to use the <code class="hljs">alloca()</code> function.
+It is like <code class="hljs">malloc()</code>, except it returns stack memory instead of heap memory:</p>
+<br>
+<pre class="hljs"><span class="hljs-type">int</span> len = <span class="hljs-number">8</span>;
+<span class="hljs-type">int</span> *some_array = alloca(len * <span class="hljs-keyword">sizeof</span>(<span class="hljs-type">int</span>));
+<span class="hljs-built_in">memset</span>(some_array, <span class="hljs-number">0</span>, len);</pre>
+
+<br>
+<p>You might ask, isn&#x27;t this just a VLA with more steps? And yes, you would be right.
+But, this makes it so don&#x27;t accidentally use VLA&#x27;s (just make sure to enable the
+<code class="hljs">-Wvla</code> flag).</p>
+<br>
+<a id="vla-in-retrospect" href="#vla-in-retrospect"><h2>VLA in Retrospect</h2></a>
+<br>
+<p>VLA&#x27;s where added in the C99 standard, and made optional in the C11 standard.
+Also, use of VLA&#x27;s are strongly discouraged, and they even have their own <code class="hljs">-Wvla</code>
+flag to warn of their use.</p>
+<br>
+<a id="fin" href="#fin"><h2>Fin</h2></a>
+<br>
+<p>Knowing what VLA&#x27;s are and how they are used is important, even if you don&#x27;t
+use them everyday. If you do use them, just make sure to be aware of the
+possible drawbacks.</p>
+<hr>
+
+<script src="https://utteranc.es/client.js"
+  repo="dosisod/dosisod.github.io"
+  issue-term="title"
+  theme="github-light"
+  crossorigin="anonymous"
+  async>
+</script>
+
+<noscript>
+  <br>
+  <em>
+    Comment with GitHub functionality is
+    disabled when JavaScript is turned off.
+  </em>
+</noscript>
+
+</main>
+
+</body>
+</html>

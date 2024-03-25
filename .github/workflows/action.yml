@@ -1,0 +1,24 @@
+name: tests
+
+on: [push, pull_request]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: NPM install
+        run: cd highlighter && npm i
+
+      - name: Pip install
+        run: |
+          pip install -r requirements.txt
+          pip install -r dev-requirements.txt
+
+      - name: Black
+        run: black md2html test --check --diff --color -l 79
+
+      - name: Pytest
+        run: pytest --cov=$PWD --cov-report term --cov-report html

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="og:title" content="The Final Blow For Python 2.7" />
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/github.css" />
+  <title>The Final Blow For Python 2.7</title>
+</head>
+<body>
+
+<main>
+<a id="the-final-blow-for-python-2-7" href="#the-final-blow-for-python-2-7"><h1>The Final Blow For Python 2.7</h1></a>
+<br>
+<p>Despite the fact that Python 2.7 was sunset in 2020 <a id="footnote-ref-1" href="#footnote-1">[1]</a>, many library maintainers
+chose to continue to support Python 2.7 users <a id="footnote-ref-2" href="#footnote-2">[2]</a>. That is starting to change, though.</p>
+<br>
+<p>I&#x27;ve recently noticed that many projects are just now dropping support for Python 2.7,
+some even dropping support for Python 3.5 and below (more on that later).
+Here is a list of some of the more popular libraries and tools that have recently
+dropped support for Python 2:</p>
+<br>
+<ul>
+<li><a href="https://github.com/python/mypy/pull/13135">Mypy</a>, July 26th</li>
+<li><a href="https://github.com/PyCQA/pyflakes/pull/707">Pyflakes</a>, June 12th</li>
+<li><a href="https://github.com/python-attrs/attrs/pull/936">Attrs</a>, March 21st</li>
+</ul>
+<br>
+<a id="why-this-is-good" href="#why-this-is-good"><h2>Why This Is Good</h2></a>
+<br>
+<p>Dropping support for Python 2 has a lot of added benefits:</p>
+<br>
+<ul>
+<li>Less code to maintain</li>
+<li>Faster code</li>
+<li>Smaller attack surface</li>
+<li>Less bugs</li>
+<li>Ability to use new language features</li>
+<li>Happier maintainers</li>
+</ul>
+<br>
+<p>People who refuse to upgrade (or cannot upgrade) will be stuck with these older
+versions, and us Python 3 peeps will get the latest and greatest features, but
+without the burden of having to support both Python 2 and 3. The main improvement
+that users will see is better type annotations. Sure, you could use type comments
+or stub files, but it just cannot compete with type info that is in the source
+itself.</p>
+<br>
+<a id="why-now" href="#why-now"><h2>Why Now?</h2></a>
+<br>
+<p>A lot has been added in recent versions of Python:</p>
+<br>
+<p>Python 3.9 allows for using <code class="hljs">list[int]</code> instead of <code class="hljs">List[int]</code> (notice the lower-case
+L), meaning less imports in each of your files. This also applies to all the built-in
+datatypes, including <code class="hljs">dict</code>, <code class="hljs">set</code>, and so on.</p>
+<br>
+<p>Python 3.10 adds many cool features, one of the most useful being
+<a href="https://peps.python.org/pep-0636/#appendix-a">pattern matching</a>. In addition, 3.10
+added type unions, the ability to create multiple context managers with a single
+<code class="hljs">with</code> block, and better error messages.</p>
+<br>
+<p>Python 3.11, although still in <a href="https://docs.python.org/3.11/whatsnew/3.11.html">beta</a>,
+has some killer improvements, such as being <a href="https://peps.python.org/pep-0664/#features-for-3-11">&quot;10-60% faster than Python 3.10&quot;</a>,
+getting a new TOML standard library, a dedicated <code class="hljs">Self</code> type, and very nice error messages
+(I think Rust has become a driving force for what error messages should be).</p>
+<br>
+<p>With all this in mind, its no wonder that maintainers are wanting to use these features
+in their code, and to leave Python 2 in the past.</p>
+<br>
+<a id="what-about-python-lt-3-5" href="#what-about-python-lt-3-5"><h2>What About Python &lt; 3.5?</h2></a>
+<br>
+<p>What I find even more interesting is the
+dropping of support for Python 3.5 and lower. If I had to guess, that is due to the
+introduction of type annotations in version 3.6. Python is really going all out for type
+annotations, and as a result, more and more people are using them in their projects.</p>
+<br>
+<a id="fin" href="#fin"><h2>Fin</h2></a>
+<br>
+<p>Python is going through some exciting changes! The ecosystem surrounding it is large
+and ever-changing, but in general, is going in a good direction. I think that Python
+will continue to see widespread adoption, especially the newer versions of Python.</p>
+<br>
+<hr>
+<br>
+<p><a id="footnote-1" href="#footnote-ref-1">[1]</a>: <a href="https://www.python.org/doc/sunset-python-2/">https://www.python.org/doc/sunset-python-2/</a></p>
+<br>
+<p><a id="footnote-2" href="#footnote-ref-2">[2]</a>: When I say &quot;supporting&quot;, I am also talking about tools that parse Python 2 code,
+even if the tools themselves are written in Python 3.</p>
+<hr>
+
+<script src="https://utteranc.es/client.js"
+  repo="dosisod/dosisod.github.io"
+  issue-term="title"
+  theme="github-light"
+  crossorigin="anonymous"
+  async>
+</script>
+
+<noscript>
+  <br>
+  <em>
+    Comment with GitHub functionality is
+    disabled when JavaScript is turned off.
+  </em>
+</noscript>
+
+</main>
+
+</body>
+</html>

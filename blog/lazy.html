@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="og:title" content="Lazy Loading Images Without JavaScript" />
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/github.css" />
+  <title>Lazy Loading Images Without JavaScript</title>
+</head>
+<body>
+
+<main>
+<a id="lazy-loading-images-without-javascript" href="#lazy-loading-images-without-javascript"><h1>Lazy Loading Images Without JavaScript</h1></a>
+<br>
+<p>I don&#x27;t like JavaScript, or, more accurately, I try to avoid it whenever possible.</p>
+<br>
+<p><a href="./film/2023-july-bellevue/index.html">In my most recent blog</a> though I ran into an
+issue where I needed to load a bunch of images (36, it was from a film shoot),
+and doing so up front would be very inefficient. The best option would be to lazy-load
+the images, but from what I have experienced, this required JavaScript.</p>
+<br>
+<p>Me being the JavaScript unenthusiast I am I looked up if there was a way to do this
+in plain HTML. Turns out you can, and it&#x27;s really easy!</p>
+<br>
+<pre class="hljs"><span class="hljs-tag">&lt;<span class="hljs-name">img</span> <span class="hljs-attr">src</span>=<span class="hljs-string">&quot;some_image.png&quot;</span> <span class="hljs-attr">loading</span>=<span class="hljs-string">lazy</span> /&gt;</span></pre>
+
+<br>
+<p>And that&#x27;s it! Well, not quite.</p>
+<br>
+<p>The first time I did this it immediately loaded 28 of the 36 images, which was not what
+I expected. Turns out that when you don&#x27;t specify an image size the browser has no idea
+how big the image is, and thus how big the viewport is.</p>
+<br>
+<p>To fix this, hard-code the size of the image:</p>
+<br>
+<pre class="hljs"><span class="hljs-tag">&lt;<span class="hljs-name">img</span> <span class="hljs-attr">src</span>=<span class="hljs-string">&quot;some_image.png&quot;</span> <span class="hljs-attr">width</span>=<span class="hljs-string">1920</span> <span class="hljs-attr">height</span>=<span class="hljs-string">1080</span> <span class="hljs-attr">loading</span>=<span class="hljs-string">lazy</span> /&gt;</span></pre>
+
+<br>
+<p>And now your images should load at a more modest rate.</p>
+<br>
+<a id="next-steps" href="#next-steps"><h2>Next Steps</h2></a>
+<br>
+<p>Since I am getting into film more I&#x27;m looking into experimenting more with different
+loading techniques. I know that there image attributes called <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/srcset"><code class="hljs">srcset</code>s</a>
+that change the image based on the size of the screen, which would be good for mobile (and, no JavaScript!).</p>
+<br>
+<p>Another (albeit unrelated) technique that I want to explore is <a href="https://blurha.sh/">Blurhashes</a>.
+They are basically very approximate gradients that look like the blurred version of the
+image you want to look at. If I had some sort of pay walled app or dynamic image loading
+feature I would find this really useful, though I doubt I will have a concrete need for it
+anytime soon.</p>
+<hr>
+
+<script src="https://utteranc.es/client.js"
+  repo="dosisod/dosisod.github.io"
+  issue-term="title"
+  theme="github-light"
+  crossorigin="anonymous"
+  async>
+</script>
+
+<noscript>
+  <br>
+  <em>
+    Comment with GitHub functionality is
+    disabled when JavaScript is turned off.
+  </em>
+</noscript>
+
+</main>
+
+</body>
+</html>

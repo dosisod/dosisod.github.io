@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="og:title" content="The Perfect Programming Language" />
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/github.css" />
+  <title>The Perfect Programming Language</title>
+</head>
+<body>
+
+<main>
+<a id="the-perfect-programming-language" href="#the-perfect-programming-language"><h1>The Perfect Programming Language</h1></a>
+<br>
+<p>I know a lot of different programming languages, I&#x27;ve even built my own, and as
+a result, I have some opinions about what makes a programming language good or bad.
+I don&#x27;t think that there exists a &quot;perfect language&quot;, but there are bits and pieces of
+existing languages, which when combined, could be really interesting when put together.</p>
+<br>
+<p>Also, when I say &quot;programming language&quot;, I will also delve into the compiler of said
+language, the runtime environment, and so on <a id="footnote-ref-1" href="#footnote-1">[1]</a>.</p>
+<br>
+<p>Let&#x27;s begin! In no particular order...</p>
+<br>
+<a id="pattern-matching" href="#pattern-matching"><h2>Pattern Matching</h2></a>
+<br>
+<p>If you haven&#x27;t used pattern matching before, you should give it a try! Languages
+like Rust, F#, and Python (as of version 3.10) have pattern matching. They allow
+you to succinctly match based off of the structure of your data, while also
+destructuring it for use in the case body. For example, in Python:</p>
+<br>
+<pre class="hljs">point = (<span class="hljs-number">10</span>, <span class="hljs-number">42</span>)
+
+<span class="hljs-keyword">match</span> point:
+    <span class="hljs-keyword">case</span> (x, _) <span class="hljs-keyword">if</span> x &lt; <span class="hljs-number">0</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;x is negative&quot;</span>)
+
+    <span class="hljs-keyword">case</span> (_, y) <span class="hljs-keyword">if</span> y &lt; <span class="hljs-number">0</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;y is negative&quot;</span>)
+
+    <span class="hljs-keyword">case</span> (x, y):
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;x is <span class="hljs-subst">{x}</span>, y is <span class="hljs-subst">{y}</span>&quot;</span>)
+
+    <span class="hljs-keyword">case</span> _:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;point is invalid&quot;</span>)</pre>
+
+<br>
+<p>This is a trivial example, but pattern matching can do a whole lot more than what
+I just showed you. Read
+<a href="https://peps.python.org/pep-0636/">this (Python)</a> and
+<a href="https://doc.rust-lang.org/rust-by-example/flow_control/match.html">this (Rust)</a> for
+better examples of how pattern matching works in Python and Rust.</p>
+<br>
+<a id="static-types" href="#static-types"><h2>Static Types</h2></a>
+<br>
+<p>The jury is in, and static types are cool again. This is evident given the rise in popularity
+of TypeScript, and type annotations in Python <a id="footnote-ref-2" href="#footnote-2">[2]</a>. Using dynamic languages are great, and the
+added safety of type information makes them not a total pain to use.</p>
+<br>
+<p>TypeScript&#x27;s type system is especially mature, and is almost an entire programming language
+in and of itself. Take a look at the <a href="https://github.com/type-challenges/type-challenges">Type Challenges</a>
+repo on GitHub for some examples of what I&#x27;m talking about.</p>
+<br>
+<p>In general, better type systems allow for more safety when dealing with your data, and
+allow for leveraging types to do your validation for you, instead of having to do it
+all by yourself.</p>
+<br>
+<a id="trailing-types" href="#trailing-types"><h2>Trailing Types</h2></a>
+<br>
+<p>Although not 100% required, trailing types are, IMO, much more readable compared
+to traditional ones:</p>
+<br>
+<pre class="hljs"><span class="hljs-comment">// traditional types</span>
+<span class="hljs-type">int</span> x = <span class="hljs-number">123</span>;  <span class="hljs-comment">// int x is equal to 123</span>
+<span class="hljs-type">int</span> <span class="hljs-title function_">f</span><span class="hljs-params">()</span>;      <span class="hljs-comment">// int returned by function f</span></pre>
+
+<br>
+<pre class="hljs"><span class="hljs-comment">// trailing types</span>
+<span class="hljs-attr">x</span>: int = <span class="hljs-number">123</span>;  <span class="hljs-comment">// x is an int equal to 123</span>
+<span class="hljs-attr">f</span>: <span class="hljs-function">() =&gt;</span> int;  <span class="hljs-comment">// f is a function returning an int</span></pre>
+
+<br>
+<p>As you can (hopefully) tell, the second group looks much more readable: It reads left to
+right, and the function/field names are both on the left, with they type info to the right.</p>
+<br>
+<a id="functional-programs-with-automatic-concurrency" href="#functional-programs-with-automatic-concurrency"><h2>Functional Programs With Automatic Concurrency</h2></a>
+<br>
+<p>Functional programming is on the rise, along with employing functional programming methodologies
+in existing languages. I can&#x27;t even remember the last time I wrote a class
+in JavaScript. In JavaScript, using <code class="hljs">filter</code>, <code class="hljs">map</code> and <code class="hljs">reduce</code> feel so
+much better then looping over things with for-loops.</p>
+<br>
+<p>In addition, lots of languages are going immutable by default, such as Rust and F#.
+Being immutable by default doesn&#x27;t automatically make a language functional, but it
+is a step in the right direction.</p>
+<br>
+<p>We are seeing wider adoption of languages like Haskell, Clojure, and F#, but none of
+them have hit the mainstream. I think we are one step away from closing this gap, and
+that is:</p>
+<br>
+<p>We must get rid of <a href="https://journal.stuffwithstuff.com/2015/02/01/what-color-is-your-function/">function colors</a>.</p>
+<br>
+<p>TL;DR, red and blue functions represent async and non-async functions. We have special
+keywords we use to call these functions, and there are certain restrictions on how
+you are able to call them and so on.</p>
+<br>
+<p>What would be great (and maybe impossible) is a language which is automatically able to
+run your program concurrently.</p>
+<br>
+<p>This is really hard. You need to take into account the lifetime of all the variables
+passed to the function, whether the function has side effects or not, and so on.
+But, assuming you solve this, you will be able to achieve very fast programs without
+having to think about async/await/threads. One of the biggest pros of C# is their very
+mature async/await ecosystem. Python does support async, but I have found it a little bit
+more clunky to use compared to C#. Having the ability to automatically run long running
+tasks in the background would be a real game changer, though achieving it might be an
+impossible feat.</p>
+<br>
+<a id="domain-specific" href="#domain-specific"><h2>Domain Specific</h2></a>
+<br>
+<p>We have seen the rise and fall of many programming languages. Some try to be general
+purpose, which means it must generalize to all use cases, which can be hard. Some
+languages are domain specific, and solve a particular problem very well. I would say
+that the general purpose programming language field has sorta burned out. We have enough
+of them already, and they already get the job done for the most part. We don&#x27;t really need
+any more.</p>
+<br>
+<p>What we need are small, purpose-built languages that do one thing really well <a id="footnote-ref-3" href="#footnote-3">[3]</a>. I would
+much rather pickup and start using a DSL with only the features that I need, as opposed
+to a general purpose language which has too many features, and not the ones I need.</p>
+<br>
+<p>Also, an entire language meant to cater a specific domain will (probably) feel a lot
+better then using an library in an existing language (if done correctly).</p>
+<br>
+<a id="uniform-style" href="#uniform-style"><h2>Uniform Style</h2></a>
+<br>
+<p>Languages that don&#x27;t specify a style guide inevitably end up with complex linting/formatting
+tools, such as C/C++/JavaScript. These languages have a &quot;common&quot; style associated with them,
+but still allow for a lot of wiggle room.</p>
+<br>
+<p>Tools like <a href="https://github.com/psf/black">black</a>, <a href="https://go.dev/blog/gofmt">gofmt</a>,
+and <a href="https://github.com/rust-lang/rustfmt">rustfmt</a> are opinionated formatters that
+standardizes the look of your code for you. It might not be what you prefer, but having
+an easy way to format your code based on an agreed upon format is really nice.</p>
+<br>
+<p>The less time we spend on configuring linters, the more time we have to actually write code!</p>
+<br>
+<a id="elegant" href="#elegant"><h2>Elegant</h2></a>
+<br>
+<p>This is very subjective, and hard to define, but a well written program should reward you
+with something which is elegant and easy to read, easy to understand, distilled to its truest
+form.</p>
+<br>
+<a id="fin" href="#fin"><h2>Fin</h2></a>
+<br>
+<p>That&#x27;s it! I am probably forgot a lot of important categories, but these are the ones I came
+up with off the top of my head.</p>
+<br>
+<p>I don&#x27;t think a language can exist which has all of these features, but I can dream, can&#x27;t I?</p>
+<br>
+<hr>
+<br>
+<p><a id="footnote-1" href="#footnote-ref-1">[1]</a>: Languages don&#x27;t exist in a vacuum, they exist amongst their compilers,
+the environments they run in, and the use cases people find for the language.</p>
+<br>
+<p><a id="footnote-2" href="#footnote-ref-2">[2]</a>: Obviously I am excluding popular languages which are already statically typed, such
+as C++, C#, Java, and so on.</p>
+<br>
+<p><a id="footnote-3" href="#footnote-ref-3">[3]</a>: See also, <a href="https://en.m.wikipedia.org/wiki/Unix_philosophy">Unix Philosophy</a>.</p>
+<hr>
+
+<script src="https://utteranc.es/client.js"
+  repo="dosisod/dosisod.github.io"
+  issue-term="title"
+  theme="github-light"
+  crossorigin="anonymous"
+  async>
+</script>
+
+<noscript>
+  <br>
+  <em>
+    Comment with GitHub functionality is
+    disabled when JavaScript is turned off.
+  </em>
+</noscript>
+
+</main>
+
+</body>
+</html>

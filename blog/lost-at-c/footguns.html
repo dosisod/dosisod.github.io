@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="og:title" content="Lost at C: Footguns (not enabling flags)" />
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/github.css" />
+  <title>Lost at C: Footguns (not enabling flags)</title>
+</head>
+<body>
+
+<main>
+<a id="lost-at-c-footguns-not-enabling-flags" href="#lost-at-c-footguns-not-enabling-flags"><h1>Lost at C: Footguns (not enabling flags)</h1></a>
+<br>
+<p>What do the following C programs have in common?</p>
+<br>
+<pre class="hljs"><span class="hljs-comment">// program_1.c</span>
+
+<span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> {
+  <span class="hljs-keyword">return</span> main();
+}</pre>
+
+<br>
+<pre class="hljs"><span class="hljs-comment">// program_2.c</span>
+
+<span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> {
+  <span class="hljs-keyword">return</span> <span class="hljs-number">0.1</span> + <span class="hljs-number">0.2</span> == <span class="hljs-number">0.3</span>;
+}</pre>
+
+<br>
+<pre class="hljs"><span class="hljs-comment">// program_3.c</span>
+
+<span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdlib.h&gt;</span></span>
+
+<span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> {
+  <span class="hljs-type">int</span> *ptr = <span class="hljs-built_in">malloc</span>(<span class="hljs-number">-1</span>);
+  *ptr = <span class="hljs-number">123</span>;
+
+  <span class="hljs-type">int</span> i = *ptr;
+  <span class="hljs-built_in">free</span>(ptr);
+
+  <span class="hljs-keyword">return</span> i;
+}</pre>
+
+<br>
+<p>The answer? All of these programs either hang, have bugs, or crash. Why? Because of simple
+mistakes, mistakes that can be caught by your compiler if you just turn on a couple of
+flags.</p>
+<br>
+<blockquote>When I say flag I am referring to the command line flags you add when compiling your
+code from the command line, ie: <code class="hljs">gcc file.c -flag -another-flag</code> and do on.</blockquote>
+<br>
+<a id="program-1-c" href="#program-1-c"><h2>program_1.c</h2></a>
+<br>
+<p>Use <code class="hljs">-Winfinite-recursion</code> (included in <code class="hljs">-Wall</code>). It checks for infinite recursion,
+thus warning us about our troublesome program.</p>
+<br>
+<a id="program-2-c" href="#program-2-c"><h2>program_2.c</h2></a>
+<br>
+<p>The expression <code class="hljs">0.1 + 0.2 == 0.3</code> will always be false due to floating
+point arithmetic <a id="footnote-ref-1" href="#footnote-1">[1]</a>. Turning on <code class="hljs">-Wfloat-equal</code> will let you know whenever you are
+trying to make an &quot;unsafe&quot; comparison with a floating point number <a id="footnote-ref-2" href="#footnote-2">[2]</a>.</p>
+<br>
+<a id="program-3-c" href="#program-3-c"><h2>program_3.c</h2></a>
+<br>
+<p><code class="hljs">malloc</code> takes a <code class="hljs">size_t</code>, which is <code class="hljs">unsigned</code>, but we are passing
+in a negative integer, which is <code class="hljs">signed</code>. In this case, the C compiler will convert
+the small negative number into a massive positive one <a id="footnote-ref-3" href="#footnote-3">[3]</a>. On most systems, when allocating
+a large amount of data, <code class="hljs">NULL</code> will be returned. If you don&#x27;t check for <code class="hljs">NULL</code>, you
+will get a segfault if you try to read or write to that address. To fix this, you can
+turn on <code class="hljs">-Wconversion</code>, which will check for integer sign conversions <a id="footnote-ref-4" href="#footnote-4">[4]</a>. This will
+require you to explicitly cast the resulting value to the correct type before passing
+it to <code class="hljs">malloc</code>.</p>
+<br>
+<a id="flags-you-should-always-enable" href="#flags-you-should-always-enable"><h2>Flags You Should Always Enable</h2></a>
+<br>
+<p>As we have seen, there are a lot of bugs which can be avoided simply by enabling
+a few flags. With that in mind, here are a list of flags you should always enable:</p>
+<br>
+<ul>
+<li><code class="hljs">-Wall</code></li>
+<li><code class="hljs">-Wextra</code></li>
+<li><code class="hljs">-pedantic</code></li>
+<li><code class="hljs">-Wformat=2</code></li>
+</ul>
+<br>
+<p>These first 3 flags will enable a bunch of other flags, which makes it easy to
+find a bunch of bugs very quickly. <code class="hljs">-Wformat=2</code> will enable strong bound
+checking for format strings (<code class="hljs">printf</code>, <code class="hljs">scanf</code>, etc).</p>
+<br>
+<a id="flags-you-should-try-to-enable" href="#flags-you-should-try-to-enable"><h2>Flags You Should Try To Enable</h2></a>
+<br>
+<p>These flags should be added, since they will greatly improve your code quality,
+but might bring a bunch more errors to light:</p>
+<br>
+<ul>
+<li><code class="hljs">-Werror</code></li>
+<li><code class="hljs">-Wshadow</code></li>
+<li><code class="hljs">-Wswitch-default</code></li>
+<li><code class="hljs">-Wunused</code></li>
+</ul>
+<br>
+<p><code class="hljs">-Werror</code> will turn all warnings into errors, meaning that you will need to fix
+them before the build succeeds. This is a great option to turn on once you have
+fixed all the errors, but a pain if you have a bunch of errors to fix first.
+<code class="hljs">-Wshadow</code> will warn about variables which are shadowed (declared in a child
+scope, but with the same name as a variable in a parent scope). <code class="hljs">-Wswitch-default</code> will
+tell you if you have an unhandled case in a switch statement, meaning you need to
+add a <code class="hljs">default</code> case (just to he explicit). <code class="hljs">-Wunused</code> warns about dead code,
+specifically functions which are never called.</p>
+<br>
+<a id="flags-that-would-make-this-blog-too-long-if-i-added-them" href="#flags-that-would-make-this-blog-too-long-if-i-added-them"><h2>Flags That Would Make This Blog Too Long If I Added Them</h2></a>
+<br>
+<p>There are a plethora of flags which you can enable, but that would be a lot of
+ground to cover. If you want to see all of the compiler flags (that GCC supports),
+click <a href="https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html">here</a>.</p>
+<br>
+<blockquote>GCC and Clang have very similar flags, but not all of them are the same:
+Some flags that work in Clang might not work in GCC, and vice versa. Sometimes
+one compiler will support a flag option (ie, <code class="hljs">-Wformat-overflow=2</code>), but the another
+might not support the <code class="hljs">2</code> option.</blockquote>
+<br>
+<p>For an list of compiler options I use in one of my C projects, click
+<a href="https://github.com/dosisod/skull/blob/master/config.mk">here</a>.</p>
+<br>
+<blockquote>I just covered some of the basic flags, but I didn&#x27;t even cover some of the more
+advanced flags, like sanitizers (run time segfault checker, null pointer checker,
+and address checker (use after free, stack overflow, etc)) and more! Maybe next
+time...</blockquote>
+<br>
+<a id="fin" href="#fin"><h2>Fin</h2></a>
+<br>
+<p>That&#x27;s all! Using C with out flags is like driving without a seat belt. Compiler
+warnings and flags are meant to keep you from doing things you (probably)
+don&#x27;t want to do.</p>
+<br>
+<hr>
+<br>
+<p><a id="footnote-1" href="#footnote-ref-1">[1]</a>: See <a href="https://0.30000000000000004.com/">https://0.30000000000000004.com/</a>.</p>
+<br>
+<p><a id="footnote-2" href="#footnote-ref-2">[2]</a>: Greater then or less then comparisons are fine, since they cover a wide
+range of values. It is just the equal-to comparisons which are the issue, since
+these compare to exactly 1 value, which may or may not be the same as what you
+imagine it might be.</p>
+<br>
+<p><a id="footnote-3" href="#footnote-ref-3">[3]</a>: <code class="hljs">(size_t)-1</code> == 18446744073709551615 bytes == 16 exabytes. You probably
+don&#x27;t have that much ram.</p>
+<br>
+<p><a id="footnote-4" href="#footnote-ref-4">[4]</a>: Always check the output of <code class="hljs">*alloc</code> functions. Even if you have plenty of
+memory, you can quickly run out if you have a bug.</p>
+<hr>
+
+<script src="https://utteranc.es/client.js"
+  repo="dosisod/dosisod.github.io"
+  issue-term="title"
+  theme="github-light"
+  crossorigin="anonymous"
+  async>
+</script>
+
+<noscript>
+  <br>
+  <em>
+    Comment with GitHub functionality is
+    disabled when JavaScript is turned off.
+  </em>
+</noscript>
+
+</main>
+
+</body>
+</html>

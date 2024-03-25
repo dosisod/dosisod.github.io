@@ -1,0 +1,164 @@
+:root {
+  --bg: #fafafa;
+  --fg: #0d0d0d;
+  --divider: #bbb;
+  --accent1: #2266ff;
+  --accent2: #1155ee;
+  --accent3: #0044dd;
+  --accent4: #0033cc;
+  --gray: #555;
+}
+
+* {
+  font-family: monospace;
+  color: var(--fg);
+}
+
+p, h1, h2, h3, h4, ol, ul {
+  line-height: 1.5em;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+}
+
+main {
+  transform: translateX(calc(50vw - 50%));
+  padding: 1ch 1ch 0 1ch;
+  width: 78ch;
+  display: inline-block;
+}
+
+a {
+  text-decoration: underline var(--accent1);
+  text-underline-position: under;
+}
+
+a[id] {
+  text-decoration: none !important;
+}
+
+a[id^="footnote"] {
+  text-decoration: underline var(--accent1) !important;
+}
+
+a:focus {
+  color: var(--accent1);
+  font-weight: bold;
+}
+
+p, span {
+  margin: 0;
+}
+
+h1, h2, h3, h4 {
+  font-size: 1rem;
+  font-weight: bold;
+  font-style: italic;
+  padding: 0;
+  margin: 0;
+}
+
+h1 { color: var(--accent1); }
+h2 { color: var(--accent2); }
+h3 { color: var(--accent3); }
+h4 { color: var(--accent4); }
+
+h1::before { content: "# "; }
+h2::before { content: "## "; }
+h3::before { content: "### "; }
+h4::before { content: "#### "; }
+
+ol, ul {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+ul {
+  margin-left: 2ch;
+}
+
+ol > li::marker {
+  content: attr(i);
+  color: var(--gray);
+}
+
+ul > li::marker {
+  content: "* ";
+  color: var(--gray);
+}
+
+table {
+  border-collapse: collapse;
+  margin-left: 0.5ch;
+}
+
+tr {
+  height: 1ch;
+}
+
+td, th {
+  border: 0.25ch solid var(--gray);
+  padding: 0.375ch;
+}
+
+code {
+  padding: 0 !important;
+  background: #eee !important;
+}
+
+pre {
+  padding: 1ch;
+  overflow-x: auto;
+  background: #eee !important;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+blockquote {
+  border-left: 0.5ch solid var(--accent1);
+  padding: 1ch 1ch 1ch 1.5ch;
+  margin: 0;
+  font-style: italic;
+}
+
+.gray {
+  color: var(--gray);
+}
+
+input[type="checkbox"] {
+  pointer-events: none;
+  width: 2ch;
+  margin: 0 1ch 0 0;
+}
+
+.tag:before { content: "["; }
+.tag:after { content: "]"; }
+
+hr {
+  border: 1px solid var(--divider);
+}
+
+@media screen and (max-width: 700px) {
+  * {
+    /* magic number, don't ask what it means */
+    font-size: 2vw;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+
+  main {
+    padding: 1em 1em 0 1em;
+    width: calc(100% - 2em);
+  }
+}

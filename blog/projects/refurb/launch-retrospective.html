@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="og:title" content="Refurb: Launch Retrospective" />
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/github.css" />
+  <title>Refurb: Launch Retrospective</title>
+</head>
+<body>
+
+<main>
+<a id="refurb-launch-retrospective" href="#refurb-launch-retrospective"><h1>Refurb: Launch Retrospective</h1></a>
+<br>
+<p>It has been about 4 months since the initial commit of my <a href="https://github.com/dosisod/refurb">Refurb</a> project.
+Since then, the project has gotten:</p>
+<br>
+<ul>
+<li>1.8k stars</li>
+<li>5 new contributors</li>
+<li>Hundreds of unique visitors each day</li>
+</ul>
+<br>
+<p>How did my little side project go from nothing to where it is today? How did I launch this
+project, and what would I have done differently if I was to launch it again?</p>
+<br>
+<blockquote>Note that this is just a recount of my experiences with this one project. If you follow my steps
+exactly, you likely will not end up in the same spot. In addition, I would contribute a lot of this
+project&#x27;s success to factors outside of my control, things like the spontaneity of the internet,
+GitHub&#x27;s &quot;trending&quot; algorithm, and so on.</blockquote>
+<br>
+<p>Here is a timeline of events, starting with the initial commit.</p>
+<br>
+<a id="july-26th-2022" href="#july-26th-2022"><h2>July 26th, 2022</h2></a>
+<br>
+<p>On July 26th I made my first commit for my Refurb project. I had no idea where it was going to
+go at first. What I did know was that I wanted to make a linter that would detect code smells
+and other common issues that I would often find during doing code reviews. No tool that I knew
+of could do what I was looking for, so I did what any engineer would do and built my own tool!</p>
+<br>
+<p>I chose to build everything off of <a href="https://github.com/python/mypy">Mypy</a>, since I was somewhat
+familiar with it (I had been using it for years), and knew that it was one of the more mature type checkers
+out there. Because Refurb was going to rely heavily on type information, I wanted to make sure I have
+the most type-rich AST available to me. I feel like I made the right choice in that regard.</p>
+<br>
+<a id="august-6th-2022-day-11" href="#august-6th-2022-day-11"><h2>August 6th, 2022 (Day 11)</h2></a>
+<br>
+<p>11 days later, I published <a href="https://pypi.org/project/refurb/0.1.0/">Refurb v0.1.0</a> to PyPi. Although
+this was not a major release by any means, this was the first time I had ever published a package
+to PyPi. I felt like it was good enough to put out into the world, even if nobody was going to use it
+right away. This somewhat forced me to work on it more, because I was exposing this project more by
+putting it out there on PyPi (and I really didn&#x27;t want this to become another project I was just going
+to abandon).</p>
+<br>
+<a id="september-18th-2022-day-54" href="#september-18th-2022-day-54"><h2>September 18th, 2022 (Day 54)</h2></a>
+<br>
+<p>A lot happened since the last milestone. By this point in time, I had written 28 checks, and felt
+that Refurb was in a good position for the all important v1 release. At this point, I started to make
+user orientated changes such as:</p>
+<br>
+<ul>
+<li>Ensuring that Refurb was able to be installed correctly by end users</li>
+<li>Polishing up the plugin system</li>
+<li>Adding more documentation to the README</li>
+<li>Adding inline comments</li>
+</ul>
+<br>
+<p>And lots of bug fixes. By the end of this, I was happy with Refurb, and ready to show it to the world.</p>
+<br>
+<a id="september-27th-2022-day-63" href="#september-27th-2022-day-63"><h2>September 27th, 2022 (Day 63)</h2></a>
+<br>
+<p>Two months after the initial commit, I published v1 of Refurb to PyPi, and posted a <a href="https://news.ycombinator.com/item?id=33003929">launch Hacker News post</a>
+about it. I posted it at 7:27PM, and within 2 hours, it was on the trending page <a id="footnote-ref-1" href="#footnote-1">[1]</a>:</p>
+<br>
+<img src="./hacker-news.png">
+<br>
+<br>
+<p>I was ecstatic! Every morning I look at Hacker News to see what is going on in the tech world (I don&#x27;t use
+Twitter/Facebook/Instagram), so to see myself on Hacker News was exciting.</p>
+<br>
+<p>I responded to a few comments, and then I went to bed.</p>
+<br>
+<a id="september-28th-2022" href="#september-28th-2022"><h2>September 28th, 2022</h2></a>
+<br>
+<p>When I woke up, I immediately checked Hacker News again, and was surprised to see that I was still on
+the trending page. I had gotten a lot of comments, and I spent the whole day responding to people&#x27;s
+questions, bug reports, and so forth. By the end of the day, I had merged in 4 PR&#x27;s, one of them
+being the addition of a <code class="hljs">--help</code> flag (which I embarrassingly forgot).</p>
+<br>
+<p>All in all, the launch went better then expected. There where some oversights on my part, but they
+were mitigated quickly.</p>
+<br>
+<a id="the-aftermath" href="#the-aftermath"><h2>The Aftermath</h2></a>
+<br>
+<p>A couple days later, I ended up on GitHub Trending:</p>
+<br>
+<img src="./github-trending.png">
+<br>
+<br>
+<p>Then, about a week later, I saw my project on the <a href="https://realpython.com/">Real Python</a> newsletter:</p>
+<br>
+<img src="./real-python-newsletter.png">
+<br>
+<br>
+<p>As well as a lot of other places, according to the GitHub traffic section <a id="footnote-ref-2" href="#footnote-2">[2]</a>:</p>
+<br>
+<img src="./traffic.png">
+<br>
+<br>
+<p>This project that I built for myself ended up resonating with a lot of people, it would seem.
+I couldn&#x27;t&#x27;ve asked for a better outcome! Because of the explosion in people using my projects,
+I decided to setup a <a href="https://github.com/sponsors/dosisod">GitHub Sponsorship</a> profile so that
+people can sponsor me if they so desire.</p>
+<br>
+<a id="conclusion" href="#conclusion"><h2>Conclusion</h2></a>
+<br>
+<p>All in all, I wouldn&#x27;t change a whole lot about the launch. Despite there being a few things which
+I would&#x27;ve done differently, for the most part, everything went over really smoothly.</p>
+<br>
+<p>For people looking for advice on how to emulate my success, I would tell you to work on things which
+excite you, to work on things you know will be valuable to someone, most importantly yourself. Try
+and get an MVP up and running as soon as possible, and ask yourself after every commit whether you
+are getting closer or farther from your goals (whatever those may be).</p>
+<br>
+<hr>
+<br>
+<p><a id="footnote-1" href="#footnote-ref-1">[1]</a>: I am not sure exactly how the Hacker News trending algorithm works, but, I assume that
+it is pretty easy to get onto the trending page, the hard part is staying on the trending
+page for a long time.</p>
+<br>
+<p><a id="footnote-2" href="#footnote-ref-2">[2]</a>: Just go to &quot;Insights&quot; &gt; &quot;Traffic&quot; on the top bar of any repo you own! It super interesting
+to see how people are finding out about your project. Also, it is hard to say for certain, but I
+think these stats are only from the past week. I don&#x27;t think there is a way to see prior stats.</p>
+<hr>
+
+<script src="https://utteranc.es/client.js"
+  repo="dosisod/dosisod.github.io"
+  issue-term="title"
+  theme="github-light"
+  crossorigin="anonymous"
+  async>
+</script>
+
+<noscript>
+  <br>
+  <em>
+    Comment with GitHub functionality is
+    disabled when JavaScript is turned off.
+  </em>
+</noscript>
+
+</main>
+
+</body>
+</html>

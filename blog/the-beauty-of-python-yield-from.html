@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="og:title" content="The Beauty of Python's "yield from"" />
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/github.css" />
+  <title>The Beauty of Python's "yield from"</title>
+</head>
+<body>
+
+<main>
+<a id="the-beauty-of-python-x27-s-quot-yield-from-quot" href="#the-beauty-of-python-x27-s-quot-yield-from-quot"><h1>The Beauty of Python&#x27;s &quot;yield from&quot;</h1></a>
+<br>
+<p>While implementing the UI framework for <a href="https://github.com/dosisod/cal9000">cal9000</a>,
+I came across a really nice way of handling events and state changes, bubbling them up
+to the caller in a way that is easy to debug and test.</p>
+<br>
+<p>In short, using <code class="hljs">yield</code> and <code class="hljs">yield from</code> are awesome ways to build message
+and event based systems, which is what we will be doing today!</p>
+<br>
+<a id="immediate-mode-ui-x27-s" href="#immediate-mode-ui-x27-s"><h2>Immediate Mode UI&#x27;s</h2></a>
+<br>
+<p>Before we get started, we need to learn a little about immediate mode UI&#x27;s.
+An immediate mode UI declaratively defines how
+a UI should be rendered, using the control flow (if statements, functions, etc)
+to define whether code should be rendered, allow for rendering sub-elements, and
+so on. Throughout this blog, we will be refactoring the below example into something
+that is easy to read, write, and test.</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">def</span> <span class="hljs-title function_">render_input_box</span>():
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">input</span>(<span class="hljs-string">&quot;What is your name? &quot;</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">render_page</span>():
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;This is some title&quot;</span>)
+
+    name = render_input_box()
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Hello <span class="hljs-subst">{name}</span>!&quot;</span>)
+
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;This is some content&quot;</span>)
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:
+    render_page()</pre>
+
+<br>
+<p>This will allow us to build out our UI, which is nice. There is (a few) issues with this:</p>
+<br>
+<ul>
+<li><code class="hljs">input</code> makes it harder to test, as we need to ask the user for input.</li>
+<li><code class="hljs">print</code> makes it harder to test, as we don&#x27;t have a way to grab what was printed to the screen.</li>
+</ul>
+<br>
+<blockquote>We can &quot;patch&quot; the <code class="hljs">input</code> and <code class="hljs">print</code> functions in order to do our testing, but in general,
+this just adds complexity to our tests. Patching should be used when you have no easy way to
+pull out these functions which have side-effect.</blockquote>
+<br>
+<p>So how do we begin?</p>
+<br>
+<a id="dependency-injection" href="#dependency-injection"><h2>Dependency Injection</h2></a>
+<br>
+<p>First things first, we need to inject our keyboard (ie, <code class="hljs">input()</code>), that way we
+can test our code:</p>
+<br>
+<pre class="hljs"><span class="hljs-deletion">-def render_input_box():</span>
+<span class="hljs-deletion">-    return input(&quot;What is your name? &quot;)</span>
+<span class="hljs-addition">+def render_input_box(keyboard):</span>
+<span class="hljs-addition">+    return keyboard(&quot;What is your name? &quot;)</span>
+
+
+<span class="hljs-deletion">-def render_page():</span>
+<span class="hljs-addition">+def render_page(keyboard):</span>
+     print(&quot;This is some title&quot;)
+
+<span class="hljs-deletion">-    name = render_input_box()</span>
+<span class="hljs-addition">+    name = render_input_box(keyboard)</span>
+     print(f&quot;Hello {name}!&quot;)
+
+     print(&quot;This is some content&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+<span class="hljs-deletion">-    render_page()</span>
+<span class="hljs-addition">+    render_page(input)</span></pre>
+
+<br>
+<p>Now we can supply our own <code class="hljs">input</code> method for our test, and use <code class="hljs">input</code> in our production code!</p>
+<br>
+<p>But how do we pull out our <code class="hljs">print</code> function calls? Sure, we could dependency inject our <code class="hljs">print</code>
+function as well, but we are going to do something a little different instead...</p>
+<br>
+<a id="yield" href="#yield"><h2>Yield</h2></a>
+<br>
+<p>The <code class="hljs">yield</code> keyword in Python can be used to return a value from a function, without actually
+returning from the function. For example:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">def</span> <span class="hljs-title function_">get_names</span>():
+    <span class="hljs-keyword">yield</span> <span class="hljs-string">&quot;alice&quot;</span>
+    <span class="hljs-keyword">yield</span> <span class="hljs-string">&quot;bob&quot;</span>
+    <span class="hljs-keyword">yield</span> <span class="hljs-string">&quot;charlie&quot;</span>
+
+names = get_names()
+<span class="hljs-built_in">print</span>(<span class="hljs-built_in">next</span>(names))
+<span class="hljs-built_in">print</span>(<span class="hljs-built_in">next</span>(names))
+<span class="hljs-built_in">print</span>(<span class="hljs-built_in">next</span>(names))</pre>
+
+<br>
+<p>This will result in:</p>
+<br>
+<pre class="hljs">alice
+bob
+charlie</pre>
+<br>
+<p>Basically, <code class="hljs">yield</code> gives us a way to nicely build a generator, which can be used to send
+messages, create infinite sequences, lazy-load data from a database, and so on. There are
+some issues with this code, and that is if we call <code class="hljs">next(names)</code> again, we will get an
+exception, since we have no more values left. What we could do instead is this:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">for</span> name <span class="hljs-keyword">in</span> names:
+    <span class="hljs-built_in">print</span>(name)</pre>
+
+<br>
+<p>This will automatically stop iterating when we are all out of names. Pretty cool!</p>
+<br>
+<p>We can apply this to our UI like so:</p>
+<br>
+<pre class="hljs"> def render_page(keyboard):
+<span class="hljs-deletion">-    print(&quot;This is some title&quot;)</span>
+<span class="hljs-addition">+    yield &quot;This is some title&quot;</span>
+
+     name = render_input_box(keyboard)
+<span class="hljs-deletion">-    print(f&quot;Hello {name}!&quot;)</span>
+<span class="hljs-addition">+    yield f&quot;Hello {name}!&quot;</span>
+
+<span class="hljs-deletion">-    print(&quot;This is some content&quot;)</span>
+<span class="hljs-addition">+    yield &quot;This is some content&quot;</span>
+
+
+if __name__ == &quot;__main__&quot;:
+<span class="hljs-deletion">-    render_page(input)</span>
+<span class="hljs-addition">+    for content in render_page(input):</span>
+<span class="hljs-addition">+       print(content)</span></pre>
+
+<br>
+<p>This allows us to send messages back back to the caller, and they can print them
+for us. This way, we don&#x27;t have to add in a keyboard, we just send the data back
+that we want printed.</p>
+<br>
+<a id="stepping-it-up" href="#stepping-it-up"><h2>Stepping It Up</h2></a>
+<br>
+<p>What if we want to add a bit more code to the <code class="hljs">render_input_box</code> method, maybe print
+something using <code class="hljs">yield</code>?</p>
+<br>
+<pre class="hljs"> def render_input_box(keyboard):
+<span class="hljs-deletion">-    return keyboard(&quot;What is your name? &quot;)</span>
+<span class="hljs-addition">+    yield &quot;please enter your name&quot;</span>
+<span class="hljs-addition">+    name = keyboard()</span>
+<span class="hljs-addition">+    yield f&quot;Hello {name}!&quot;</span>
+
+
+ def render_page(keyboard):
+     yield &quot;This is some title&quot;
+
+<span class="hljs-deletion">-    name = render_input_box(keyboard)</span>
+<span class="hljs-deletion">-    yield f&quot;Hello {name}&quot;</span>
+<span class="hljs-addition">+    for x in render_input_box(keyboard):</span>
+<span class="hljs-addition">+        yield x</span></pre>
+
+<br>
+<p>Now whenever something is yielded from our <code class="hljs">render_input_box</code> function, we just <code class="hljs">yield</code>
+it again in our <code class="hljs">render_page</code> function. This works, but it means we need to add 2 lines for
+every nested page we want to render. Surely there is a better way to do this, right?</p>
+<br>
+<a id="yield-from" href="#yield-from"><h2>Yield From</h2></a>
+<br>
+<p>The solution to our problems, <code class="hljs">yield from</code>:</p>
+<br>
+<pre class="hljs"><span class="hljs-deletion">-    for x in render_input_box(keyboard)</span>
+<span class="hljs-deletion">-        yield x</span>
+<span class="hljs-addition">+    yield from render_input_box(keyboard)</span></pre>
+
+<br>
+<p>Ta da! <code class="hljs">yield from</code> basically allows us to bubble up the yielded values for a given function.
+Whenever a value is yielded from anywhere in our application, the value is bubbled up to
+the <code class="hljs">print(content)</code> line, and then execution continues as normal.</p>
+<br>
+<p>The end result looks something like this:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">def</span> <span class="hljs-title function_">render_input_box</span>(<span class="hljs-params">keyboard</span>):
+    <span class="hljs-keyword">yield</span> <span class="hljs-string">&quot;please enter your name&quot;</span>
+    name = keyboard()
+    <span class="hljs-keyword">yield</span> <span class="hljs-string">f&quot;Hello <span class="hljs-subst">{name}</span>!&quot;</span>
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">render_page</span>(<span class="hljs-params">keyboard</span>):
+    <span class="hljs-keyword">yield</span> <span class="hljs-string">&quot;This is some title&quot;</span>
+
+    <span class="hljs-keyword">yield</span> <span class="hljs-keyword">from</span> render_input_box(keyboard)
+
+    <span class="hljs-keyword">yield</span> <span class="hljs-string">&quot;This is some content&quot;</span>
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:
+    <span class="hljs-keyword">for</span> content <span class="hljs-keyword">in</span> render_page(<span class="hljs-built_in">input</span>):
+       <span class="hljs-built_in">print</span>(content)</pre>
+
+<br>
+<a id="fin" href="#fin"><h2>Fin</h2></a>
+<br>
+<p>That&#x27;s it! <code class="hljs">yield from</code> is a cool feature I found out about just recently, and found it useful
+enough to share with the world.</p>
+<hr>
+
+<script src="https://utteranc.es/client.js"
+  repo="dosisod/dosisod.github.io"
+  issue-term="title"
+  theme="github-light"
+  crossorigin="anonymous"
+  async>
+</script>
+
+<noscript>
+  <br>
+  <em>
+    Comment with GitHub functionality is
+    disabled when JavaScript is turned off.
+  </em>
+</noscript>
+
+</main>
+
+</body>
+</html>
