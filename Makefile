@@ -6,7 +6,7 @@ typos:
 	typos --format brief
 
 ruff:
-	ruff md2html test gen_index.py
+	ruff check md2html test gen_index.py
 
 mypy:
 	mypy -p md2html
