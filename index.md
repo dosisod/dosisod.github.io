@@ -7,15 +7,16 @@ thoughts, or whatever else I want (this is my site after all).
 
 You can follow me on [GitHub](https://github.com/dosisod).
 
-Currently working on [Cicada](https://cicada.sh), a FOSS CI/CD platform.
+CEO at [Cicada Software, Inc.](https://github.com/cicada-software).
+
+Currently working on [Reportobello](https://reportobello.com), a FOSS PDF generator.
 
 ## Currently reading
 
-* [The Three Body Problem](https://www.amazon.com/dp/0765377063)
+* [The Subtle Art of Not Giving a F*ck](https://markmanson.net/books/subtle-art)
+* [Thus Spake Zarathustra](https://standardebooks.org/ebooks/friedrich-nietzsche/thus-spake-zarathustra/thomas-common/text/single-page)
 * [Metropolis](https://standardebooks.org/ebooks/thea-von-harbou/metropolis/the-readers-library/text/single-page)
 * [Pride and Prejudice](https://standardebooks.org/ebooks/jane-austen/pride-and-prejudice/text/single-page)
-* [A Scanner Darkly](https://www.harpercollins.com/products/a-scanner-darkly-philip-k-dick)
-* [GDPR](https://gdpr-info.eu)
 
 Click [here](/blog/finished-books.html) for a list of books I've read.
 
