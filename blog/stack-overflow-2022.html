@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="og:title" content="Comments on the Stack Overflow 2022 Survey" />
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/github.css" />
+  <title>Comments on the Stack Overflow 2022 Survey</title>
+</head>
+<body>
+
+<main>
+<a id="comments-on-the-stack-overflow-2022-survey" href="#comments-on-the-stack-overflow-2022-survey"><h1>Comments on the Stack Overflow 2022 Survey</h1></a>
+<br>
+<p>Every year, I read the Stack Overflow survey as soon as it comes out.
+I ditched Facebook, and never used Twitter, and in general, don&#x27;t use
+social media <a id="footnote-ref-1" href="#footnote-1">[1]</a>, so it is always nice to see the general trends in the
+tech world.</p>
+<br>
+<p>This is going to be quite opinionated, or, more specifically, have no general
+direction, and will basically me just writing down my thoughts on this years
+survey (see title).</p>
+<br>
+<p>Let us begin!</p>
+<br>
+<a id="a-href-https-survey-stackoverflow-co-2022-section-learning-to-code-online-course-platforms-to-learn-how-to-code-online-course-platforms-to-learn-how-to-code-a" href="#a-href-https-survey-stackoverflow-co-2022-section-learning-to-code-online-course-platforms-to-learn-how-to-code-online-course-platforms-to-learn-how-to-code-a"><h2><a href="https://survey.stackoverflow.co/2022/#section-learning-to-code-online-course-platforms-to-learn-how-to-code">Online course platforms to learn how to code</a></h2></a>
+<br>
+<p>What stuck me as interesting about this is that there is no reference to
+<a href="https://www.freecodecamp.org/">freecodecamp</a>. Their curriculum is
+<a href="https://github.com/freeCodeCamp/freeCodeCamp">100% open source</a>, and I often
+see it referenced on GitHub trending.</p>
+<br>
+<p>I also expected to Youtube to be on here, perhaps these 2 got grouped into the
+&quot;other&quot; category? Who knows.</p>
+<br>
+<a id="a-href-https-survey-stackoverflow-co-2022-section-developer-roles-developer-type-developer-type-a" href="#a-href-https-survey-stackoverflow-co-2022-section-developer-roles-developer-type-developer-type-a"><h2><a href="https://survey.stackoverflow.co/2022/#section-developer-roles-developer-type">Developer type</a></h2></a>
+<br>
+<p>I find it kinda sad (not really) that most people fall into the &quot;full stack&quot; or
+&quot;front/back-end&quot; category. As a full-stack developer myself (who does other programming
+things as well), I have come to realize that there is more to programming then the typical:</p>
+<br>
+<pre class="hljs">Take data from website -&gt; Send to API -&gt; Validate -&gt; Store in database</pre>
+<br>
+<p>cookie cutter applications.</p>
+<br>
+<p>Why not build better tooling, better testing frameworks, faster build systems, better
+package management systems, and so on? There is more to programming then just full-stack work!</p>
+<br>
+<br>
+<a id="a-href-https-survey-stackoverflow-co-2022-section-most-popular-technologies-programming-scripting-and-markup-languages-most-popular-programming-scripting-and-markup-languages-a" href="#a-href-https-survey-stackoverflow-co-2022-section-most-popular-technologies-programming-scripting-and-markup-languages-most-popular-programming-scripting-and-markup-languages-a"><h2><a href="https://survey.stackoverflow.co/2022/#section-most-popular-technologies-programming-scripting-and-markup-languages">Most popular programming, scripting, and markup languages</a></h2></a>
+<br>
+<p>As per usual, JavaScript tops the charts. Still, it is interesting that 32% of people &quot;learning to code&quot; are
+using C, and 35% are using C++. Perhaps this is due to University students learning C/C++?</p>
+<br>
+<a id="a-href-https-survey-stackoverflow-co-2022-section-most-popular-technologies-databases-most-popular-databases-a" href="#a-href-https-survey-stackoverflow-co-2022-section-most-popular-technologies-databases-most-popular-databases-a"><h2><a href="https://survey.stackoverflow.co/2022/#section-most-popular-technologies-databases">Most popular databases</a></h2></a>
+<br>
+<p>Postgres is awesome, and it deserves the top spot (among &quot;Professional Developers&quot;, that is).
+Postgres feels like it was designed for humans to use, compared to something like MSSQL (it is
+a little quirky). Also, Postgres being open source is a huge plus for me!</p>
+<br>
+<p>Also, Redis is gaining a lot of popularity, and I think we will see the fall (or at least diminishing)
+dogma around &quot;always use a RDBMS&quot;. Redis is super-lightweight, and really makes you think about your
+data: the lifetime of your data, how you want to access it, and so on.</p>
+<br>
+<a id="a-href-https-survey-stackoverflow-co-2022-section-most-popular-technologies-other-tools-most-popular-quot-other-tools-quot-a" href="#a-href-https-survey-stackoverflow-co-2022-section-most-popular-technologies-other-tools-most-popular-quot-other-tools-quot-a"><h2><a href="https://survey.stackoverflow.co/2022/#section-most-popular-technologies-other-tools">Most popular &quot;other tools&quot;</a></h2></a>
+<br>
+<p>Docker is a must have in this day and age. Honestly, I don&#x27;t know how I did things before Docker.
+Kubernetes (k8s) is also rising in popularity, but I don&#x27;t know how essential it is to the
+average developer, especially those learning to code.</p>
+<br>
+<a id="a-href-https-survey-stackoverflow-co-2022-section-most-popular-technologies-integrated-development-environment-most-popular-ide-a" href="#a-href-https-survey-stackoverflow-co-2022-section-most-popular-technologies-integrated-development-environment-most-popular-ide-a"><h2><a href="https://survey.stackoverflow.co/2022/#section-most-popular-technologies-integrated-development-environment">Most popular IDE</a></h2></a>
+<br>
+<p>Let me just take this moment to say that Vim, combined with Neovim, has a higher marketshare then IntelliJ!
+I have proudly been using Neovim for a while now (and <a href="https://github.com/VSCodium/vscodium">VSCodium</a> for
+certain tasks), and like all Vim users, I think everyone should give it a shot <a id="footnote-ref-2" href="#footnote-2">[2]</a>.</p>
+<br>
+<a id="most-loved-dreaded-and-wanted" href="#most-loved-dreaded-and-wanted"><h2>Most loved, dreaded, and wanted</h2></a>
+<br>
+<p>Oh boy! These are always my favorite:</p>
+<br>
+<a id="a-href-https-survey-stackoverflow-co-2022-section-most-loved-dreaded-and-wanted-programming-scripting-and-markup-languages-programming-scripting-and-markup-languages-a" href="#a-href-https-survey-stackoverflow-co-2022-section-most-loved-dreaded-and-wanted-programming-scripting-and-markup-languages-programming-scripting-and-markup-languages-a"><h3><a href="https://survey.stackoverflow.co/2022/#section-most-loved-dreaded-and-wanted-programming-scripting-and-markup-languages">Programming, scripting, and markup languages</a></h3></a>
+<br>
+<p>As the title says, Rust is on it&#x27;s 7th year as the most loved language. I love Rust. I think Rust is
+the future, but who am I kidding.</p>
+<br>
+<p>What I also find interesting is that Elixir and Clojure (functional languages) are right behind Rust!
+You have to go waaaay down the list to find JavaScript, which is slightly ahead of F#, another functional
+language! In general, functional languages are the future. I think we (by and large) are burned out with
+they typical OO languages, and looking over the horizon, we see lots of languages which are switching it
+up. The water is warm, and the grass is green!</p>
+<br>
+<p>Also, Rust, TypeScript, and Python are the top 3 on the &quot;wanted&quot; category, all of which have very strong
+type support (if you do it correctly). I also think we are starting to see the rise in statically typed
+languages, or at the very least, type annotations in dynamic languages.</p>
+<br>
+<a id="a-href-https-survey-stackoverflow-co-2022-section-most-loved-dreaded-and-wanted-databases-databases-a" href="#a-href-https-survey-stackoverflow-co-2022-section-most-loved-dreaded-and-wanted-databases-databases-a"><h3><a href="https://survey.stackoverflow.co/2022/#section-most-loved-dreaded-and-wanted-databases">Databases</a></h3></a>
+<br>
+<p>Postgres and Redis are the most loved databases. Like I said, they deserve it. Moving on...</p>
+<br>
+<br>
+<a id="a-href-https-survey-stackoverflow-co-2022-section-most-loved-dreaded-and-wanted-integrated-development-environment-ide-a" href="#a-href-https-survey-stackoverflow-co-2022-section-most-loved-dreaded-and-wanted-integrated-development-environment-ide-a"><h3><a href="https://survey.stackoverflow.co/2022/#section-most-loved-dreaded-and-wanted-integrated-development-environment">IDE</a></h3></a>
+<br>
+<p>Neovim takes the cake for the most loved IDE (83%) for a second year! Vim also is a few steps ahead of
+GoLand and IntelliJ, both JetBrains products.</p>
+<br>
+<blockquote>I do use JetBrains products, if you consider the <a href="https://www.jetbrains.com/lp/mono/">JetBrains Mono font</a> a product :)</blockquote>
+<br>
+<a id="a-href-https-survey-stackoverflow-co-2022-section-most-loved-dreaded-and-wanted-asynchronous-tools-asynchronous-tools-a" href="#a-href-https-survey-stackoverflow-co-2022-section-most-loved-dreaded-and-wanted-asynchronous-tools-asynchronous-tools-a"><h3><a href="https://survey.stackoverflow.co/2022/#section-most-loved-dreaded-and-wanted-asynchronous-tools">Asynchronous tools</a></h3></a>
+<br>
+<p>From what I can tell, <a href="https://monday.com">monday.com</a> is a very flexible, easy to use platform.
+Though I have never used it, I find it interesting that it is the most dreaded one on the list.</p>
+<br>
+<a id="worked-with-vs-want-to-work-with" href="#worked-with-vs-want-to-work-with"><h2>Worked with vs. want to work with</h2></a>
+<br>
+<p>In general, I find these graphics cool to look at, but not super helpful. I think it is cool
+to know what people are wanting to learn, given what technologies they already know. But, in
+general, &quot;going with the flow&quot; isn&#x27;t what I will be looking for when I choose the next
+technology I will be working with.</p>
+<br>
+<a id="a-href-https-survey-stackoverflow-co-2022-section-top-paying-technologies-top-paying-technologies-top-paying-technologies-a" href="#a-href-https-survey-stackoverflow-co-2022-section-top-paying-technologies-top-paying-technologies-top-paying-technologies-a"><h2><a href="https://survey.stackoverflow.co/2022/#section-top-paying-technologies-top-paying-technologies">Top paying technologies</a></h2></a>
+<br>
+<p>Wow! Clojure, Erlang, F#, and LISP (all functional languages) make up the top 4 highest paying jobs!
+In 6th place is Elixir, another functional language.</p>
+<br>
+<p>It would also seem that JavaScript developers can boost their salaries by $5k if they learn TypeScript.</p>
+<br>
+<p>I don&#x27;t know how exactly this was calculated, since most developers will know more then just one language.</p>
+<br>
+<p>People using Neovim or Vim as their IDE make (on average) more then those using Rider, CLion, IntelliJ, and
+VSC (though not as much as Emacs users!)</p>
+<br>
+<a id="a-href-https-survey-stackoverflow-co-2022-section-version-control-version-control-systems-version-control-systems-a" href="#a-href-https-survey-stackoverflow-co-2022-section-version-control-version-control-systems-version-control-systems-a"><h2><a href="https://survey.stackoverflow.co/2022/#section-version-control-version-control-systems">Version control systems</a></h2></a>
+<br>
+<p>97% of professional devs are using VCS. This is good news!</p>
+<br>
+<a id="a-href-https-survey-stackoverflow-co-2022-section-version-control-interacting-with-version-control-systems-interacting-with-version-control-systems-a" href="#a-href-https-survey-stackoverflow-co-2022-section-version-control-interacting-with-version-control-systems-interacting-with-version-control-systems-a"><h2><a href="https://survey.stackoverflow.co/2022/#section-version-control-interacting-with-version-control-systems">Interacting with version control systems</a></h2></a>
+<br>
+<p>Most professional devs (85%) use the command line. This is also good news! The command line gives you infinite control
+over Git compared to what your IDE will use.</p>
+<br>
+<blockquote>Also, who uses the GitHub/GitLab/Bitbucket web interface to do their Git operations? There is nothing <strong>wrong</strong> with
+it, but it will seriously cramp your workflow if you have to push your code up before you can merge/branch/tag something.</blockquote>
+<br>
+<a id="a-href-https-survey-stackoverflow-co-2022-section-version-control-version-control-platforms-version-control-platforms-a" href="#a-href-https-survey-stackoverflow-co-2022-section-version-control-version-control-platforms-version-control-platforms-a"><h2><a href="https://survey.stackoverflow.co/2022/#section-version-control-version-control-platforms">Version control platforms</a></h2></a>
+<br>
+<p>I have always found that GitHub has the best developer experience, and the data shows it.
+In fact, GitHub is the only platform where people are more likely to use it for personal projects then
+work projects (none of the other platforms can say the same). And, GitHub is about twice as popular as
+the next competitor, GitLab.</p>
+<br>
+<a id="a-href-https-survey-stackoverflow-co-2022-section-productivity-impacts-daily-time-spent-searching-for-answers-solutions-daily-time-spent-searching-for-answers-solutions-a" href="#a-href-https-survey-stackoverflow-co-2022-section-productivity-impacts-daily-time-spent-searching-for-answers-solutions-daily-time-spent-searching-for-answers-solutions-a"><h2><a href="https://survey.stackoverflow.co/2022/#section-productivity-impacts-daily-time-spent-searching-for-answers-solutions">Daily time spent searching for answers/solutions</a></h2></a>
+<br>
+<p>It must feel really good (for the 10% of people) who only search 15 minutes a day for answers!
+Either I&#x27;m doing something wrong, their doing something right, or they don&#x27;t spend a whole lot of time coding.
+Maybe I just spend a lot of time reading documentation, always trying to find a better way to do things?</p>
+<br>
+<a id="a-href-https-survey-stackoverflow-co-2022-section-developer-experience-developer-experience-processes-tools-and-programs-within-an-organization-developer-experience-processes-tools-and-programs-a" href="#a-href-https-survey-stackoverflow-co-2022-section-developer-experience-developer-experience-processes-tools-and-programs-within-an-organization-developer-experience-processes-tools-and-programs-a"><h2><a href="https://survey.stackoverflow.co/2022/#section-developer-experience-developer-experience-processes-tools-and-programs-within-an-organization">Developer Experience: Processes, tools, and programs</a></h2></a>
+<br>
+<p>70% of people use CI/CD, and 58% of people use automated testing. These numbers are too low! We certainly need more
+people testing their code, as do we need people who use code (ie, GitHub Actions) to lint, test, and release their code.</p>
+<br>
+<a id="fin" href="#fin"><h2>Fin</h2></a>
+<br>
+<p>That&#x27;s it! Nothing too fancy, just my inputs on this year&#x27;s survey.</p>
+<br>
+<hr>
+<br>
+<p><a id="footnote-1" href="#footnote-ref-1">[1]</a>: Except Stack Overflow, it seems</p>
+<br>
+<p><a id="footnote-2" href="#footnote-ref-2">[2]</a>: Even if you don&#x27;t like Vim/Neovim itself, you can always install Vim keybindings for your
+IDE, which is what I do for VS Code.</p>
+<hr>
+
+<script src="https://utteranc.es/client.js"
+  repo="dosisod/dosisod.github.io"
+  issue-term="title"
+  theme="github-light"
+  crossorigin="anonymous"
+  async>
+</script>
+
+<noscript>
+  <br>
+  <em>
+    Comment with GitHub functionality is
+    disabled when JavaScript is turned off.
+  </em>
+</noscript>
+
+</main>
+
+</body>
+</html>

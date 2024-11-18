@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="og:title" content="WASM-4 Game Jam: Day 10" />
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/github.css" />
+  <title>WASM-4 Game Jam: Day 10</title>
+</head>
+<body>
+
+<main>
+<a id="wasm-4-game-jam-day-10" href="#wasm-4-game-jam-day-10"><h1>WASM-4 Game Jam: Day 10</h1></a>
+<br>
+<p>Today was the last day of the WASM-4 game jam! I was planning on writing a blog
+yesterday, but got frazzled with some things which I will get to later.</p>
+<br>
+<p>All in all, I had a good time, despite the last couple hours before the deadline
+being a bit stressful. Even after the deadline there was chaos: Many people, myself
+included, did not upload to Itch in time. This year, there where 2 places you needed
+to upload to: <a href="https://wapm.io/interface/wasm4">WAPM</a> and <a href="https://itch.io/jam/wasm4-v2">itch.io</a>.
+There was not a whole lot of clarity as to which one you where supposed to upload
+to (perhaps it was assumed you where supposed to upload to both?). It seems like
+WAPM is the one sponsoring the event, but Itch is where the content will actually be judged/viewed.
+Next year I hope the process for uploading will be a bit more clear.</p>
+<br>
+<p>Anyways, in the final hours of the jam, I tried to add a few new levels, only to run into
+memory errors:</p>
+<br>
+<img src="./day-10-bsod.png" />
+<br>
+<br>
+<p>This was due to my poorly optimized program hogging up too much memory. Why was it
+hogging up too much memory? Good question: I really don&#x27;t know. I tried to profile
+it, but since it only occupies one page of memory (64KB), I have no good way of
+tracking the memory usage of my program over time <a id="footnote-ref-1" href="#footnote-1">[1]</a>.</p>
+<br>
+<p>The next step would be to inspect the most commonly used elements of my game, and
+see how much memory it is using.</p>
+<br>
+<p>Here is the code for the <code class="hljs">Item</code> class:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Item</span> {
+  <span class="hljs-attr">kind</span>: <span class="hljs-title class_">ItemType</span>;
+  <span class="hljs-attr">pos</span>: <span class="hljs-title class_">Position2</span>;
+  <span class="hljs-attr">disabled</span>: <span class="hljs-built_in">boolean</span> = <span class="hljs-literal">false</span>;
+  <span class="hljs-attr">action</span>: (<span class="hljs-function">(<span class="hljs-params">lvl: Level, item: Item</span>) =&gt;</span> <span class="hljs-built_in">void</span>) | <span class="hljs-literal">null</span> = <span class="hljs-literal">null</span>;
+};</pre>
+
+<br>
+<p>We can use the following to get the offset of each field, and see if we can slim it down:</p>
+<br>
+<pre class="hljs">w4.<span class="hljs-title function_">trace</span>(offsetof&lt;<span class="hljs-title class_">Item</span>&gt;(<span class="hljs-string">&quot;kind&quot;</span>).<span class="hljs-title function_">toString</span>());
+w4.<span class="hljs-title function_">trace</span>(offsetof&lt;<span class="hljs-title class_">Item</span>&gt;(<span class="hljs-string">&quot;pos&quot;</span>).<span class="hljs-title function_">toString</span>());
+w4.<span class="hljs-title function_">trace</span>(offsetof&lt;<span class="hljs-title class_">Item</span>&gt;(<span class="hljs-string">&quot;disabled&quot;</span>).<span class="hljs-title function_">toString</span>());
+w4.<span class="hljs-title function_">trace</span>(offsetof&lt;<span class="hljs-title class_">Item</span>&gt;(<span class="hljs-string">&quot;action&quot;</span>).<span class="hljs-title function_">toString</span>());</pre>
+
+<br>
+<p>And this is the output we get in the console:</p>
+<br>
+<pre class="hljs">0
+4
+8
+12</pre>
+<br>
+<p>What? Well, as it turns out, each field will allocate 4 bytes (32 bits), which is what
+we are seeing here. Even if it is a <code class="hljs">boolean</code> (1 bit!), a full 32 bits will be taken up.
+This is super wasteful, and I couldn&#x27;t find an easy way to pack the class
+other then bit shifting the data myself (which I didn&#x27;t have time for this level
+of optimization).</p>
+<br>
+<p>Another issue was that I had no idea what data was being stored on the read-only portion of
+the cart, and what was being stored on the heap. I assumed that the memory I had declared as
+<code class="hljs">const</code> would somehow be shoved into this read only memory, but that would not appear to be
+the case. What I probably needed to do was something like this:</p>
+<br>
+<pre class="hljs">memory.<span class="hljs-property">data</span>&lt;<span class="hljs-title class_">Item</span>&gt;([{
+  <span class="hljs-attr">kind</span>: <span class="hljs-title class_">ItemType</span>.<span class="hljs-property">COIN</span>,
+  <span class="hljs-attr">pos</span>: { <span class="hljs-attr">x</span>: <span class="hljs-number">1</span>, <span class="hljs-attr">y</span>: <span class="hljs-number">2</span>, <span class="hljs-attr">rot</span>: <span class="hljs-title class_">Direction</span>.<span class="hljs-property">NORTH</span> },
+}]);</pre>
+
+<br>
+<p>Which would actually make sense.</p>
+<br>
+<p>I tried some flags such as <code class="hljs">--optimizeLevel</code> and <code class="hljs">--shrinkLevel</code>, but this only seemed to
+improve the static memory allocation, not the heap allocated memory.</p>
+<br>
+<p>Last minute bug fixes are not fun.</p>
+<br>
+<a id="in-short" href="#in-short"><h2>In Short</h2></a>
+<br>
+<p>I wish I had spent some time playing around with AssemblyScript before committing to using
+it in a full game. I like AssemblyScript, but I used it wrong, and some preparation could&#x27;ve
+prevented that.</p>
+<br>
+<p>I am proud of the work that I produced, and it was nice to have a deadline where I had
+to produce a certain result, but in a creative and open-ended fashion. I am excited to
+play all of the submitted games.</p>
+<br>
+<p>Most of all though, I am curious to see the cool coding techniques that people employed to
+get their memory usage to a minimum, what languages where used, and so forth.</p>
+<br>
+<hr>
+<br>
+<p><a id="footnote-1" href="#footnote-ref-1">[1]</a>: That is, if I use the <a href="https://www.assemblyscript.org/stdlib/globals.html#memory"><code class="hljs">memory.size()</code></a>
+function to track how many pages are currently in use. There might be a way to
+track the memory usage within a page, though I could not find something similar to that.</p>
+<hr>
+
+<script src="https://utteranc.es/client.js"
+  repo="dosisod/dosisod.github.io"
+  issue-term="title"
+  theme="github-light"
+  crossorigin="anonymous"
+  async>
+</script>
+
+<noscript>
+  <br>
+  <em>
+    Comment with GitHub functionality is
+    disabled when JavaScript is turned off.
+  </em>
+</noscript>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="og:title" content="The future of Python looks fast, and corporate" />
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/github.css" />
+  <title>The future of Python looks fast, and corporate</title>
+</head>
+<body>
+
+<main>
+<a id="the-future-of-python-looks-fast-and-corporate" href="#the-future-of-python-looks-fast-and-corporate"><h1>The future of Python looks fast, and corporate</h1></a>
+<br>
+<p>I&#x27;ve been noticing a tend in the Python ecosystem recently:</p>
+<br>
+<ol style="margin-left: 3ch">
+<li i="1. ">You create a project that people like</li>
+<li i="2. ">Figure it might be profitable</li>
+<li i="3. ">Turn it into a legal entity (usually a Delaware C Corp)</li>
+</ol>
+<br>
+<p>Here are some recent examples of this:</p>
+<br>
+<a id="ruff" href="#ruff"><h2>Ruff</h2></a>
+<br>
+<p><a href="https://github.com/astral-sh/ruff">Ruff</a>, in it&#x27;s own words, is &quot;an extremely fast Python linter, written in Rust&quot;.
+It has gained a lot of popularity by being &quot;10-100x faster than existing linters&quot; such as flake8, one of the
+most popular Python linters.</p>
+<br>
+<p><a href="https://github.com/astral-sh/ruff/commit/0d8e4bd6e9580a2484fa68c45cb3569e0815ac3f">The first commit</a> was on August 9th, 2022.</p>
+<br>
+<p>On November 4th, 2022, &quot;Astral Software Inc&quot; was formed in the State of Delaware <a id="footnote-ref-1" href="#footnote-1">[1]</a>.
+The Ruff project had about 2.5k stars by this point. Astral is focusing on building
+fast Python tooling, according to their <a href="https://astral.sh/">website</a>, and if Ruff
+is any indication, I believe it.</p>
+<br>
+<a id="pydantic" href="#pydantic"><h2>Pydantic</h2></a>
+<br>
+<p>For anyone building web apps, <a href="https://github.com/pydantic/pydantic">Pydantic</a> needs no introduction.
+Pydantic is a model validation library that is used to create nice, type-safe models for Python
+applications, typically web apps.</p>
+<br>
+<p><a href="https://github.com/pydantic/pydantic/commit/a8e844dad56388522ddbaa68a3285570d5cef7b3">The first commit</a> was on May 3rd, 2017.</p>
+<br>
+<p>On December 14th, 2022, &quot;Pydantic Services Inc&quot; was formed in the State of Delaware.
+The Pydantic project had about 11.5k stars by this point. Their mission:</p>
+<br>
+<blockquote>First, we built a data validation library that developers love.</blockquote>
+<br>
+<blockquote>Next, we&#x27;re building cloud services that developers will love.</blockquote>
+<br>
+<p>Currently Pydantic is written in plain Python, though Pydantic v2 will be written in,
+you guessed it, Rust, and will be &quot;5-50x faster than v1&quot;.</p>
+<br>
+<a id="mojo" href="#mojo"><h2>Mojo</h2></a>
+<br>
+<p>If you&#x27;re keeping up with the Python news you&#x27;ve probably heard about <a href="https://www.modular.com/mojo">Mojo</a>.
+Mojo is a Python super-set that is geared towards AI, and boasts a 35,000x speedup compared to Python <a id="footnote-ref-2" href="#footnote-2">[2]</a>.</p>
+<br>
+<p>Since Mojo isn&#x27;t open source yet, there isn&#x27;t any star metrics to go off here.</p>
+<br>
+<p>On October 5th, 2017, &quot;Modular, Inc&quot; was formed in the State of Delaware <a id="footnote-ref-3" href="#footnote-3">[3]</a>.
+2017 seems like a long time ago considering we are just now hearing about it, but the
+ball only seemed to start rolling on February 2nd, 2022, when Modular foreign qualified
+in the State of California. A couple months later, in April, Modular got ahold of the
+<a href="https://modular.com">modular.com</a> domain <a id="footnote-ref-4" href="#footnote-4">[4]</a>.</p>
+<br>
+<p>Since Mojo isn&#x27;t open source, there is no way to tell whether it is written in Rust or not.
+Given that it is built on top of MLIR/LLVM it will probably be written in C++ or Rust <a id="footnote-ref-5" href="#footnote-5">[5]</a>.
+I&#x27;d be curious to see how Mojo compares to CPython when it finally gets open sourced.</p>
+<br>
+<br>
+<a id="and-many-more-to-come" href="#and-many-more-to-come"><h2>And many more to come</h2></a>
+<br>
+<p>These are just a few high profile examples of projects that are incorporating. As a fledgling CEO myself <a id="footnote-ref-6" href="#footnote-6">[6]</a>
+I am finding it very interesting to learn about business structures and how that ties in with
+the software ecosystem as a whole. As a programmer, I find it ironic that the future of Python
+is less about Python itself, and more about how we can use other tools and languages to make Python
+faster for everyone else.</p>
+<br>
+<hr>
+<br>
+<p><a id="footnote-1" href="#footnote-ref-1">[1]</a>: Apparently &quot;Astral Software Inc&quot; was already formed in Delaware in 1995. It closed at some point
+(when I don&#x27;t know), and the new &quot;Astral Software Inc&quot; was formed in 2022. Just a fun tidbit I found in my research.</p>
+<br>
+<p><a id="footnote-2" href="#footnote-ref-2">[2]</a>: If you want a deep dive into how the Mojo team is doing this, watch <a href="https://youtu.be/pdJQ8iVTwj8">this podcast</a>
+with Lex Fridman and Chris Lattner.</p>
+<br>
+<p><a id="footnote-3" href="#footnote-ref-3">[3]</a>: I gotta say, Modular Inc is a sick name for a company. Surprised it wasn&#x27;t taken already.</p>
+<br>
+<p><a id="footnote-4" href="#footnote-ref-4">[4]</a>: Previously the domain was owned by &quot;Reflex Publishing Inc&quot;. You can view the site <a href="https://web.archive.org/web/20220401015755/https://www.modular.com/">here</a>.</p>
+<br>
+<p><a id="footnote-5" href="#footnote-ref-5">[5]</a>: While Clang/LLVM is written in C++, LLVM has bindings for many languages, including Rust (which actually makes heavy use LLVM),
+hence why I believe Mojo will probably be written in C++ or Rust (or perhaps a mix of both).</p>
+<br>
+<p><a id="footnote-6" href="#footnote-ref-6">[6]</a>: <a href="https://cicada.sh">cicada.sh</a></p>
+<hr>
+
+<script src="https://utteranc.es/client.js"
+  repo="dosisod/dosisod.github.io"
+  issue-term="title"
+  theme="github-light"
+  crossorigin="anonymous"
+  async>
+</script>
+
+<noscript>
+  <br>
+  <em>
+    Comment with GitHub functionality is
+    disabled when JavaScript is turned off.
+  </em>
+</noscript>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="og:title" content="I Don't Like Ligatures" />
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/github.css" />
+  <title>I Don't Like Ligatures</title>
+</head>
+<body>
+
+<main>
+<a id="i-don-x27-t-like-ligatures" href="#i-don-x27-t-like-ligatures"><h1>I Don&#x27;t Like Ligatures</h1></a>
+<br>
+<p>The title says it all. And just so we are on the same page, I am talking specifically
+about ligatures used for programming, like the one below:</p>
+<br>
+<img src="https://cdn-images-1.medium.com/max/1200/1*wP6e1QtYkm5ezm8QLA8wkA.gif" />
+<br>
+<p><a href="https://medium.com/larsenwork-andreas-larsen/ligatures-coding-fonts-5375ab47ef8e">Photo Credit</a></p>
+<br>
+<a id="they-can-change-font-width" href="#they-can-change-font-width"><h2>They Can Change Font Width</h2></a>
+<br>
+<p>Ligatures are basically just groups of characters that when together, display a
+different character <a id="footnote-ref-1" href="#footnote-1">[1]</a>. This means that you can change the width of the
+conjoined characters. For example, you could have a ligature font which changes <code class="hljs">abc</code>
+into <code class="hljs">x</code> <a id="footnote-ref-2" href="#footnote-2">[2]</a>. Although contrived, this shows the issue at hand.</p>
+<br>
+<p>Why is it an issue you might ask?</p>
+<br>
+<p>Doc strings, comments, and linters depend on a specific spacing of characters. If a
+ligature font comes in and changes that, then your indentation can get off, causing
+minor readability issues for you and other developers later on.</p>
+<br>
+<blockquote>There are plenty of ligature fonts which maintain the same amount of space, though
+it is important to note that not all of them do. Some people are very picky about
+things being all lined up, myself included.</blockquote>
+<br>
+<a id="making-edits-can-be-harder" href="#making-edits-can-be-harder"><h2>Making Edits Can be Harder</h2></a>
+<br>
+<p>Since the font changes the glyph being rendered, when you go to modify the characters
+that make up the ligature, it will switch back to the original version. This can be
+quite jarring at times, despite being very similar looking.</p>
+<br>
+<p>Obviously, it is pretty easy to remember that the <code class="hljs">!</code> in <code class="hljs">!=</code> is on the left, but with
+a ligature, it can be rendered in the middle, requiring a slight mental reminder to
+position your cursor a little bit more to the left. If you use Vim, and want to go right
+to a specific character, this might be a bit weird, since it is in between 2 columns.</p>
+<br>
+<a id="sometimes-they-are-just-plain-weird" href="#sometimes-they-are-just-plain-weird"><h2>Sometimes They Are Just Plain Weird</h2></a>
+<br>
+<p>Some ligatures display <code class="hljs">|&gt;</code> as <code class="hljs">▷</code>, for example, languages like F#:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">let</span> squareAndAddOdd values <span class="hljs-operator">=</span>
+    values
+    <span class="hljs-operator">|&gt;</span> List.filter (<span class="hljs-keyword">fun</span> x <span class="hljs-operator">-&gt;</span> x <span class="hljs-operator">%</span> <span class="hljs-number">2</span> <span class="hljs-operator">&lt;&gt;</span> <span class="hljs-number">0</span>)
+    <span class="hljs-operator">|&gt;</span> List.map (<span class="hljs-keyword">fun</span> x <span class="hljs-operator">-&gt;</span> x <span class="hljs-operator">*</span> x <span class="hljs-operator">+</span> <span class="hljs-number">1</span>)</pre>
+
+<br>
+<p>Versus:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">let</span> squareAndAddOdd values <span class="hljs-operator">=</span>
+    values
+    ▷ List.filter (<span class="hljs-keyword">fun</span> x <span class="hljs-operator">-&gt;</span> x <span class="hljs-operator">%</span> <span class="hljs-number">2</span> <span class="hljs-operator">&lt;&gt;</span> <span class="hljs-number">0</span>)
+    ▷ List.map (<span class="hljs-keyword">fun</span> x <span class="hljs-operator">-&gt;</span> x <span class="hljs-operator">*</span> x <span class="hljs-operator">+</span> <span class="hljs-number">1</span>)</pre>
+
+<br>
+<p>I have to agree that this <em><strong>looks</strong></em> better, but to the unaccustomed, this can just be
+confusing: &quot;Why do they use triangles here?&quot; &quot;Oh, they don&#x27;t, that&#x27;s just my font I am
+using&quot;.</p>
+<br>
+<a id="fin" href="#fin"><h2>Fin</h2></a>
+<br>
+<p>Do as you please. If you like ligatures, use them! If you don&#x27;t, then don&#x27;t! I don&#x27;t use
+them, for the reasons stated above.</p>
+<br>
+<hr>
+<br>
+<p><a id="footnote-1" href="#footnote-ref-1">[1]</a>: Technically it is called a &quot;glyph&quot;, since glyphs are the ones responsible for
+actually doing the rendering, whereas the characters are the underlying
+bytes being rendered.</p>
+<br>
+<p><a id="footnote-2" href="#footnote-ref-2">[2]</a>: This sounds like a cool way to bypass government censorship (you didn&#x27;t hear
+that from me though).</p>
+<hr>
+
+<script src="https://utteranc.es/client.js"
+  repo="dosisod/dosisod.github.io"
+  issue-term="title"
+  theme="github-light"
+  crossorigin="anonymous"
+  async>
+</script>
+
+<noscript>
+  <br>
+  <em>
+    Comment with GitHub functionality is
+    disabled when JavaScript is turned off.
+  </em>
+</noscript>
+
+</main>
+
+</body>
+</html>

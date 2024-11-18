@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="og:title" content="WASM-4 Game Jam: Day 8" />
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/github.css" />
+  <title>WASM-4 Game Jam: Day 8</title>
+</head>
+<body>
+
+<main>
+<a id="wasm-4-game-jam-day-8" href="#wasm-4-game-jam-day-8"><h1>WASM-4 Game Jam: Day 8</h1></a>
+<br>
+<p>I&#x27;ve been dealing with head gasket repairs and haven&#x27;t really had time to work on the
+jam (blog on that later, perhaps). Today I mustered up the energy to keep
+going, especially given that there is about 1.5 days left before everything has
+to be submitted.</p>
+<br>
+<p>Some milestones:</p>
+<br>
+<ul>
+<li>Code has been uploaded to <a href="https://github.com/dosisod/matcha9000">GitHub</a>!</li>
+<li>A GitHub action workflow has been added to create a release (with build artifacts) whenever a commit is made to master.</li>
+<li>Auto saving current level</li>
+<li>Hashed out the first 5 levels</li>
+</ul>
+<br>
+<p>One of the hardest things that I have ran into is making the levels hard enough to be fun,
+but easy enough to be solvable, and fit within the 20 line mark. I have a few ideas to make
+things easier/more playable, including:</p>
+<br>
+<ul>
+<li>Making the <code class="hljs">ROT</code> op code take a turn count</li>
+<li>Make <code class="hljs">USE</code> op code work regardless of player direction</li>
+<li>Add a play/pause button to allow you to stop/resume normal execution</li>
+<li>Add sort of a grid system to make counting out steps easier</li>
+</ul>
+<br>
+<p>I have a lot of work ahead of me tomorrow. I was planning on making 20 levels to match the
+20 available instructions, but that might be hard, especially with the game play adjustments I need
+to make.</p>
+<hr>
+
+<script src="https://utteranc.es/client.js"
+  repo="dosisod/dosisod.github.io"
+  issue-term="title"
+  theme="github-light"
+  crossorigin="anonymous"
+  async>
+</script>
+
+<noscript>
+  <br>
+  <em>
+    Comment with GitHub functionality is
+    disabled when JavaScript is turned off.
+  </em>
+</noscript>
+
+</main>
+
+</body>
+</html>

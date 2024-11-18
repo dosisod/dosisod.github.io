@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="og:title" content="Programming Language Review: Visual Basic" />
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/github.css" />
+  <title>Programming Language Review: Visual Basic</title>
+</head>
+<body>
+
+<main>
+<a id="programming-language-review-visual-basic" href="#programming-language-review-visual-basic"><h1>Programming Language Review: Visual Basic</h1></a>
+<br>
+<p>I have been using Visual Basic (VB) at work a lot, and I have some (many) opinions about it. Having
+<a href="https://github.com/dosisod/skull">created a programming language</a> myself, I find the design decisions and
+little features/quirks of this language very fascinating.</p>
+<br>
+<p>I read through (most) of the <a href="https://docs.microsoft.com/en-us/dotnet/visual-basic/language-reference/">Visual Basic docs</a>
+on MSDN before I started seriously looking
+at any VB code, and I am glad I did! There are a lot of weird &quot;features&quot; which aren&#x27;t present in
+most other languages, and other things that just don&#x27;t make any sense. VB shares a pretty good feature parity
+between C# (VB, C#, and F# the 3 main languages that make up the .NET family of
+languages), despite Microsoft <a href="https://devblogs.microsoft.com/vbteam/visual-basic-support-planned-for-net-5-0/">halting future development on VB</a>.</p>
+<br>
+<p>Saving the best for last, let&#x27;s dive into some VB code!</p>
+<br>
+<a id="unforgivable" href="#unforgivable"><h2>Unforgivable</h2></a>
+<br>
+<p>There are some things that VB does which are just plain wrong:</p>
+<br>
+<pre class="hljs"><span class="hljs-comment">&#x27; Using single quotes as a comment. Makes grep&#x27;ing for things harder</span>
+<span class="hljs-comment">&#x27; Also, no multi-line comments</span>
+
+<span class="hljs-comment">&#x27; Why in the world would you use &lt;&gt; for the &quot;not equal&quot; operator?</span>
+<span class="hljs-keyword">Dim</span> isNameNotBob <span class="hljs-keyword">As</span> <span class="hljs-type">Boolean</span> = name &lt;&gt; <span class="hljs-string">&quot;bob&quot;</span>
+
+<span class="hljs-keyword">Dim</span> str <span class="hljs-keyword">As</span> <span class="hljs-type">String</span> = <span class="hljs-string">&quot;using ampersands &quot;</span> &amp; <span class="hljs-string">&quot;for&quot;</span> &amp; <span class="hljs-string">&quot; string concatenation&quot;</span></pre>
+
+<br>
+<p>These are just minor annoyances, but can be overlooked. They just don&#x27;t make sense, that&#x27;s all.
+But, there are some things which just sinful:</p>
+<br>
+<a id="it-x27-s-case-insensitive" href="#it-x27-s-case-insensitive"><h3>It&#x27;s Case Insensitive</h3></a>
+<br>
+<p>Yep. It is really jarring to see the same variable with different cases. It just brings a certain
+feeling of uncertainty when working on a project.</p>
+<br>
+<p>Depending on your IDE (Visual Studio 2022, I am looking at you), it might also just go ahead and
+&quot;normalize&quot; your symbols for you, changing the casing to the casing of the original variable. In our
+codebase, we <s>have</s> had a global variable called <code class="hljs">sql</code>, and in doing refactorings, Visual Studio would rename <code class="hljs">sql</code>
+to <code class="hljs">Sql</code> (note the capital <code class="hljs">S</code>), since <code class="hljs">Sql</code> was a namespace which we had available. When you added in the
+local <code class="hljs">sql</code> variable back in, it wouldn&#x27;t change it back for you! You would end up with code like this:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">Dim</span> sql = <span class="hljs-string">&quot;SELECT * FROM table_name&quot;</span>
+
+run(Sql)</pre>
+
+<br>
+<p>I get that the keywords in Visual Basic are case-insensitive, and that is fine, but identifiers? That
+is too far IMO.</p>
+<br>
+<blockquote>Note that Visual Studio has nothing to do with the VB language itself, but it does do a good job of accentuating
+this particular design flaw in VB.</blockquote>
+<br>
+<a id="implicit-function-calls" href="#implicit-function-calls"><h3>Implicit Function Calls</h3></a>
+<br>
+<p>Another fun fact about VB is that <a href="https://docs.microsoft.com/en-us/dotnet/visual-basic/language-reference/statements/function-statement#calling-a-function">functions that don&#x27;t take arguments can be called without using any
+parenthesis</a>:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">Function</span> f() <span class="hljs-keyword">As</span> <span class="hljs-type">Integer</span>
+    <span class="hljs-keyword">Return</span> <span class="hljs-number">1337</span>
+<span class="hljs-keyword">End</span> <span class="hljs-keyword">Function</span>
+
+<span class="hljs-keyword">Sub</span> Main()
+    Console.WriteLine(f)
+<span class="hljs-keyword">End</span> <span class="hljs-keyword">Sub</span></pre>
+
+<br>
+<p>I don&#x27;t know why this is the case. Even the docs say not do do it.</p>
+<br>
+<a id="type-conversion-suffixes" href="#type-conversion-suffixes"><h3>Type Conversion Suffixes</h3></a>
+<br>
+<p>Given the following example:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">Dim</span> a = <span class="hljs-string">&quot;1234&quot;</span>
+<span class="hljs-keyword">Dim</span> b$ = <span class="hljs-string">&quot;1234&quot;</span>
+<span class="hljs-keyword">Dim</span> c# = <span class="hljs-string">&quot;1234&quot;</span>
+<span class="hljs-keyword">Dim</span> d% = <span class="hljs-string">&quot;1234&quot;</span>
+<span class="hljs-keyword">Dim</span> e! = <span class="hljs-string">&quot;1234&quot;</span>
+<span class="hljs-keyword">Dim</span> f@ = <span class="hljs-string">&quot;1234&quot;</span>
+<span class="hljs-keyword">Dim</span> g&amp; = <span class="hljs-string">&quot;1234&quot;</span>
+
+Console.WriteLine(a &amp; <span class="hljs-string">&quot; &quot;</span> &amp; TypeName(a))
+Console.WriteLine(b &amp; <span class="hljs-string">&quot; &quot;</span> &amp; TypeName(b))
+Console.WriteLine(c &amp; <span class="hljs-string">&quot; &quot;</span> &amp; TypeName(c))
+Console.WriteLine(d &amp; <span class="hljs-string">&quot; &quot;</span> &amp; TypeName(d))
+Console.WriteLine(e &amp; <span class="hljs-string">&quot; &quot;</span> &amp; TypeName(e))
+Console.WriteLine(f &amp; <span class="hljs-string">&quot; &quot;</span> &amp; TypeName(f))
+Console.WriteLine(g &amp; <span class="hljs-string">&quot; &quot;</span> &amp; TypeName(g))</pre>
+
+<br>
+<p>What do you expect this code to return?</p>
+<br>
+<pre class="hljs">1234 String
+1234 String
+1234 Double
+1234 Integer
+1234 Single
+1234 Decimal
+1234 Long</pre>
+<br>
+<p>What is going on here? Well, <a href="https://docs.microsoft.com/en-us/dotnet/visual-basic/programming-guide/language-features/data-types/type-characters">&quot;type characters&quot;</a>
+of course! They are these little warts you can sprinkle on your code which let you declare the type of the variable using the name of
+the variable itself. Not fun.</p>
+<br>
+<p>You can also cast the result of a function just as easily using these same conversion symbols:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">Dim</span> name = <span class="hljs-string">&quot;Billy Bob&quot;</span>
+
+Console.WriteLine(Left$(name, <span class="hljs-number">5</span>))</pre>
+
+<br>
+<p>This will print <code class="hljs">Billy</code> (as a string), since <code class="hljs">$</code> is the type character for string conversions.</p>
+<br>
+<blockquote><code class="hljs">Left</code> already returns a string, so the <code class="hljs">$</code> is redundant, but you get the point.</blockquote>
+<br>
+<a id="unfortunate" href="#unfortunate"><h2>Unfortunate</h2></a>
+<br>
+<p>These next few things are interesting &quot;features&quot;, gotchas, or both! They aren&#x27;t as egregious
+as the last section, but they might trip you up if you aren&#x27;t paying attention.</p>
+<br>
+<a id="short-circuiting" href="#short-circuiting"><h3>Short Circuiting</h3></a>
+<br>
+<p>And I&#x27;m not talking about that one <a href="https://youtu.be/9hhVnRTNVmM">Daft Punk Song</a>.</p>
+<br>
+<p>You might not know what short circuiting is off the top of your head, but you have definitely experienced it at some point.
+Take the following Python code for example:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">def</span> <span class="hljs-title function_">proxy</span>(<span class="hljs-params">x</span>):
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;proxy: <span class="hljs-subst">{x}</span>&quot;</span>)
+    <span class="hljs-keyword">return</span> x
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">expensive</span>():
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;some expensive call&quot;</span>)
+    <span class="hljs-keyword">return</span> true
+
+a = proxy(<span class="hljs-literal">False</span>) <span class="hljs-keyword">and</span> expensive()
+b = proxy(<span class="hljs-literal">True</span>) <span class="hljs-keyword">and</span> expensive()</pre>
+
+<br>
+<p>When running, we get:</p>
+<br>
+<pre class="hljs">proxy: False
+proxy: True
+some expensive call</pre>
+<br>
+<p>As you can see, our <code class="hljs">expensive</code> function is only called if the <code class="hljs">proxy</code> method returns true. If it returns false
+(like in the first example), it doesn&#x27;t matter what <code class="hljs">expensive</code> returns, the expression will always evaluate to
+false. This is really nice if you only want to call something expensive if a certain condition is met, or want to
+reduce the number of unnecessary computations in your program.</p>
+<br>
+<p>So, what happens in VB you might ask?</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">Function</span> proxy(x <span class="hljs-keyword">As</span> <span class="hljs-type">Boolean</span>) <span class="hljs-keyword">As</span> <span class="hljs-type">Boolean</span>
+    Console.WriteLine(<span class="hljs-string">&quot;proxy: &quot;</span> &amp; x)
+    <span class="hljs-keyword">return</span> x
+<span class="hljs-keyword">End</span> <span class="hljs-keyword">Function</span>
+
+<span class="hljs-keyword">Function</span> expensive() <span class="hljs-keyword">As</span> <span class="hljs-type">Boolean</span>
+    Console.WriteLine(<span class="hljs-string">&quot;some expensive call&quot;</span>)
+<span class="hljs-keyword">End</span> <span class="hljs-keyword">Function</span>
+
+<span class="hljs-keyword">Sub</span> Main()
+    <span class="hljs-keyword">Dim</span> a = proxy(<span class="hljs-literal">false</span>) <span class="hljs-built_in">And</span> expensive()
+    <span class="hljs-keyword">Dim</span> b = proxy(<span class="hljs-literal">true</span>) <span class="hljs-built_in">And</span> expensive()
+<span class="hljs-keyword">End</span> <span class="hljs-keyword">Sub</span></pre>
+
+<br>
+<p>Running:</p>
+<br>
+<pre class="hljs">proxy: False
+some expensive call
+proxy: True
+some expensive call</pre>
+<br>
+<p>So, one might think that VB doesn&#x27;t have short circuiting, but they would be incorrect! VB does
+indeed have support for short-circuiting, but you need to use a different operator, <code class="hljs">AndAlso</code>!</p>
+<br>
+<blockquote>There is also an short-circuiting version of the <code class="hljs">Or</code> operator called <code class="hljs">OrElse</code>.</blockquote>
+<br>
+<p>Changing our code to the following, we get the result we expected:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">Sub</span> Main()
+    <span class="hljs-keyword">Dim</span> a = proxy(<span class="hljs-literal">false</span>) <span class="hljs-built_in">AndAlso</span> expensive()
+    <span class="hljs-keyword">Dim</span> b = proxy(<span class="hljs-literal">true</span>) <span class="hljs-built_in">AndAlso</span> expensive()
+<span class="hljs-keyword">End</span> <span class="hljs-keyword">Sub</span></pre>
+
+<br>
+<p>Running:</p>
+<br>
+<pre class="hljs">proxy: False
+proxy: True
+some expensive call</pre>
+<br>
+<p>Why <code class="hljs">AndAlso</code> isn&#x27;t the default behavior, the world may never know. This might be due to with some BASIC backwards
+compatibility issues, but who knows.</p>
+<br>
+<a id="modules" href="#modules"><h3>Modules</h3></a>
+<br>
+<p>Modularity is normally a good thing: it keeps our code in little compartments, and allows us to better organize our code.
+Not in VB. A <code class="hljs">Module</code> in VB translates to: &quot;make the code in this block available, <em><strong>without the need for an <code class="hljs">Import</code></strong></em>,
+to all VB files in this project&quot;.</p>
+<br>
+<p>If you are looking for actual &quot;modularity&quot;, use namespaces instead.</p>
+<br>
+<p>Modules (in VB) are really helpful for utilities which need to be available everywhere in the application, but can very
+easily clog up the global namespace.</p>
+<br>
+<a id="named-return-values" href="#named-return-values"><h3>Named Return Values</h3></a>
+<br>
+<p>I really like named return values, and I think Golang does a good job of implementing it:</p>
+<br>
+<pre class="hljs"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">add</span><span class="hljs-params">(a <span class="hljs-type">int</span>, b <span class="hljs-type">int</span>)</span></span> (sum <span class="hljs-type">int</span>) {
+    sum += a
+    sum += b
+    <span class="hljs-keyword">return</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> {
+    fmt.Println(add(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>))
+}</pre>
+
+<br>
+<p>This basically will add <code class="hljs">a</code> and <code class="hljs">b</code> together, storing the result in <code class="hljs">sum</code>. When the function returns,
+<code class="hljs">sum</code> is returned automatically. Very nice!</p>
+<br>
+<p>VB on the other hand, does not do this nicely:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">Function</span> Add(a <span class="hljs-keyword">As</span> <span class="hljs-type">Integer</span>, b <span class="hljs-keyword">As</span> <span class="hljs-type">Integer</span>) <span class="hljs-keyword">As</span> <span class="hljs-type">Integer</span>
+    Add += a
+    Add += b
+<span class="hljs-keyword">End</span> <span class="hljs-keyword">Function</span>
+
+<span class="hljs-keyword">Sub</span> Main()
+    Console.WriteLine(Add(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>))
+<span class="hljs-keyword">End</span> <span class="hljs-keyword">Sub</span></pre>
+
+<br>
+<p>What I really don&#x27;t like is the fact that the return value is the same as the function name itself.
+When you first see this, it might be confusing: Why are we assigning to the name of the function? Does
+that even work?</p>
+<br>
+<p>Although the feature is &quot;nice&quot;, it will be annoying when it comes time to rename that function (and VS 2022
+won&#x27;t rename the <code class="hljs">Add</code> references if you change the function name).</p>
+<br>
+<a id="no-new-expressions" href="#no-new-expressions"><h3>No New Expressions</h3></a>
+<br>
+<p>Normally in C#, you can write this:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">SomeClass</span> {
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">int</span> <span class="hljs-title">SomeMethod</span>()</span> {
+        Console.WriteLine(<span class="hljs-string">&quot;hello world&quot;</span>);
+        <span class="hljs-keyword">return</span> <span class="hljs-number">1234</span>;
+    }
+}
+
+<span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Main</span>()</span> {
+    <span class="hljs-built_in">int</span> <span class="hljs-keyword">value</span> = <span class="hljs-keyword">new</span> SomeClass().SomeMethod(); <span class="hljs-comment">// this line</span>
+}</pre>
+
+<br>
+<p>Here we create a new instance of <code class="hljs">SomeClass</code>, call its <code class="hljs">SomeMethod</code>, assigning the result to <code class="hljs">value</code>, and
+destroying our temporary class instance.</p>
+<br>
+<p>In VB though, there is no good way of doing this:</p>
+<br>
+<pre class="hljs"><span class="hljs-comment">&#x27; This line won&#x27;t compile:</span>
+<span class="hljs-keyword">Dim</span> value = <span class="hljs-built_in">New</span> SomeClass().SomeMethod()
+
+<span class="hljs-comment">&#x27; Or this:</span>
+<span class="hljs-keyword">Dim</span> value = (<span class="hljs-built_in">New</span> SomeClass()).SomeMethod()
+
+<span class="hljs-comment">&#x27; This is the typical way you would do this (requires temp variable)</span>
+<span class="hljs-keyword">Dim</span> temp <span class="hljs-keyword">As</span> <span class="hljs-built_in">New</span> SomeClass()
+<span class="hljs-keyword">Dim</span> value = temp.SomeMethod()</pre>
+
+<br>
+<p>The closest you can get is using the <a href="https://docs.microsoft.com/en-us/dotnet/visual-basic/language-reference/statements/call-statement"><code class="hljs">Call</code> statement</a>,
+which allows for calling expressions which don&#x27;t start with an identifier (ie, <code class="hljs">New</code>). The only issue with <code class="hljs">Call</code> is that it treats
+the function/sub-procedure as a sub-procedure, discarding the result in the case of a function!</p>
+<br>
+<p>This seems to be a bug in the expression parser. There is no reason why you can assign the expression <code class="hljs">New Something()</code> to a variable, but not use
+that same expression to call a method on said expression (like <code class="hljs">New Something().Method()</code>).</p>
+<br>
+<p>It is also unfortunate that you need a temporary variable because the lifetime of this variable now is extended to the end of it&#x27;s bounding scope,
+which could potentially the end of the function. In the case of C#, having the temporary instance allows for the garbage collector to free up resources
+sooner, whereas VB has to wait until the scope is exited.</p>
+<br>
+<a id="underrated" href="#underrated"><h2>Underrated</h2></a>
+<br>
+<p>There are some things that I think makes VB really shine, things that more languages should pick up on.</p>
+<br>
+<a id="the-power-operator" href="#the-power-operator"><h3>The Power Operator</h3></a>
+<br>
+<p>Most languages use <code class="hljs">**</code>, or a separate <code class="hljs">pow</code> function to raise things to a power. This is how you do it in VB:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">Dim</span> square = <span class="hljs-number">3</span> ^ <span class="hljs-number">2</span></pre>
+
+<br>
+<p>Beautiful.</p>
+<br>
+<p>Even though Python has the <code class="hljs">and</code>, <code class="hljs">not</code> and <code class="hljs">or</code> keywords, it doesn&#x27;t have <code class="hljs">xor</code>, meaning it is stuck with <code class="hljs">^</code> for
+the xor operator, along with all the other C-style languages.</p>
+<br>
+<blockquote>See <a href="https://eev.ee/blog/2016/12/01/lets-stop-copying-c/">this blog post</a> for more comparisons of C to other languages.</blockquote>
+<br>
+<a id="using-blocks" href="#using-blocks"><h3>Using Blocks</h3></a>
+<br>
+<p>Like Python (and C#), VB has a <code class="hljs">using</code> block for managing resources:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">Using</span> resource <span class="hljs-keyword">As</span> <span class="hljs-built_in">New</span> SomeResource
+    <span class="hljs-comment">&#x27; use resource</span>
+<span class="hljs-keyword">End</span> <span class="hljs-keyword">Using</span></pre>
+
+<br>
+<p>Assuming that the <code class="hljs">SomeResource</code> class implements the
+<a href="https://docs.microsoft.com/en-us/dotnet/api/system.idisposable?view=net-6.0"><code class="hljs">IDisposable</code></a>
+interface, it can be used in a <code class="hljs">using</code> block no problem. This is a really nice
+pattern in Python, and makes cleaning up resources super easy.</p>
+<br>
+<a id="events" href="#events"><h3>Events</h3></a>
+<br>
+<p>One of the best features of VB that actually really surprised me is that it has built-in supports for events.
+Basically, you attach <code class="hljs">Handles SomeEvent</code> to the end of your sub-procedure, and it gets called whenever that
+event is fired!</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">Public</span> <span class="hljs-keyword">Class</span> UserRepo
+    <span class="hljs-keyword">Public</span> <span class="hljs-keyword">Event</span> UserRegistered(<span class="hljs-keyword">ByVal</span> name <span class="hljs-keyword">As</span> <span class="hljs-type">String</span>)
+
+    <span class="hljs-keyword">Public</span> <span class="hljs-keyword">Sub</span> Add(username <span class="hljs-keyword">As</span> <span class="hljs-type">String</span>)
+        <span class="hljs-keyword">RaiseEvent</span> UserRegistered(username)
+    <span class="hljs-keyword">End</span> <span class="hljs-keyword">Sub</span>
+<span class="hljs-keyword">End</span> <span class="hljs-keyword">Class</span>
+
+<span class="hljs-keyword">Module</span> VBModule
+    <span class="hljs-keyword">WithEvents</span> repo <span class="hljs-keyword">As</span> <span class="hljs-built_in">New</span> UserRepo
+
+    <span class="hljs-keyword">Sub</span> AddUserToDataBase(name <span class="hljs-keyword">As</span> <span class="hljs-type">String</span>) <span class="hljs-keyword">Handles</span> repo.UserRegistered
+        Console.WriteLine($<span class="hljs-string">&quot;Adding user {name} to database&quot;</span>)
+    <span class="hljs-keyword">End</span> <span class="hljs-keyword">Sub</span>
+
+    <span class="hljs-keyword">Sub</span> SendWelcomeEmail(name <span class="hljs-keyword">As</span> <span class="hljs-type">String</span>) <span class="hljs-keyword">Handles</span> repo.UserRegistered
+        Console.WriteLine($<span class="hljs-string">&quot;Sending Welcome email to {name}&quot;</span>)
+    <span class="hljs-keyword">End</span> <span class="hljs-keyword">Sub</span>
+
+    <span class="hljs-keyword">Sub</span> Main()
+        repo.Add(<span class="hljs-string">&quot;Alice&quot;</span>)
+        repo.Add(<span class="hljs-string">&quot;Bob&quot;</span>)
+        repo.Add(<span class="hljs-string">&quot;Charlie&quot;</span>)
+    <span class="hljs-keyword">End</span> <span class="hljs-keyword">Sub</span>
+<span class="hljs-keyword">End</span> <span class="hljs-keyword">Module</span></pre>
+
+<br>
+<blockquote><s>Note that this code is untested. All of these VB examples were checked using
+online VB compilers, which uses <a href="https://www.mono-project.com/docs/about-mono/languages/visualbasic/">Mono</a>,
+Which has lacking support for certain VB features.</s></blockquote>
+<br>
+<blockquote>Update: I found this cool site called <a href="https://www.codingrooms.com/">Coding Rooms</a>, which is an online
+IDE which supports live code-sharing, and so on. You can run this demo <a href="https://app.codingrooms.com/w/5v3GRGdtCVsj">here</a>.</blockquote>
+<br>
+<p>This is really nice, because it allows for the caller and the callee to not interact with one another.
+You just register the event you want to listen to, and when it is fired, your function gets called!</p>
+<br>
+<a id="fin" href="#fin"><h2>Fin</h2></a>
+<br>
+<p>That&#x27;s it! There are probably some things I am missing, but this pretty much covers most of the &quot;features&quot; which
+you will run into on a daily basis.</p>
+<br>
+<p>When I started really learning VB, I tried my best to remain neutral, to not love it or hate it, to look for the
+good and the bad before I made my decision. I have made my decision. It could be better! It does a lot of things
+right, but a lot of things are just not that great.</p>
+<hr>
+
+<script src="https://utteranc.es/client.js"
+  repo="dosisod/dosisod.github.io"
+  issue-term="title"
+  theme="github-light"
+  crossorigin="anonymous"
+  async>
+</script>
+
+<noscript>
+  <br>
+  <em>
+    Comment with GitHub functionality is
+    disabled when JavaScript is turned off.
+  </em>
+</noscript>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="og:title" content="Gripes with OOP" />
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/github.css" />
+  <title>Gripes with OOP</title>
+</head>
+<body>
+
+<main>
+<a id="gripes-with-oop" href="#gripes-with-oop"><h1>Gripes with OOP</h1></a>
+<br>
+<p>I use OO languages all the time, but find there are a common string of annoyances
+I have with them. Some of these are inherit to OOP itself, some of them how certain
+OO features are implemented in a certain language, and others are how OOP is used
+in a general sense.</p>
+<br>
+<a id="class-dogma" href="#class-dogma"><h2>Class Dogma</h2></a>
+<br>
+<p>Some languages are multi-paradigm (C++, Python, etc), but some are strictly OOP <a id="footnote-ref-1" href="#footnote-1">[1]</a>.
+What happens if you want a function in Java that adds 2 numbers? Sorry, that needs
+to go into a class.</p>
+<br>
+<p>Certain things don&#x27;t (always) need to go in a class:</p>
+<br>
+<ul>
+<li>Pure functions</li>
+<li>Constants</li>
+<li>Static class methods</li>
+</ul>
+<br>
+<p>Pure functions have no side effects, and as long as they are properly named, shouldn&#x27;t
+need to be tied to a class in any way.</p>
+<br>
+<p>Constants cannot change, and as such, should be able to be defined anywhere you please,
+so long as it makes sense.</p>
+<br>
+<p>Static classes are purely designed to hold static methods and nothing else. In C++/C#,
+a namespace could be used to group like things together, instead of a static class.
+They do the same thing, but one of them doesn&#x27;t need to create a class to do so (even if
+it is just a single class). Take for instance the <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Math.html">Java Math library</a>,
+which is just a bunch of functions wrapped up in a static class called <code class="hljs">Math</code>.</p>
+<br>
+<a id="scope-and-readability" href="#scope-and-readability"><h2>Scope and Readability</h2></a>
+<br>
+<p>As someone who doesn&#x27;t (normally) use an IDE, it is annoying to see a variable, lets call
+it <code class="hljs">x</code>, and have no idea where it is defined:</p>
+<br>
+<pre class="hljs"><span class="hljs-comment">// c++</span>
+
+<span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">SomeClass::someMethod</span><span class="hljs-params">()</span> </span>{
+  x++;
+}</pre>
+
+<br>
+<p>Is it some global variable? Is it defined
+somewhere in this file? Is it a member of this class? Perhaps it is a member of the superclass?</p>
+<br>
+<p>Without an IDE to tell you, you might never know. Even with an IDE, sometimes your IDE is slow, and
+doesn&#x27;t tell you right a way, and now you are waiting for it to finish scanning/running amok/whatever
+else it is doing so that you can get on with your life.</p>
+<br>
+<p>Python uses <code class="hljs">self.x</code> and <code class="hljs">cls.x</code> for accessing instance and static data respectively, and this
+makes it very easy to tell when something is part of a class or not. C++ has <code class="hljs">this-&gt;x</code> and C#/Java
+have <code class="hljs">this.x</code>, and so on. But, these are usually frowned upon, and IDE&#x27;s will tend
+to gray them out, since they are &quot;unnecessary&quot; (in the case of C++/C#/Java).</p>
+<br>
+<a id="getters-setters" href="#getters-setters"><h2>Getters/Setters</h2></a>
+<br>
+<p>It is a &quot;best practice&quot; in Java to add getters and setters for all of your field methods,
+since you never know when you might want to add more functionality to them:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">class</span> <span class="hljs-title class_">SomeClass</span> {
+  <span class="hljs-keyword">public</span> String name;
+  <span class="hljs-keyword">public</span> <span class="hljs-type">int</span> age;
+
+  <span class="hljs-comment">// ...</span>
+
+  <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getName</span><span class="hljs-params">()</span> {
+    <span class="hljs-keyword">return</span> name;
+  }
+
+  <span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">getAge</span><span class="hljs-params">()</span> {
+    <span class="hljs-keyword">return</span> age;
+  }
+
+  <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setName</span><span class="hljs-params">(String n)</span> {
+    name = n;
+  }
+
+  <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setAge</span><span class="hljs-params">(<span class="hljs-type">int</span> n)</span> {
+    age = n;
+  }
+}</pre>
+
+<br>
+<p>There are 3 lines that are important, and that is:</p>
+<br>
+<ol style="margin-left: 3ch">
+<li i="1. ">The name of the class</li>
+<li i="2. ">The <code class="hljs">name</code> field</li>
+<li i="3. ">The <code class="hljs">age</code> field</li>
+</ol>
+<br>
+<p>There is also the constructor, which I left out.</p>
+<br>
+<p>This dogmatic approach to writing code takes away from the things that matter, which is certainly not
+the silly getter/setters. There is this Java library called <a href="https://projectlombok.org/">Lombok</a>,
+and adds a lot of attributes for auto-generating getters/setters, making builder classes, and so on.</p>
+<br>
+<p>In Python, we have dataclasses, which further reduces the class boilerplate:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">from</span> dataclass <span class="hljs-keyword">import</span> dataclass
+
+<span class="hljs-meta">@dataclass</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">SomeClass</span>:
+    name: <span class="hljs-built_in">str</span>
+    age: <span class="hljs-built_in">int</span>
+
+x = SomeClass(name=<span class="hljs-string">&quot;bob&quot;</span>, age=<span class="hljs-number">123</span>)
+x.name = <span class="hljs-string">&quot;alice&quot;</span></pre>
+
+<br>
+<p>Python and C# have the idea of getter/setter properties, which allow for calling a function
+when assigning/reading from a field. This means that you can &quot;add&quot; a getter/setter after
+the fact, and not have to write any boilerplate functions!</p>
+<br>
+<a id="encapsulation" href="#encapsulation"><h2>Encapsulation</h2></a>
+<br>
+<p>Gasp! Encapsulation is good, but there are times where you need to break the rules, and your
+language makes it hard to do so. For example, in Python, everything is public, there isn&#x27;t any
+way of locking things down <a id="footnote-ref-2" href="#footnote-2">[2]</a>. This sounds heretical to non-Python programmers, but
+once you get used to it, it is actually really nice.</p>
+<br>
+<p>C++, C#, and Java have the concept of <code class="hljs">friend</code>/<code class="hljs">protected</code> members, which allow for code
+inside the same &quot;module&quot; to get direct access (as if it where <code class="hljs">public</code>), though restrict this
+access to <code class="hljs">private</code> outside the module. This can be good when you just need access to something
+&quot;this one time&quot;, or want to change something that the original authors (perhaps yourself) didn&#x27;t
+want you to.</p>
+<br>
+<a id="lack-of-understanding-of-oop-concepts" href="#lack-of-understanding-of-oop-concepts"><h2>Lack of Understanding of OOP Concepts</h2></a>
+<br>
+<p>This is more targeted at people who use OOP, or more specifically, don&#x27;t use OOP for what it is
+capable of. Ask yourself the following: When was the last time you:</p>
+<br>
+<ul>
+<li>Wrote a destructor</li>
+<li>Wrote an abstract class</li>
+<li>Wrote a class that didn&#x27;t extend some library interface of sorts</li>
+</ul>
+<br>
+<p>If you haven&#x27;t done any of those recently, perhaps you aren&#x27;t using OOP, just putting your code in
+the right place so that it compiles and runs in whatever framework you chose.
+OOP is, among other things, a way for you to manage the lifetime of objects, to keep relevant
+functionality together, for creating hierarchies, for creating boundaries using interfaces and/or
+abstract classes.</p>
+<br>
+<a id="fin" href="#fin"><h2>Fin</h2></a>
+<br>
+<p>That&#x27;s all for now. I feel like I missed a few points, but all in all, this covers pretty much
+everything important.</p>
+<br>
+<hr>
+<br>
+<p><a id="footnote-1" href="#footnote-ref-1">[1]</a>: Some previously strictly OOP languages (like Java/C#) are adopting more functional approaches,
+and as such, might not be considered &quot;strictly&quot; OOP in the traditional sense.</p>
+<br>
+<p><a id="footnote-2" href="#footnote-ref-2">[2]</a>: There are frozen classes and such, but they more or less just make it harder, not impossible.</p>
+<hr>
+
+<script src="https://utteranc.es/client.js"
+  repo="dosisod/dosisod.github.io"
+  issue-term="title"
+  theme="github-light"
+  crossorigin="anonymous"
+  async>
+</script>
+
+<noscript>
+  <br>
+  <em>
+    Comment with GitHub functionality is
+    disabled when JavaScript is turned off.
+  </em>
+</noscript>
+
+</main>
+
+</body>
+</html>

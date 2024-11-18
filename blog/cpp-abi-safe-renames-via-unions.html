@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="og:title" content="ABI Safe Field Renaming In C/C++" />
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/github.css" />
+  <title>ABI Safe Field Renaming In C/C++</title>
+</head>
+<body>
+
+<main>
+<a id="abi-safe-field-renaming-in-c-c" href="#abi-safe-field-renaming-in-c-c"><h1>ABI Safe Field Renaming In C/C++</h1></a>
+<br>
+<p>This idea popped into my head recently: Could you use unions in C/C++ to safely
+rename a field in a struct <a id="footnote-ref-1" href="#footnote-1">[1]</a>? Let&#x27;s find out!</p>
+<br>
+<p>Imagine you have a simple <code class="hljs">struct</code> called <code class="hljs">Item</code>. It has a few fields, <code class="hljs">name</code>, <code class="hljs">price</code>,
+and <code class="hljs">upc_code</code>:</p>
+<br>
+<pre class="hljs"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Item</span> {</span>
+    <span class="hljs-type">const</span> <span class="hljs-type">char</span> *name;
+    <span class="hljs-type">float</span> price;
+    <span class="hljs-type">const</span> <span class="hljs-type">char</span> *upc_cod;
+};</pre>
+
+<br>
+<p>All is good, except you made a typo and spelled <code class="hljs">upc_code</code> as <code class="hljs">upc_cod</code> instead. Oops. It doesn&#x27;t help
+that you shipped this to your clients 2 versions ago, and you can&#x27;t exactly
+fix it without forcing them to change their code and re-build.</p>
+<br>
+<p>But what if we used a union?</p>
+<br>
+<p>Normally unions are meant for storing different data types under different names while
+occupying the same amount of memory. But, nothing is stopping you from defining multiple
+names with the same data type! So, you can do something like this:</p>
+<br>
+<pre class="hljs"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Item</span> {</span>
+    <span class="hljs-type">const</span> <span class="hljs-type">char</span> *name;
+    <span class="hljs-type">float</span> price;
+    <span class="hljs-class"><span class="hljs-keyword">union</span> {</span>
+        <span class="hljs-type">const</span> <span class="hljs-type">char</span> *upc_cod;
+        <span class="hljs-type">const</span> <span class="hljs-type">char</span> *upc_code;
+    };
+};</pre>
+
+<br>
+<p>And volià! Now your clients can use the both the old and the new fields at the same time
+without breaking ABI.</p>
+<br>
+<p>We can take this a step further though by using an annotation to deprecate the
+old field and pusing our users to use the new field <a id="footnote-ref-2" href="#footnote-2">[2]</a>:</p>
+<br>
+<pre class="hljs">    <span class="hljs-class"><span class="hljs-keyword">union</span> {</span>
+        [[deprecated(<span class="hljs-string">&quot;Use `upc_code` instead&quot;</span>)]]
+        <span class="hljs-type">const</span> <span class="hljs-type">char</span> *upc_cod;
+        <span class="hljs-type">const</span> <span class="hljs-type">char</span> *upc_code;
+    };</pre>
+
+<br>
+<p>This will give your users a nice error message when they try to use <code class="hljs">upc_cod</code>:</p>
+<br>
+<pre class="hljs">main.c:20:12: warning: &#x27;upc_cod&#x27; is deprecated: Use `upc_code` instead [-Wdeprecated-declarations]
+    puts(i.upc_cod);
+           ^</pre>
+<br>
+<hr>
+<br>
+<p><a id="footnote-1" href="#footnote-ref-1">[1]</a>: You can tell I think about programming-related things a lot</p>
+<br>
+<p><a id="footnote-2" href="#footnote-ref-2">[2]</a>: Use <code class="hljs">__attribute__((deprecated))</code> for C. You could also wrap this in a
+macro which conditionally uses the C/C++ version depending on whether
+<code class="hljs">__cplusplus</code> is defined.</p>
+<hr>
+
+<script src="https://utteranc.es/client.js"
+  repo="dosisod/dosisod.github.io"
+  issue-term="title"
+  theme="github-light"
+  crossorigin="anonymous"
+  async>
+</script>
+
+<noscript>
+  <br>
+  <em>
+    Comment with GitHub functionality is
+    disabled when JavaScript is turned off.
+  </em>
+</noscript>
+
+</main>
+
+</body>
+</html>

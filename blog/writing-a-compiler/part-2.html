@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="og:title" content="Writing a Compiler (Part 2): Tokenizing" />
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/github.css" />
+  <title>Writing a Compiler (Part 2): Tokenizing</title>
+</head>
+<body>
+
+<main>
+<a id="writing-a-compiler-part-2-tokenizing" href="#writing-a-compiler-part-2-tokenizing"><h1>Writing a Compiler (Part 2): Tokenizing</h1></a>
+<br>
+<p>The first stage of any compiler is the tokenizer. A tokenizer will split up
+a string of code into &quot;tokens&quot;, where each token represents the smallest,
+yet still meaningful chunk of code. A tokenizer might take in some code like
+this:</p>
+<br>
+<pre class="hljs">x + 1</pre>
+<br>
+<p>And convert it into something like this:</p>
+<br>
+<pre class="hljs"><span class="hljs-punctuation">[</span>
+  <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;contents&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;x&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;identifier&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;line&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;column&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span> <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;contents&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;+&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;operator&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;line&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;column&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">3</span> <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;contents&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;1&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;number&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;line&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;column&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">5</span> <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
+<span class="hljs-punctuation">]</span></pre>
+
+<br>
+<p>Each element in this array is a token, and has some basic information about it,
+such its contents, type, and the line/column it is on.</p>
+<br>
+<p>The code for this blog is viewable <a href="https://github.com/dosisod/write-a-compiler/tree/part2">here</a>.</p>
+<br>
+<a id="what-is-a-token" href="#what-is-a-token"><h2>What is a Token?</h2></a>
+<br>
+<p>Lets start by defining what a token is:</p>
+<br>
+<p>In <code class="hljs">wac/parse/token.py</code>:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">from</span> enum <span class="hljs-keyword">import</span> Enum, auto
+<span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">Optional</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">TokenType</span>(<span class="hljs-title class_ inherited__">Enum</span>):
+    IDENTIFIER = auto()
+    WHITESPACE = auto()
+    NEWLINE = auto()
+
+<span class="hljs-meta">@dataclass</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Token</span>:
+    content: <span class="hljs-built_in">str</span>
+    line: <span class="hljs-built_in">int</span>
+    column: <span class="hljs-built_in">int</span>
+    <span class="hljs-built_in">type</span>: <span class="hljs-type">Optional</span>[TokenType] = <span class="hljs-literal">None</span></pre>
+
+<br>
+<p>A basic token will have the <code class="hljs">contents</code> of the token, the <code class="hljs">line</code> and <code class="hljs">column</code>
+it is on, and the <code class="hljs">type</code> of said token. The type is allowed to be optional, since
+we won&#x27;t know the type of the token until later.</p>
+<br>
+<p>We are using a <a href="https://docs.python.org/3/library/dataclasses.html">dataclass</a>
+for <code class="hljs">Token</code>. This allows for us to write just the outline of the class, and all of our
+boilerplate <code class="hljs">__init__</code>, <code class="hljs">__eq__</code>, etc. methods will be created automatically.</p>
+<br>
+<p>To verify that what we have currently is working, lets add the following test
+in <code class="hljs">test/test_tokenizer.py</code>:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">from</span> wac.parse.token <span class="hljs-keyword">import</span> Token, TokenType
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">test_create_token</span>():
+    token = Token(<span class="hljs-string">&quot;hello&quot;</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>)
+
+    <span class="hljs-keyword">assert</span> token.content == <span class="hljs-string">&quot;hello&quot;</span>
+    <span class="hljs-keyword">assert</span> token.line == <span class="hljs-number">1</span>
+    <span class="hljs-keyword">assert</span> token.column == <span class="hljs-number">2</span>
+    <span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> token.<span class="hljs-built_in">type</span>
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">test_create_token_with_type</span>():
+    token = Token(<span class="hljs-string">&quot;hello&quot;</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, TokenType.IDENTIFIER)
+
+    <span class="hljs-keyword">assert</span> token.content == <span class="hljs-string">&quot;hello&quot;</span>
+    <span class="hljs-keyword">assert</span> token.line == <span class="hljs-number">1</span>
+    <span class="hljs-keyword">assert</span> token.column == <span class="hljs-number">2</span>
+    <span class="hljs-keyword">assert</span> token.<span class="hljs-built_in">type</span> == TokenType.IDENTIFIER
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">test_token_compare</span>():
+    <span class="hljs-keyword">assert</span> Token(<span class="hljs-string">&quot;hello&quot;</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>) == Token(<span class="hljs-string">&quot;hello&quot;</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>)</pre>
+
+<br>
+<p>And run it with <code class="hljs">pytest</code>. We shouldn&#x27;t get any errors.</p>
+<br>
+<a id="creating-location-info" href="#creating-location-info"><h2>Creating Location Info</h2></a>
+<br>
+<p>Next up is taking a string of code, and assigning location info to each of the
+characters. The logic is pretty simple:</p>
+<br>
+<ul>
+<li>Start at line 1, column 1</li>
+<li>Emit a tuple containing the current char, line, and column</li>
+<li>After each character, increment column by 1</li>
+<li>If we are on a newline character, increment line, and set column to 1</li>
+</ul>
+<br>
+<p>We might change this later, but this should cover all of the important use
+cases.</p>
+<br>
+<p>We will create a <a href="https://docs.python.org/3/library/typing.html#typing.NamedTuple">NamedTuple</a>
+to store our new <code class="hljs">LocationInfo</code> data structure:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> NamedTuple
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">LocationInfo</span>(<span class="hljs-title class_ inherited__">NamedTuple</span>):
+    char: <span class="hljs-built_in">str</span>
+    line: <span class="hljs-built_in">int</span>
+    column: <span class="hljs-built_in">int</span></pre>
+
+<br>
+<p>Now we will create a function to take in some code, and using the logic we
+defined above, return a generator which will emit our location info:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">def</span> <span class="hljs-title function_">generate_location_info</span>(<span class="hljs-params">
+    code: <span class="hljs-built_in">str</span>,
+</span>) -&gt; Generator[LocationInfo, <span class="hljs-literal">None</span>, <span class="hljs-literal">None</span>]:
+    line = <span class="hljs-number">1</span>
+    column = <span class="hljs-number">1</span>
+
+    <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> code:
+        <span class="hljs-keyword">yield</span> LocationInfo(c, line, column)
+
+        <span class="hljs-keyword">if</span> c == <span class="hljs-string">&quot;\n&quot;</span>:
+            line += <span class="hljs-number">1</span>
+            column = <span class="hljs-number">1</span>
+
+        <span class="hljs-keyword">else</span>:
+            column += <span class="hljs-number">1</span></pre>
+
+<br>
+<p>The <code class="hljs">-&gt; Generator[...]</code> part is return type annotation, which tells mypy (and
+your intellisense if you&#x27;re using VSCode) what the <code class="hljs">generate_location_info</code> function
+is actually returning.</p>
+<br>
+<p>We will test the functionality of our new function in the existing <code class="hljs">test_tokenizer.py</code> file:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">from</span> wac.parse.token <span class="hljs-keyword">import</span> generate_location_info
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">test_generate_location_info</span>():
+    locations = <span class="hljs-built_in">list</span>(generate_location_info(<span class="hljs-string">&quot;a\nbc\ndef&quot;</span>))
+
+    <span class="hljs-keyword">assert</span> locations == [
+        (<span class="hljs-string">&quot;a&quot;</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>),
+        (<span class="hljs-string">&quot;\n&quot;</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>),
+        (<span class="hljs-string">&quot;b&quot;</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>),
+        (<span class="hljs-string">&quot;c&quot;</span>, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>),
+        (<span class="hljs-string">&quot;\n&quot;</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>),
+        (<span class="hljs-string">&quot;d&quot;</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>),
+        (<span class="hljs-string">&quot;e&quot;</span>, <span class="hljs-number">3</span>, <span class="hljs-number">2</span>),
+        (<span class="hljs-string">&quot;f&quot;</span>, <span class="hljs-number">3</span>, <span class="hljs-number">3</span>),
+    ]</pre>
+
+<br>
+<a id="generating-the-tokens" href="#generating-the-tokens"><h2>Generating the Tokens</h2></a>
+<br>
+<p>Now that we have the ability to get location info for each of the characters in
+our string, we can start to group similar characters and make tokens!</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">from</span> itertools <span class="hljs-keyword">import</span> groupby
+<span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> Generator, <span class="hljs-type">List</span>, <span class="hljs-type">Optional</span>
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">char_to_token_type</span>(<span class="hljs-params">c: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-type">Optional</span>[TokenType]:
+    <span class="hljs-keyword">if</span> c == <span class="hljs-string">&quot;\n&quot;</span>:
+        <span class="hljs-keyword">return</span> TokenType.NEWLINE
+
+    <span class="hljs-keyword">if</span> c.isspace():
+        <span class="hljs-keyword">return</span> TokenType.WHITESPACE
+
+    <span class="hljs-keyword">if</span> c.isalpha():
+        <span class="hljs-keyword">return</span> TokenType.IDENTIFIER
+
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span>
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">tokenize</span>(<span class="hljs-params">code: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-type">List</span>[Token]:
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">create_token</span>(<span class="hljs-params">token_info</span>):
+        contents = <span class="hljs-string">&quot;&quot;</span>.join([info.char <span class="hljs-keyword">for</span> info <span class="hljs-keyword">in</span> token_info])
+
+        <span class="hljs-keyword">return</span> Token(contents, token_info[<span class="hljs-number">0</span>].line, token_info[<span class="hljs-number">0</span>].column)
+
+    location_info = generate_location_info(code)
+
+    grouped = groupby(
+        location_info,
+        <span class="hljs-keyword">lambda</span> info: char_to_token_type(info.char),
+    )
+
+    <span class="hljs-keyword">return</span> [create_token(<span class="hljs-built_in">list</span>(group[<span class="hljs-number">1</span>])) <span class="hljs-keyword">for</span> group <span class="hljs-keyword">in</span> grouped]</pre>
+
+<br>
+<p><code class="hljs">char_to_token_type</code> will take a single char, and try and figure out what kind
+of token type it is. We will add to this later, but this should be good for now.</p>
+<br>
+<p><code class="hljs">tokenize</code> is a little more complex, but not too much. Basically, we start out by
+generating the location info, figuring out the token type (using the <code class="hljs">lambda</code>
+function), and group all the tokens which have the same token type. An example of
+what <code class="hljs">groupby</code> does:</p>
+<br>
+<pre class="hljs"><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-keyword">from</span> itertools <span class="hljs-keyword">import</span> groupby
+
+<span class="hljs-meta">&gt;&gt;&gt; </span>nums = [<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, -<span class="hljs-number">1</span>, -<span class="hljs-number">2</span>, <span class="hljs-number">10</span>, -<span class="hljs-number">10</span>]
+
+<span class="hljs-meta">&gt;&gt;&gt; </span>groups = groupby(nums, <span class="hljs-keyword">lambda</span> x: x &gt; <span class="hljs-number">0</span>)
+
+<span class="hljs-meta">&gt;&gt;&gt; </span>[(group[<span class="hljs-number">0</span>], <span class="hljs-built_in">list</span>(group[<span class="hljs-number">1</span>])) <span class="hljs-keyword">for</span> group <span class="hljs-keyword">in</span> groups]
+[(<span class="hljs-literal">True</span>, [<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>]), (<span class="hljs-literal">False</span>, [-<span class="hljs-number">1</span>, -<span class="hljs-number">2</span>]), (<span class="hljs-literal">True</span>, [<span class="hljs-number">10</span>]), (<span class="hljs-literal">False</span>, [-<span class="hljs-number">10</span>])]</pre>
+
+<br>
+<p>What we get back is an array of tuples, each tuple having the return value of
+our lambda on the left, and the grouped values which match that lambda&#x27;s return
+value on the right.</p>
+<br>
+<p>Once we have our location info all grouped up, we loop through each group,
+adding up all the <code class="hljs">char</code>&#x27;s, taking the <code class="hljs">line</code>/<code class="hljs">column</code> info of the first
+location info tuple, and creating a token from that.</p>
+<br>
+<p>Here are the associated tests for above:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">from</span> wac.parse.token <span class="hljs-keyword">import</span> Token, tokenize
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">test_tokenize_single_token</span>():
+    tokens = tokenize(<span class="hljs-string">&quot;hello&quot;</span>)
+
+    <span class="hljs-keyword">assert</span> tokens == [Token(<span class="hljs-string">&quot;hello&quot;</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>)]
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">test_tokenize_2_tokens</span>():
+    tokens = tokenize(<span class="hljs-string">&quot;hello\n&quot;</span>)
+
+    <span class="hljs-keyword">assert</span> tokens == [Token(<span class="hljs-string">&quot;hello&quot;</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>), Token(<span class="hljs-string">&quot;\n&quot;</span>, <span class="hljs-number">1</span>, <span class="hljs-number">6</span>)]
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">test_tokenize_many_tokens</span>():
+    tokens = tokenize(<span class="hljs-string">&quot;hello world&quot;</span>)
+
+    <span class="hljs-keyword">assert</span> tokens == [
+        Token(<span class="hljs-string">&quot;hello&quot;</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>),
+        Token(<span class="hljs-string">&quot; &quot;</span>, <span class="hljs-number">1</span>, <span class="hljs-number">6</span>),
+        Token(<span class="hljs-string">&quot;world&quot;</span>, <span class="hljs-number">1</span>, <span class="hljs-number">7</span>),
+    ]
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">test_tokenize_unknown_token</span>():
+    tokens = tokenize(<span class="hljs-string">&quot;+&quot;</span>)
+
+    <span class="hljs-keyword">assert</span> tokens == [Token(<span class="hljs-string">&quot;+&quot;</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>)]</pre>
+
+<br>
+<a id="next-steps" href="#next-steps"><h2>Next Steps</h2></a>
+<br>
+<p>In the next blog we will further improve upon our tokenizer, and start actually
+classifying the tokens based on their contents.</p>
+<br>
+<p>[<a href="./part-1.html">prev</a>]
+[<a href="./part-3.html">next</a>]</p>
+<hr>
+
+<script src="https://utteranc.es/client.js"
+  repo="dosisod/dosisod.github.io"
+  issue-term="title"
+  theme="github-light"
+  crossorigin="anonymous"
+  async>
+</script>
+
+<noscript>
+  <br>
+  <em>
+    Comment with GitHub functionality is
+    disabled when JavaScript is turned off.
+  </em>
+</noscript>
+
+</main>
+
+</body>
+</html>

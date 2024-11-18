@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="og:title" content="The Process of Finding a Bug" />
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/github.css" />
+  <title>The Process of Finding a Bug</title>
+</head>
+<body>
+
+<main>
+<a id="the-process-of-finding-a-bug" href="#the-process-of-finding-a-bug"><h1>The Process of Finding a Bug</h1></a>
+<br>
+<p>I spent a lot of time tracking down and fixing this bug, and thought it would make a good blog as to how I went about
+solving it, and the mistakes and insights I gathered along the way.</p>
+<br>
+<a id="what-started-it-all" href="#what-started-it-all"><h2>What Started It All</h2></a>
+<br>
+<p>Yesterday I was working on my programming language, <a href="https://github.com/dosisod/skull">Skull</a>. In hopes of speeding things
+up, I decided to start reducing my dependence on a C compiler, since having to invoke <code class="hljs">cc</code> for the final linking of our
+means we have to call a whole other program, which is quite expensive. So how did I go about doing that?</p>
+<br>
+<p>Typically, C programs use <code class="hljs">main</code> as their entrypoint, but in reality, <code class="hljs">_start</code> is the true entrypoint, created for you by
+the compiler. It does a bunch of nice things for you, like setting up the parameters for your <code class="hljs">main</code> function, and so on.</p>
+<br>
+<p>So why would you want to change that? Well, suppose you have a programming language, and to allow for people to create their own
+functions called <code class="hljs">main</code>. By creating your own <code class="hljs">_start</code> method, you don&#x27;t have to worry about conflicts with users
+who want to name their functions being called <code class="hljs">main</code>, since we aren&#x27;t going to use it.</p>
+<br>
+<blockquote>We could just change the entrypoint of our program, but that would only move the problem elsewhere. Since we want to
+eventually not even use a C compiler at all, doing this to solve our linker issue is just a band-aid fix.</blockquote>
+<br>
+<p>So I wrote commit <a href="https://github.com/dosisod/skull/commit/5b022ce092baa4ddc12e26720291e7e344e221f4">5b022ce0</a>, and pushed
+it up to GitHub. I got an email saying that my CI job failed, and so I went to look:</p>
+<br>
+<pre class="hljs">&lt;SNIP&gt;
+
+Step 26/26 : RUN cd test/docs/c-integration &amp;&amp; make
+ ---&gt; Running in 8c94c05bb0e6
+skull hello.sk -- hello.c -no-pie
+./hello
+make: *** [Makefile:5: all] Segmentation fault (core dumped)
+The command &#x27;/bin/sh -c cd test/docs/c-integration &amp;&amp; make&#x27; returned a non-zero code: 2</pre>
+<br>
+<a id="oh-no-a-segfault" href="#oh-no-a-segfault"><h2>Oh No! A Segfault!</h2></a>
+<br>
+<p>I assumed that I just hadn&#x27;t properly tested it before I pushed it up, so I re-ran the <code class="hljs">pre-commit</code> file on my local machine:</p>
+<br>
+<pre class="hljs"><span class="hljs-meta prompt_">$ </span><span class="language-bash">./pre-commit</span>
+
+&lt;SNIP&gt;
+
+../../../build/skull/skull hello.sk -- hello.c -no-pie
+./hello
+hello, world!
+../../../build/skull/skull hello2.sk -c
+cc .hello2.sk.o hello2.c -no-pie -o hello2
+./hello2
+hello, world 2!
+
+&lt;SNIP&gt;</pre>
+
+<br>
+<p>It passed! The next step is to build the same <code class="hljs">Dockerfile</code> that the GitHub Actions workflow actually uses to do all of the
+CI testing:</p>
+<br>
+<pre class="hljs"><span class="hljs-meta prompt_">$ </span><span class="language-bash">docker build -f .github/workflows/Dockerfile .</span>
+
+&lt;SNIP&gt;
+
+Step 25/26 : RUN cc test/libskull.c -o skull-shim &amp;&amp; ./skull-shim
+<span class="hljs-meta prompt_"> ---&gt; </span><span class="language-bash">Running <span class="hljs-keyword">in</span> 78b487694f22</span>
+Skull v0.7.0-63-g5b022ce0
+Removing intermediate container 78b487694f22
+<span class="hljs-meta prompt_"> ---&gt; </span><span class="language-bash">6e444c728e70</span>
+Step 26/26 : RUN cd test/docs/c-integration &amp;&amp; make
+<span class="hljs-meta prompt_"> ---&gt; </span><span class="language-bash">Running <span class="hljs-keyword">in</span> 175ca8540f0d</span>
+skull hello.sk -- hello.c -no-pie
+./hello
+make: *** [Makefile:5: all] Segmentation fault (core dumped)
+The command &#x27;/bin/sh -c cd test/docs/c-integration &amp;&amp; make&#x27; returned a non-zero code: 2</pre>
+
+<br>
+<a id="investigate-further" href="#investigate-further"><h2>Investigate Further</h2></a>
+<br>
+<p>So now that I am able to reproduce it on my machine, I need to figure out what is causing the segfault. The image
+that was built before the failing step has an image ID of <code class="hljs">6e444c728e70</code>, so if I spin up a container using that
+image, I can drop into a shell and poke around:</p>
+<br>
+<pre class="hljs"><span class="hljs-meta prompt_">$ </span><span class="language-bash">sudo docker run --<span class="hljs-built_in">rm</span> -it 6e444c728e70 bash</span>
+
+I have no name!@928fdd7f9083:/app$</pre>
+
+<br>
+<blockquote><code class="hljs">--rm</code> will remove the container when we are done, since we don&#x27;t want to use it again after we are done.
+<code class="hljs">-it</code> can be remembered as &quot;interactive terminal&quot;. Basically, it allows us to talk to the container over
+our terminal.</blockquote>
+<br>
+<p>For sanity, make sure the build still fails:</p>
+<br>
+<pre class="hljs">I have no name!@928fdd7f9083:/app$ cd test/docs/c-integration/ &amp;&amp; make
+skull hello.sk -- hello.c -no-pie
+./hello
+make: *** [Makefile:5: all] Segmentation fault (core dumped)</pre>
+
+<br>
+<p>Now let&#x27;s start poking around.</p>
+<br>
+<p>For clarity (and to make things look nicer), I am going to change the
+<a href="https://www.gnu.org/software/bash/manual/html_node/Controlling-the-Prompt.html">bash prompt</a>
+so that it is easier to tell
+which commands are being ran in the container (<code class="hljs">container $</code>), and which ones are running on my host machine
+(just a <code class="hljs">$</code>):</p>
+<br>
+<pre class="hljs">I have no name!@928fdd7f9083:/app$ echo $PS1
+<span class="hljs-meta prompt_">$</span><span class="language-bash">{debian_chroot:+(<span class="hljs-variable">$debian_chroot</span>)}\\u@\\h:\\w\$</span>
+I have no name!@928fdd7f9083:/app$ PS1=&quot;container \$ &quot;
+container $</pre>
+
+<br>
+<p>Much better!</p>
+<br>
+<p>First things first we check that the hashes of the compiled <code class="hljs">hello</code> program in the Ubuntu docker
+container match the ones on my Arch system:</p>
+<br>
+<blockquote>Note: You shouldn&#x27;t expect compiled binaries to be the same across different machines, let alone different operating
+systems. Since this is a pretty trivial program, I had a suspicion that the files might be the same, or at the
+very least, very similar.</blockquote>
+<br>
+<pre class="hljs"><span class="hljs-meta prompt_">$ </span><span class="language-bash">shasum ./test/docs/c-integration/hello</span>
+7e70e18a4136106a124b5dab27deff8e2b92122f  ./test/docs/c-integration/hello
+
+container $ shasum test/docs/c-integration/hello
+9cc04720933cba9328fd353f97b35dc8494e8dbd  test/docs/c-integration/hello</pre>
+
+<br>
+<p>They don&#x27;t match, which is somewhat expected. Let&#x27;s see why they are so different by dumping the assembly
+via <code class="hljs">objdump</code>.</p>
+<br>
+<p>On the host machine:</p>
+<br>
+<pre class="hljs"><span class="hljs-meta prompt_">$ </span><span class="language-bash">objdump -c ./test/docs/c-integration/hello</span>
+
+&lt;SNIP&gt;
+
+0000000000401050 &lt;hello&gt;:
+  401050:       55                      push   %rbp
+  401051:       48 89 e5                mov    %rsp,%rbp
+  401054:       48 83 ec 10             sub    $0x10,%rsp
+  401058:       48 89 7d f8             mov    %rdi,-0x8(%rbp)
+  40105c:       48 8b 45 f8             mov    -0x8(%rbp),%rax
+  401060:       48 89 c6                mov    %rax,%rsi
+  401063:       48 8d 05 9c 0f 00 00    lea    0xf9c(%rip),%rax        # 402006 &lt;_int_pow+0xf1e&gt;
+  40106a:       48 89 c7                mov    %rax,%rdi
+  40106d:       b8 00 00 00 00          mov    $0x0,%eax
+  401072:       e8 99 ff ff ff          call   401010 &lt;printf@plt&gt;
+  401077:       90                      nop
+  401078:       c9                      leave
+  401079:       c3                      ret
+
+&lt;SNIP&gt;</pre>
+
+<br>
+<p>In the docker container:</p>
+<br>
+<pre class="hljs">container $ objdump -c ./test/docs/c-integration/hello
+
+&lt;SNIP&gt;
+
+0000000000401050 &lt;hello&gt;:
+  401050:       f3 0f 1e fa             endbr64
+  401054:       55                      push   %rbp
+  401055:       48 89 e5                mov    %rsp,%rbp
+  401058:       48 83 ec 10             sub    $0x10,%rsp
+  40105c:       48 89 7d f8             mov    %rdi,-0x8(%rbp)
+  401060:       48 8b 45 f8             mov    -0x8(%rbp),%rax
+  401064:       48 89 c6                mov    %rax,%rsi
+  401067:       48 8d 05 98 0f 00 00    lea    0xf98(%rip),%rax        # 402006 &lt;_int_pow+0xf16&gt;
+  40106e:       48 89 c7                mov    %rax,%rdi
+  401071:       b8 00 00 00 00          mov    $0x0,%eax
+  401076:       e8 95 ff ff ff          call   401010 &lt;printf@plt&gt;
+  40107b:       90                      nop
+  40107c:       c9                      leave
+  40107d:       c3                      ret
+
+&lt;SNIP&gt;</pre>
+
+<br>
+<p>Weird. The only difference between the two outputs is that there is this <code class="hljs">endbr64</code> instruction that is
+sprinkled in to the Ubuntu output. Let&#x27;s look up what that means:</p>
+<br>
+<p><a href="https://stackoverflow.com/a/56910435">From Stack Overflow</a>:</p>
+<br>
+<blockquote>It stands for &quot;End Branch 64 bit&quot; -- or more precisely, Terminate Indirect Branch in 64 bit.</blockquote>
+<br>
+<p>Doesn&#x27;t sound harmful. Other then that instruction, these binaries look almost identical.
+What happens if we just copy over and run the working binary from the Arch system?</p>
+<br>
+<p>First we get the container id of our container (in another terminal):</p>
+<br>
+<pre class="hljs"><span class="hljs-meta prompt_">$ </span><span class="language-bash">sudo docker ps</span>
+CONTAINER ID   IMAGE          COMMAND   CREATED          STATUS          PORTS     NAMES
+928fdd7f9083   6e444c728e70   &quot;bash&quot;    32 minutes ago   Up 32 minutes             naughty_cannon</pre>
+
+<br>
+<p>Then we actually copy it:</p>
+<br>
+<pre class="hljs"><span class="hljs-meta prompt_">$ </span><span class="language-bash">sudo docker <span class="hljs-built_in">cp</span> <span class="hljs-built_in">test</span>/docs/c-integration/hello 928fdd7f9083:/tmp/hello</span></pre>
+
+<br>
+<p>Then we check the hash (just to double check), and run it:</p>
+<br>
+<pre class="hljs">container $ shasum /tmp/hello
+7e70e18a4136106a124b5dab27deff8e2b92122f  /tmp/hello
+
+container $ /tmp/hello
+Segmentation fault (core dumped)</pre>
+
+<br>
+<p>Ok, so the binary is not the cause of the issue. It must be either Ubuntu, or the environment we created
+after installing all of our dependencies, or both!</p>
+<br>
+<a id="mvp-time" href="#mvp-time"><h2>MVP Time</h2></a>
+<br>
+<p>Now that we have a good idea of what the root cause is, let&#x27;s create the smallest possible environment
+which will recreate the issue.</p>
+<br>
+<p>We will create a new folder somewhere, add a Dockerfile, and a simple C program:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">FROM</span> ubuntu:<span class="hljs-number">22.04</span>
+
+<span class="hljs-keyword">RUN</span><span class="language-bash"> apt update &amp;&amp; \
+    apt upgrade &amp;&amp; \
+    apt install gcc-11 -y</span>
+
+<span class="hljs-keyword">WORKDIR</span><span class="language-bash"> /app</span>
+<span class="hljs-keyword">COPY</span><span class="language-bash"> file.c .</span>
+
+<span class="hljs-keyword">RUN</span><span class="language-bash"> gcc-11 -nostartfiles file.c</span>
+<span class="hljs-keyword">RUN</span><span class="language-bash"> ./a.out</span></pre>
+
+<br>
+<p>Note that we are using Ubuntu Jammy (22.04). This will be important for later.</p>
+<br>
+<p>Add the following in our <code class="hljs">file.c</code> file:</p>
+<br>
+<pre class="hljs"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdlib.h&gt;</span></span>
+
+<span class="hljs-type">void</span> _start(<span class="hljs-type">void</span>) {
+    <span class="hljs-built_in">puts</span>(<span class="hljs-string">&quot;hello world&quot;</span>);
+    <span class="hljs-built_in">exit</span>(<span class="hljs-number">0</span>);
+}</pre>
+
+<br>
+<blockquote>For good measure, you should build this on your host machine first, and make sure
+that it runs as expected. You don&#x27;t want to spend a bunch of time fixing the wrong error!</blockquote>
+<br>
+<p>Now build the container, and see what happens!</p>
+<br>
+<pre class="hljs"><span class="hljs-meta prompt_">$ </span><span class="language-bash">sudo docker build .</span>
+
+Step 1/6 : FROM ubuntu:22.04
+<span class="hljs-meta prompt_"> ---&gt; </span><span class="language-bash">3f4714ee068a</span>
+Step 2/6 : RUN apt update &amp;&amp;     apt upgrade &amp;&amp;     apt install gcc-11 -y
+<span class="hljs-meta prompt_"> ---&gt; </span><span class="language-bash">Running <span class="hljs-keyword">in</span> af582fe738f5</span>
+
+&lt;SNIP apt stuff&gt;
+
+Removing intermediate container af582fe738f5
+<span class="hljs-meta prompt_"> ---&gt; </span><span class="language-bash">58eee8b4c01a</span>
+Step 3/6 : WORKDIR /app
+<span class="hljs-meta prompt_"> ---&gt; </span><span class="language-bash">Running <span class="hljs-keyword">in</span> 777fc78a948d</span>
+Removing intermediate container 777fc78a948d
+<span class="hljs-meta prompt_"> ---&gt; </span><span class="language-bash">10defe2ee273</span>
+Step 4/6 : COPY file.c .
+<span class="hljs-meta prompt_"> ---&gt; </span><span class="language-bash">101465eeb7a0</span>
+Step 5/6 : RUN gcc-11 -nostartfiles file.c
+<span class="hljs-meta prompt_"> ---&gt; </span><span class="language-bash">Running <span class="hljs-keyword">in</span> 9fca80a45234</span>
+Removing intermediate container 9fca80a45234
+<span class="hljs-meta prompt_"> ---&gt; </span><span class="language-bash">caa232378a47</span>
+Step 6/6 : RUN ./a.out
+<span class="hljs-meta prompt_"> ---&gt; </span><span class="language-bash">Running <span class="hljs-keyword">in</span> eb7fd3b7f0ec</span>
+Segmentation fault (core dumped)
+The command &#x27;/bin/sh -c ./a.out&#x27; returned a non-zero code: 139</pre>
+
+<br>
+<p>Now that we have a smaller area to search, we can start digging deeper.</p>
+<br>
+<a id="debugging-time" href="#debugging-time"><h2>Debugging Time</h2></a>
+<br>
+<p>Perhaps we can install <a href="https://sourceware.org/gdb/"><code class="hljs">gdb</code></a>, and see if that can give us a better indication of what
+is going on:</p>
+<br>
+<pre class="hljs"> RUN gcc-11 -nostartfiles file.c
+<span class="hljs-addition">+</span>
+<span class="hljs-addition">+RUN apt install gdb -y</span>
+<span class="hljs-addition">+RUN gdb ./a.out -q -ex r</span>
+ RUN ./a.out</pre>
+
+<br>
+<p>When running <code class="hljs">gdb</code> from the command line, we need to use the <code class="hljs">-ex</code> flag to pass the commands we want to run,
+since we won&#x27;t be able to type them during the build. <code class="hljs">-q</code> means quiet, which hides the banner when first starting.</p>
+<br>
+<p>Let&#x27;s rebuild and see what happens:</p>
+<br>
+<pre class="hljs">Step 7/8 : RUN gdb ./a.out -q -ex r
+ ---&gt; Running in 31b33923158c
+Reading symbols from ./a.out...
+(No debugging symbols found in ./a.out)
+Starting program: /app/a.out
+warning: Error disabling address space randomization: Operation not permitted
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library &quot;/lib/x86_64-linux-gnu/libthread_db.so.1&quot;.
+4375    ./malloc/malloc.c: No such file or directory.
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00007fa75da97540 in _int_malloc (av=av@entry=0x7fa75dc0cc80 &lt;main_arena&gt;, bytes=bytes@entry=640) at ./malloc/malloc.c:4375
+(gdb) quit
+A debugging session is active.
+
+        Inferior 1 [process 16] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]</pre>
+<br>
+<p>Huh, we didn&#x27;t call <code class="hljs">_int_malloc</code>. What is going on here? Let&#x27;s add <code class="hljs">-ex bt</code> to our <code class="hljs">gdb</code> command to print the backtrace,
+and re-run:</p>
+<br>
+<pre class="hljs">Step 7/8 : RUN gdb ./a.out -q -ex r -ex bt
+ ---&gt; Running in 57cc66e861e1
+Reading symbols from ./a.out...
+(No debugging symbols found in ./a.out)
+Starting program: /app/a.out
+warning: Error disabling address space randomization: Operation not permitted
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library &quot;/lib/x86_64-linux-gnu/libthread_db.so.1&quot;.
+4375    ./malloc/malloc.c: No such file or directory.
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00007f428808f540 in _int_malloc (av=av@entry=0x7f4288204c80 &lt;main_arena&gt;, bytes=bytes@entry=640) at ./malloc/malloc.c:4375
+#0  0x00007f428808f540 in _int_malloc (
+    av=av@entry=0x7f4288204c80 &lt;main_arena&gt;, bytes=bytes@entry=640)
+    at ./malloc/malloc.c:4375
+#1  0x00007f428808fa49 in tcache_init () at ./malloc/malloc.c:3245
+#2  0x00007f428809025e in tcache_init () at ./malloc/malloc.c:3241
+#3  __GI___libc_malloc (bytes=bytes@entry=4096) at ./malloc/malloc.c:3306
+#4  0x00007f4288069c24 in __GI__IO_file_doallocate (
+    fp=0x7f4288205780 &lt;_IO_2_1_stdout_&gt;) at ./libio/filedoalloc.c:101
+#5  0x00007f4288078d60 in __GI__IO_doallocbuf (
+    fp=fp@entry=0x7f4288205780 &lt;_IO_2_1_stdout_&gt;) at ./libio/libioP.h:947
+#6  0x00007f4288077fe0 in _IO_new_file_overflow (
+    f=0x7f4288205780 &lt;_IO_2_1_stdout_&gt;, ch=-1) at ./libio/fileops.c:744
+#7  0x00007f4288076755 in _IO_new_file_xsputn (n=11, data=&lt;optimized out&gt;,
+    f=&lt;optimized out&gt;) at ./libio/libioP.h:947
+#8  _IO_new_file_xsputn (f=0x7f4288205780 &lt;_IO_2_1_stdout_&gt;,
+    data=&lt;optimized out&gt;, n=11) at ./libio/fileops.c:1196
+#9  0x00007f428806bf9c in __GI__IO_puts (str=0x5604a28d8000 &quot;hello world&quot;)
+    at ./libio/libioP.h:947
+#10 0x00005604a28d7067 in _start ()
+(gdb) quit
+A debugging session is active.
+
+        Inferior 1 [process 17] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]</pre>
+<br>
+<p>Huh! It seems to be hitting our <code class="hljs">puts(&quot;hello world&quot;)</code> call, but after that, it just goes into neverland.
+Let&#x27;s install <a href="https://valgrind.org/"><code class="hljs">Valgrind</code></a> and see what it has to say about our program. Valgrind
+is typically used for finding memory leaks, illegal/undefined behavior, but it can also do a lot more.</p>
+<br>
+<p>Adding it is super easy:</p>
+<br>
+<pre class="hljs"> RUN gcc-11 -nostartfiles file.c
+
+<span class="hljs-deletion">-RUN apt install gdb -y</span>
+<span class="hljs-deletion">-RUN gdb ./a.out -q -ex r -ex bt</span>
+<span class="hljs-deletion">-RUN ./a.out</span>
+<span class="hljs-addition">+RUN apt install valgrind -y</span>
+<span class="hljs-addition">+RUN valgrind ./a.out</span></pre>
+
+<br>
+<p>Re-running:</p>
+<br>
+<pre class="hljs">Step 7/7 : RUN valgrind ./a.out
+ ---&gt; Running in 703095486b3a
+==7== Memcheck, a memory error detector
+==7== Copyright (C) 2002-2017, and GNU GPL&#x27;d, by Julian Seward et al.
+==7== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==7== Command: ./a.out
+==7==
+hello world
+==7==
+==7== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==7==  General Protection Fault
+==7==    at 0x48F7F42: __pthread_once_slow (pthread_once.c:114)
+==7==    by 0x49C6A52: __rpc_thread_variables (rpc_thread.c:59)
+==7==    by 0x4A19D8C: free_mem (in /usr/lib/x86_64-linux-gnu/libc.so.6)
+==7==    by 0x4A198C1: __libc_freeres (in /usr/lib/x86_64-linux-gnu/libc.so.6)
+==7==    by 0x483F1B2: _vgnU_freeres (in /usr/libexec/valgrind/vgpreload_core-amd64-linux.so)
+==7==    by 0x48A3551: __run_exit_handlers (exit.c:136)
+==7==    by 0x48A360F: exit (exit.c:143)
+==7==    by 0x109070: (below main) (in /app/a.out)
+==7==
+==7== HEAP SUMMARY:
+==7==     in use at exit: 0 bytes in 0 blocks
+==7==   total heap usage: 1 allocs, 1 frees, 4,096 bytes allocated
+==7==
+==7== All heap blocks were freed -- no leaks are possible
+==7==
+==7== For lists of detected and suppressed errors, rerun with: -s
+==7== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)</pre>
+<br>
+<p>This is even weirder! We seem to be getting our <code class="hljs">hello world</code> printed, but then the program dies somewhere in
+<code class="hljs">exit</code>, which is different then what we where getting with gdb. Valgrind will swap out <code class="hljs">malloc()</code> calls (among others)
+with it&#x27;s own version to be able to do it&#x27;s memory analysis, which might explain this difference in behavior.</p>
+<br>
+<blockquote>The <code class="hljs">==7==</code> output in Valgrind is to differentiate between our program&#x27;s output, and Valgrind&#x27;s output. The <code class="hljs">7</code>
+means that our <code class="hljs">hello</code> program is running under PID (process ID) 7.</blockquote>
+<br>
+<p>Ok, this is all very weird. Our code is segfaulting in parts which are not in our control. It works just fine on
+my Arch machine, but not in an Ubuntu 22.04 container. What if we downgrade to an older Ubuntu docker image, say 21.04 or 20.04?</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">FROM</span> ubuntu:<span class="hljs-number">21.04</span>
+
+<span class="hljs-keyword">RUN</span><span class="language-bash"> apt update &amp;&amp; \
+    apt upgrade &amp;&amp; \
+    apt install gcc-11 -y</span>
+
+<span class="hljs-keyword">WORKDIR</span><span class="language-bash"> /app</span>
+<span class="hljs-keyword">COPY</span><span class="language-bash"> file.c .</span>
+
+<span class="hljs-keyword">RUN</span><span class="language-bash"> gcc-11 -nostartfiles file.c</span>
+
+<span class="hljs-keyword">RUN</span><span class="language-bash"> ./a.out</span></pre>
+
+<br>
+<p>Running:</p>
+<br>
+<pre class="hljs">Step 6/6 : RUN ./a.out
+ ---&gt; Running in 9931a6a2e7ee
+hello world</pre>
+<br>
+<p>Success! Well, not really. We still don&#x27;t know what is causing this. And, we cannot downgrade too far, because we need
+LLVM 13 in order to build Skull. The <code class="hljs">llvm-13</code> package is only available in Ubuntu Impish (21.10) and up. Still, having code
+that fails on the newest LTS version of Ubuntu is not good, and we should fix that problem instead.</p>
+<br>
+<a id="the-solution" href="#the-solution"><h2>The Solution</h2></a>
+<br>
+<p>Although anti-climatic, I found the solution in a <a href="https://stackoverflow.com/questions/29694564/what-is-the-use-of-start-in-c">Stack Overflow comment</a>
+after many insanity-questioning hours:</p>
+<br>
+<blockquote>Note that this <code class="hljs">_start</code> is unsafe, violating the ABI when it calls <code class="hljs">my_main</code>; you tell the compiler it&#x27;s a
+normal function, but actually it&#x27;s entered with the stack-pointer already aligned (e.g. on x86-64, RSP % 16 == 0),
+not RSP % 16 == 8 like on entry to a normal function after a <code class="hljs">call</code> that pushes an 8-byte return address. You can
+fix that with <code class="hljs">__attribute__((force_align_arg_pointer))</code> for <code class="hljs">_start</code> to tell GCC that the stack pointer may be
+&quot;misaligned&quot; on entry to that one &quot;function&quot;, as shown in <a href="https://stackoverflow.com/a/50283880/224132">Get arg values with inline asm without Glibc?</a></blockquote>
+<br>
+<p>So, we set our Dockerfile back to version 22.04, and update our C file to the following:</p>
+<br>
+<pre class="hljs"><span class="hljs-deletion">-void _start(void) {</span>
+<span class="hljs-addition">+void __attribute__((force_align_arg_pointer)) _start(void) {</span></pre>
+
+<br>
+<p>And re-run:</p>
+<br>
+<pre class="hljs">Step 6/6 : RUN ./a.out
+ ---&gt; Running in d5407535deb7
+hello world</pre>
+<br>
+<p>Actual success! Now we just need to figure out what LLVM we need to change/add to make our compiler spit out proper code.</p>
+<br>
+<p>Up until now we have been using gcc for our compiler, but for any LLVM related shenanigans, we should use
+<a href="https://clang.llvm.org/">Clang</a>. Since we have figured out what the issue is for the most part, we don&#x27;t need to use
+docker anymore, and can just run this on our local machine.</p>
+<br>
+<p>To figure out what we need to change, we will compile both the original (non-working) version and the new (working)
+version of <code class="hljs">file.c</code>, and compare the LLVM IR between the 2:</p>
+<br>
+<pre class="hljs">$ clang file-old.c -S -emit-llvm
+$ clang file.c -S -emit-llvm
+$ diff file-old.ll file.ll
+
+20c20
+&lt; attributes #0 = { noinline nounwind optnone sspstrong uwtable &quot;frame-pointer&quot;=&quot;all&quot; &quot;min-legal-vector-width&quot;=&quot;0&quot; &quot;no-trapping-math&quot;=&quot;true&quot; &quot;stack-protector-buffer-size&quot;=&quot;8&quot; &quot;target-cpu&quot;=&quot;x86-64&quot; &quot;target-features&quot;=&quot;+cx8,+fxsr,+mmx,+sse,+sse2,+x87&quot; &quot;tune-cpu&quot;=&quot;generic&quot; }
+---
+&gt; attributes #0 = { noinline nounwind optnone sspstrong uwtable &quot;frame-pointer&quot;=&quot;all&quot; &quot;min-legal-vector-width&quot;=&quot;0&quot; &quot;no-trapping-math&quot;=&quot;true&quot; &quot;stack-protector-buffer-size&quot;=&quot;8&quot; &quot;stackrealign&quot; &quot;target-cpu&quot;=&quot;x86-64&quot; &quot;target-features&quot;=&quot;+cx8,+fxsr,+mmx,+sse,+sse2,+x87&quot; &quot;tune-cpu&quot;=&quot;generic&quot; }</pre>
+<br>
+<p>Seems like the only thing that changed is the addition of the <code class="hljs">&quot;stackrealign&quot;</code> attribute on the new one, so now we need to
+just figure out how to add that attribute to our <code class="hljs">_start</code> function and we should be set.</p>
+<br>
+<p>By the time I had figured out what the issue was, it was midnight, and I needed some sleep. After some well deserved rest,
+I spent another 2-3 hours searching online, trying to find out how to add attributes to functions using the LLVM C API.
+Eventually I found it, and here is the one line change in all of it&#x27;s glory:</p>
+<br>
+<pre class="hljs"><span class="hljs-comment">--- a/skull/codegen/llvm/write.c</span>
+<span class="hljs-comment">+++ b/skull/codegen/llvm/write.c</span>
+<span class="hljs-meta">@@ -348,6 +348,7 @@</span> static void add_start_shim(SkullStateLLVM *state) {
+        );
+
+        LLVMSetLinkage(start_func, LLVMExternalLinkage);
+<span class="hljs-addition">+       LLVMAddTargetDependentFunctionAttr(start_func, &quot;stackrealign&quot;, &quot;&quot;);</span>
+
+        LLVMTypeRef exit_func_type = type_to_llvm_func_type(
+                &amp;TYPE_VOID,</pre>
+
+<br>
+<a id="fin" href="#fin"><h2>Fin</h2></a>
+<br>
+<p>That&#x27;s it! A total of about 6 hours spent investigating a single segfault, which manifested itself on a single operating system
+(that I could tell), and was solved with a single line of code. It goes without saying, but without a proper test suite,
+I might not have found out about this bug for a very very long time!</p>
+<br>
+<p>There where a lot of dead ends, and major derails which I will not delve into, this blog is already long enough!
+I hope this can teach someone about the debugging process, what things to look for, and how to stay sane when
+debugging things which you have no idea how to.</p>
+<hr>
+
+<script src="https://utteranc.es/client.js"
+  repo="dosisod/dosisod.github.io"
+  issue-term="title"
+  theme="github-light"
+  crossorigin="anonymous"
+  async>
+</script>
+
+<noscript>
+  <br>
+  <em>
+    Comment with GitHub functionality is
+    disabled when JavaScript is turned off.
+  </em>
+</noscript>
+
+</main>
+
+</body>
+</html>

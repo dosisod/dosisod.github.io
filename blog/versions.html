@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="og:title" content="How to Version Your Code" />
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/github.css" />
+  <title>How to Version Your Code</title>
+</head>
+<body>
+
+<main>
+<a id="how-to-version-your-code" href="#how-to-version-your-code"><h1>How to Version Your Code</h1></a>
+<br>
+<p>This <a href="https://xkcd.com/1172">xkcd</a> post should set the mood for the rest of the blog post:</p>
+<br>
+<img src="https://imgs.xkcd.com/comics/workflow.png"><br>
+<br>
+<p>Basically, it can be hard to know when a &quot;minor&quot; change is actually a major one, or when a
+&quot;major&quot; change is actually insignificant. There is no one-size-fits all solution, but
+there are many ways to version your code, all of them with their own ups and downs.</p>
+<br>
+<a id="semantic-versioning-a-href-https-semver-org-semver-a" href="#semantic-versioning-a-href-https-semver-org-semver-a"><h2>Semantic Versioning <a href="https://semver.org">(SemVer)</a></h2></a>
+<br>
+<p>For one reason or another, the internet has pretty much settled on semantic versioning as the
+de-factor versioning system of the internet.
+Basically, you have a bunch of numbers separated by dots like so:</p>
+<br>
+<pre class="hljs">MAJOR.MINOR.PATCH</pre>
+<br>
+<p>In this example,</p>
+<br>
+<ul>
+<li><code class="hljs">MAJOR</code> is a breaking change. Clients will need to change their code.</li>
+<li><code class="hljs">MINOR</code> is a backwards-compatible change (new functionality, bug fix, etc).</li>
+<li><code class="hljs">PATCH</code> is a bug/documentation fix, no new functionality.</li>
+</ul>
+<br>
+<p>Whenever you make a new release, you bump (increase) the corresponding major/minor/patch version,
+and reset the number(s) to the right. For example, increasing the minor version of <code class="hljs">1.3.5</code> will result in
+<code class="hljs">1.4.0</code>.</p>
+<br>
+<p>Optionally, when <code class="hljs">MINOR</code> or <code class="hljs">PATCH</code> is zero, it is dropped. For example, <code class="hljs">2.0.0</code> can be written as <code class="hljs">2.0</code> or just <code class="hljs">2</code>.
+Also, there is sometimes an optional <code class="hljs">v</code> prepended to the version, ie, <code class="hljs">v1.2</code>.</p>
+<br>
+<blockquote>Some governing bodies (Ahem, Microsoft) like to use semantic versions with 4 levels, ie,
+<code class="hljs">1.2.3.4</code>. This is overkill for most applications. I&#x27;ve only really seen this with .NET applications
+(for the most part).</blockquote>
+<br>
+<a id="pros-of-semver" href="#pros-of-semver"><h3>Pros of SemVer</h3></a>
+<br>
+<p>If done correctly, it is really nice to know if a package is just adding a small fix, and can be
+updated with no real issues.</p>
+<br>
+<p>It allows you to support multiple different &quot;timelines&quot; of your code. For example, Python supports <code class="hljs">3.8.x</code>, <code class="hljs">3.9.x</code>, etc,
+adding features and bug fixes to each version separately. Since they have such a large ecosystem, they have to
+support many different versions of their programming language, since not everyone can/will upgrade right away.</p>
+<br>
+<p>It is very common.</p>
+<br>
+<a id="cons-of-semver" href="#cons-of-semver"><h3>Cons of SemVer</h3></a>
+<br>
+<p>It requires a lot of vigilance to make sure you are doing semantic versioning correctly. If you and your team are
+the only ones using your code, you can get away with a bad release, but in the wild, it can be a little bit harder.
+Sometimes you don&#x27;t realize you have made a backwards-incompatible API/ABI change until it is too late.</p>
+<br>
+<p>Attackers can latch onto the &quot;minor/patch versions are always safe&quot; mindset, and release a malicious package,
+only bumping the patch version. This has happened many times with NPM packages, where someone gets unauthorized access,
+&quot;takes over&quot; a package, and pushes a malicious update <a id="footnote-ref-1" href="#footnote-1">[1]</a>.</p>
+<br>
+<hr>
+<br>
+<a id="calendar-versioning-a-href-https-calver-org-calver-a" href="#calendar-versioning-a-href-https-calver-org-calver-a"><h2>Calendar Versioning <a href="https://calver.org">(CalVer)</a></h2></a>
+<br>
+<p>Instead of versioning based on semantics, you version based on the day that version was released. For example:</p>
+<br>
+<pre class="hljs">2022.6.13</pre>
+<br>
+<p>As you can see, we still follow the SemVer style of having dots to separate the important numbers, the only difference
+being that the numbers now represent years, months and days.</p>
+<br>
+<blockquote>You can format the date in many different ways. You could use number of weeks since the start of the year,
+you could drop the day portion, you could use a shortened year, the world is your oyster.</blockquote>
+<br>
+<p>CalVer is really nice in that it encodes metadata about the release in the version itself. You can tell just by
+looking at it when it was released, and how long it has been since the last release.</p>
+<br>
+<a id="pros-of-calver" href="#pros-of-calver"><h3>Pros of CalVer</h3></a>
+<br>
+<p>Very easy to generate version numbers. In Linux, you can just use <code class="hljs">date +%Y.%-m.%-d</code> to get a new version!</p>
+<br>
+<p>As mentioned before, the time metadata is really nice, and also convenient for users. In traditional SemVer, devs will have
+access to the tagged commits, and can see when a tag was released. For users though, they will have to get their date info from some
+other source, such as release blogs, release notes, or some other method. CalVer helps solve that.</p>
+<br>
+<a id="cons-of-calver" href="#cons-of-calver"><h3>Cons of CalVer</h3></a>
+<br>
+<p>Doing multiple releases a day can be challenging. You can add a forth column if you expect to have multiple releases a day, for example:</p>
+<br>
+<pre class="hljs">YEAR.MONTH.DAY.NUMBER_OF_RELEASES_TODAY</pre>
+<br>
+<p>Also, CalVer only makes sense for libraries and applications which have a linear timeline: supporting multiple &quot;branches&quot; of CalVer
+doesn&#x27;t make sense, because any changes to these branches will be based off of semantics, not based off time.</p>
+<br>
+<hr>
+<br>
+<a id="zero-versioning-a-href-https-0ver-org-zerover-a" href="#zero-versioning-a-href-https-0ver-org-zerover-a"><h2>Zero Versioning (<a href="https://0ver.org/">ZeroVer</a>)</h2></a>
+<br>
+<p>ZeroVer, or 0Ver, is like SemVer, but it uses a <code class="hljs">0.</code> prefix. In traditional SemVer, anything below a <code class="hljs">1.0</code> release
+is considered &quot;unstable&quot;. Typically, when the <code class="hljs">v1</code> of a library/application is released, the API is considered stable, and ready for
+production use.</p>
+<br>
+<p>ZeroVer isn&#x27;t an actual versioning system, just a sub-set of SemVer, but is an anti-pattern you should look out for.</p>
+<br>
+<a id="pros-of-zerover" href="#pros-of-zerover"><h3>Pros of ZeroVer</h3></a>
+<br>
+<p>Very easy. You can be lazy as you want, as users are supposed to just accept that all your version bumps are unstable.</p>
+<br>
+<a id="cons-of-zerover" href="#cons-of-zerover"><h3>Cons of ZeroVer</h3></a>
+<br>
+<p>Some people might avoid your software if they don&#x27;t think it is stable.</p>
+<br>
+<hr>
+<br>
+<a id="unover" href="#unover"><h2>UnoVer</h2></a>
+<br>
+<p>I made this up. But, it is a sub-set of SemVer that I think people should consider when building applications.</p>
+<br>
+<p>Basically, you only have one
+incrementing number, starting at <code class="hljs">1</code> (or <code class="hljs">v1</code> if you prefer). Whenever you make a change, no matter how small, you increase the number.
+Anyone ingesting your application or library has 2 choices: Upgrade, or don&#x27;t upgrade. If the changes are small enough, the cost of
+updating your package/library is small, encouraging an ecosystem of people wanting to keep their dependencies up to date. This is
+essentially a rolling-release ecosystem, where everyone is constantly updating to the newest version.</p>
+<br>
+<a id="pros-of-unover" href="#pros-of-unover"><h3>Pros of UnoVer</h3></a>
+<br>
+<p>Simple to follow.</p>
+<br>
+<p>Reduces the burden (on users) of having to do big version migrations every X months.</p>
+<br>
+<a id="cons-of-unover" href="#cons-of-unover"><h3>Cons of UnoVer</h3></a>
+<br>
+<p>Requires library authors to write API&#x27;s well, and make lots of small releases.</p>
+<br>
+<p>Doesn&#x27;t work with non-linear timelines, as there is only one upgrade path: forwards!</p>
+<br>
+<a id="fin" href="#fin"><h2>Fin</h2></a>
+<br>
+<p>That&#x27;s it! Versioning your code is important. When you do version your code, make sure that you keep both the developers and
+the end users in mind when you think of a versioning scheme.</p>
+<br>
+<p>No matter what scheme you chose, make sure to stay consistent!</p>
+<br>
+<p>Also, if you are using GitHub, you should look into using
+<a href="https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuring-dependabot-version-updates">Dependabot</a>.
+Once configured, it will automatically create pull requests whenever a new package version comes out!</p>
+<br>
+<hr>
+<br>
+<p><a id="footnote-1" href="#footnote-ref-1">[1]</a>: Note that package take-overs can happen no matter the versioning system, but they are more likely to become an
+issue when using SemVer. For example, in NPM, you can say &quot;use version <code class="hljs">1.0.x</code> of package <code class="hljs">Y</code>&quot;, which will always
+download the latest patch version when doing a fresh install (if a new patch version is available).</p>
+<br>
+<hr>
+
+<script src="https://utteranc.es/client.js"
+  repo="dosisod/dosisod.github.io"
+  issue-term="title"
+  theme="github-light"
+  crossorigin="anonymous"
+  async>
+</script>
+
+<noscript>
+  <br>
+  <em>
+    Comment with GitHub functionality is
+    disabled when JavaScript is turned off.
+  </em>
+</noscript>
+
+</main>
+
+</body>
+</html>

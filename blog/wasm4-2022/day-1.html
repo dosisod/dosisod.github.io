@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="og:title" content="WASM-4 Game Jam: Day 1" />
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/github.css" />
+  <title>WASM-4 Game Jam: Day 1</title>
+</head>
+<body>
+
+<main>
+<a id="wasm-4-game-jam-day-1" href="#wasm-4-game-jam-day-1"><h1>WASM-4 Game Jam: Day 1</h1></a>
+<br>
+<p>The second <a href="https://wasm4.org/">WASM-4</a> game jam is <a href="https://itch.io/jam/wasm4-v2">going on right now</a>!
+I missed out last year due to COVID, but this year I am determined to finish.
+Hopefully by writing a little blog about it every day I will force myself to follow through.</p>
+<br>
+<a id="intro" href="#intro"><h2>Intro</h2></a>
+<br>
+<p>From the <a href="https://wasm4.org/">WASM-4</a> website:</p>
+<br>
+<blockquote>Build retro games using WebAssembly for a fantasy console</blockquote>
+<br>
+<p>By &quot;fantasy console&quot; they mean a console with 4 color 160x160 pixel screen, 64KB of memory, and 1KB of storage.
+And you have to build it using WebAssembly, or something that compiles to WebAssembly (C, C++, Rust, etc.).</p>
+<br>
+<p>I love the contrast of using a bleeding edge technology like WebAssembly to build retro games.
+The WASM-4 people make it super easy to get started, and you don&#x27;t even need any WebAssembly
+experience to make something awesome.</p>
+<br>
+<a id="brainstorming" href="#brainstorming"><h2>Brainstorming</h2></a>
+<br>
+<p>There doesn&#x27;t seem to be a theme like there was last year, so I&#x27;m just coming up with something on
+my own. I really wanted to make a rouge-like/Minecraft/Terraria clone of sorts, and then it hit me:
+They recently added <a href="https://wasm4.org/blog/release-2-4-0">multiplayer functionality</a>, and my initial
+thoughts where that I could somehow link 4 instances together, effectively quadrupling my memory and
+storage.</p>
+<br>
+<p>Turns out that they all share the same memory, and saving/reading from disk is not allowed when network
+sharing is enabled. Then I decided that making a high quality rouge-like with world generation would
+probably be too hard, especially given my game dev skills are pretty rusty.</p>
+<br>
+<p>In general, the thought of building an actual world for my game made me anxious. Maybe this was
+all a mistake.</p>
+<br>
+<p>But then it hit me: What if I incorporated some sort of programming element to my games? I like
+compilers/programming languages <a id="footnote-ref-1" href="#footnote-1">[1]</a>, so this would be something I could do really well.</p>
+<br>
+<a id="an-idea-emerges" href="#an-idea-emerges"><h2>An Idea Emerges</h2></a>
+<br>
+<p>I can&#x27;t exactly create a full-blown programming language. Ok, I could, but you don&#x27;t have a keyboard.
+What you do have is a D-PAD, 2 buttons... and a mouse! Drag and drop FTW!</p>
+<br>
+<p>So basically I am creating a drag and drop editor which allows you to plop down code blocks
+to move your player around a game board, avoiding enemies, following objectives, and so on. The
+language itself will be an assembly-like language <a id="footnote-ref-2" href="#footnote-2">[2]</a> to fit with the retro theme.</p>
+<br>
+<a id="progress" href="#progress"><h2>Progress</h2></a>
+<br>
+<p>This is what I have so far:</p>
+<br>
+<img src="./day-1-ide.png" />
+<br>
+<p>I plan on changing the color scheme, actually adding the game logic, adding music, adding the IDE
+features, etc etc. I am happy with what I have so far.</p>
+<br>
+<a id="where-is-the-code" href="#where-is-the-code"><h2>Where is the code?</h2></a>
+<br>
+<p>The code is a steaming pile of garbage, and is unreleasable in its current state <a id="footnote-ref-3" href="#footnote-3">[3]</a>. I will
+have released it before the game jam is over though, regardless of how messy it is.</p>
+<br>
+<a id="name" href="#name"><h2>Name?</h2></a>
+<br>
+<p>My creation doesn&#x27;t have a name yet. That comes later. Maybe.</p>
+<br>
+<hr>
+<br>
+<p><a id="footnote-1" href="#footnote-ref-1">[1]</a>: See <a href="https://github.com/dosisod/skull">Skull</a>,
+<a href="https://github.com/dosisod/write-a-compiler">Write a Compiler</a>,
+and <a href="https://github.com/dosisod/refurb">Refurb</a>.</p>
+<br>
+<p><a id="footnote-2" href="#footnote-ref-2">[2]</a>: I just realize how meta it is to make make up an <em>assembly</em> language for a game jam
+that revolves around Web<em>Assembly</em>. No complaints.</p>
+<br>
+<p><a id="footnote-3" href="#footnote-ref-3">[3]</a>: It probably isn&#x27;t <em>that</em> bad, but I know it can be better, a lot better.</p>
+<hr>
+
+<script src="https://utteranc.es/client.js"
+  repo="dosisod/dosisod.github.io"
+  issue-term="title"
+  theme="github-light"
+  crossorigin="anonymous"
+  async>
+</script>
+
+<noscript>
+  <br>
+  <em>
+    Comment with GitHub functionality is
+    disabled when JavaScript is turned off.
+  </em>
+</noscript>
+
+</main>
+
+</body>
+</html>

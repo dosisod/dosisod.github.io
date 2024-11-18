@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="og:title" content="Lost at C: Function Prototypes" />
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/github.css" />
+  <title>Lost at C: Function Prototypes</title>
+</head>
+<body>
+
+<main>
+<a id="lost-at-c-function-prototypes" href="#lost-at-c-function-prototypes"><h1>Lost at C: Function Prototypes</h1></a>
+<br>
+<p>What do you think the following C program produces?</p>
+<br>
+<pre class="hljs"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span>
+
+<span class="hljs-type">void</span> <span class="hljs-title function_">f</span><span class="hljs-params">()</span> {
+    <span class="hljs-built_in">puts</span>(<span class="hljs-string">&quot;here&quot;</span>);
+}
+
+<span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> {
+    f();
+    f(<span class="hljs-number">1</span>);
+    f(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>);
+}</pre>
+
+<br>
+<p>Compiling and running with <code class="hljs">gcc file.c &amp;&amp; ./a.out</code>:</p>
+<br>
+<pre class="hljs">here
+here
+here</pre>
+<br>
+<p>What is going on here?</p>
+<br>
+<a id="code-class-hljs-f-void-code-vs-code-class-hljs-f-code" href="#code-class-hljs-f-void-code-vs-code-class-hljs-f-code"><h2><code class="hljs">f(void)</code> vs <code class="hljs">f()</code></h2></a>
+<br>
+<p>In C++, <code class="hljs">f(void)</code> and <code class="hljs">f()</code> will do the same thing (in fact, using <code class="hljs">f(void)</code> is
+frowned upon in C++). In C though, there is a semantic difference: Since our
+function <code class="hljs">f</code> is a not a complete prototype, we are able to pass as many
+arguments to it as we want.</p>
+<br>
+<p>This is normally not what you want, and can hide errors in your code. You can
+enable the <code class="hljs">-Wstrict-prototypes</code> flag in GCC/Clang to warn on incomplete
+prototypes like the one we created above.</p>
+<br>
+<p>When declaring a function that doesn&#x27;t take any parameters in C, you should use
+<code class="hljs">f(void)</code>, unless you have a good reason not to.</p>
+<br>
+<a id="more-prototype-fun" href="#more-prototype-fun"><h2>More Prototype Fun</h2></a>
+<br>
+<p>Another fun thing about C is that you can drop the names of your function parameters
+in your function prototypes. For example:</p>
+<br>
+<pre class="hljs"><span class="hljs-type">int</span> <span class="hljs-title function_">add</span><span class="hljs-params">(<span class="hljs-type">int</span>, <span class="hljs-type">int</span>)</span>;
+
+<span class="hljs-comment">// define &quot;add&quot; elsewhere</span>
+
+<span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> {
+    <span class="hljs-keyword">return</span> add(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>);
+}</pre>
+
+<br>
+<p>Since we don&#x27;t define <code class="hljs">add</code>, we won&#x27;t be able to compile it, but that&#x27;s fine.</p>
+<br>
+<p>Why would this be useful you might ask?</p>
+<br>
+<p>Suppose we have 2 files, <code class="hljs">file.h</code> and <code class="hljs">file.c</code>. The <code class="hljs">.h</code> file will have our function
+prototype, and our <code class="hljs">.c</code> file will have the actual definition. In this instance, we
+will be specifying the parameter name(s) in both the <code class="hljs">.c</code> and the <code class="hljs">.h</code> file. What happens
+when we change one of the parameter names of our function definition in the <code class="hljs">.c</code> file? Nothing.
+Everything will compile just fine. But, the names in our function declaration (<code class="hljs">.h</code> file) will not
+match the ones in our function definition, which could be confusing. By dropping the
+name in the header file, you don&#x27;t have to rename things twice.</p>
+<br>
+<blockquote>Note: Having the parameter names in the headers is usually a good idea, especially
+if these are part of an API, or are user facing. Having functions that self document
+is hard when there are no names for the parameters.</blockquote>
+<hr>
+
+<script src="https://utteranc.es/client.js"
+  repo="dosisod/dosisod.github.io"
+  issue-term="title"
+  theme="github-light"
+  crossorigin="anonymous"
+  async>
+</script>
+
+<noscript>
+  <br>
+  <em>
+    Comment with GitHub functionality is
+    disabled when JavaScript is turned off.
+  </em>
+</noscript>
+
+</main>
+
+</body>
+</html>

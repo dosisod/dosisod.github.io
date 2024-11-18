@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="og:title" content="Writing a Compiler (Part 5): Defining AST Nodes" />
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/github.css" />
+  <title>Writing a Compiler (Part 5): Defining AST Nodes</title>
+</head>
+<body>
+
+<main>
+<a id="writing-a-compiler-part-5-defining-ast-nodes" href="#writing-a-compiler-part-5-defining-ast-nodes"><h1>Writing a Compiler (Part 5): Defining AST Nodes</h1></a>
+<br>
+<p>This is where things start to get juicy, where we actually start to define the
+structure of our programming language in term of code!</p>
+<br>
+<p>Since there is a lot of code to cover, it would be best to reference the
+<a href="https://github.com/dosisod/write-a-compiler/blob/200e29beb0b870415e8ce823904ccf131eff141f/wac/ast/nodes.py">source</a>
+and <a href="https://github.com/dosisod/write-a-compiler/blob/200e29beb0b870415e8ce823904ccf131eff141f/test/test_ast_nodes.py">test</a>
+files as you read along.</p>
+<br>
+<p>Let&#x27;s begin!</p>
+<br>
+<a id="before-we-begin" href="#before-we-begin"><h2>Before We Begin ...</h2></a>
+<br>
+<p>I briefly mentioned dataclasses in part 2 of this series, but I think it would be best to
+go into more depth with it before we dive deeper. With dataclasses, we can define very concise,
+very rich classes, primarily using types. What does this look like in practice?</p>
+<br>
+<pre class="hljs"><span class="hljs-meta">@dataclass</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Person</span>:
+    name: <span class="hljs-built_in">str</span>
+
+<span class="hljs-meta">@dataclass</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Baker</span>(<span class="hljs-title class_ inherited__">Person</span>):
+    profession: <span class="hljs-built_in">str</span> = <span class="hljs-string">&quot;baker&quot;</span>
+
+<span class="hljs-meta">@dataclass</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Plumber</span>(<span class="hljs-title class_ inherited__">Person</span>):
+    profession: <span class="hljs-built_in">str</span> = <span class="hljs-string">&quot;plumber&quot;</span>
+
+alice = Person(name=<span class="hljs-string">&quot;alice&quot;</span>)
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">isinstance</span>(alice, Person)
+
+bob = Baker(name=<span class="hljs-string">&quot;bob&quot;</span>)
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">isinstance</span>(bob, Person)
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">isinstance</span>(bob, Baker)
+
+charlie = Plumber(name=<span class="hljs-string">&quot;charlie&quot;</span>)
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">isinstance</span>(charlie, Person)
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">isinstance</span>(charlie, Plumber)</pre>
+
+<br>
+<p>As you can see, we can create very nice, strongly typed class heiarchies very quickly.
+This is super important when we actually start to define our AST nodes.</p>
+<br>
+<p>It is really nice that we don&#x27;t have to make our own boilerplate <code class="hljs">__init__</code> method, though
+we run into trouble when we want to customize <code class="hljs">__init__</code>. Luckily there is a way
+to change this, and that is with the <code class="hljs">field</code> method:</p>
+<br>
+<pre class="hljs"><span class="hljs-meta">@dataclass</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Person</span>:
+    name: <span class="hljs-built_in">str</span>
+    is_person: <span class="hljs-built_in">bool</span> = field(<span class="hljs-literal">True</span>, init=<span class="hljs-literal">False</span>)
+
+alice = Person(name=<span class="hljs-string">&quot;alice&quot;</span>)
+
+bob = Person(name=<span class="hljs-string">&quot;bob&quot;</span>, is_person=<span class="hljs-literal">False</span>)  <span class="hljs-comment"># error</span></pre>
+
+<br>
+<p>In this example, we get an error when we try to pass <code class="hljs">is_person</code>, since <code class="hljs">init=False</code> will
+remove it from the <code class="hljs">__init__</code> method.</p>
+<br>
+<p>With that out of the way, I think we can jump into:</p>
+<br>
+<a id="the-ast-nodes" href="#the-ast-nodes"><h2>The AST Nodes</h2></a>
+<br>
+<a id="the-base-nodes" href="#the-base-nodes"><h3>The Base Nodes</h3></a>
+<br>
+<p>These are the root/base nodes, the core of our AST tree:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">from</span> __future__ <span class="hljs-keyword">import</span> annotations
+
+<span class="hljs-keyword">from</span> dataclasses <span class="hljs-keyword">import</span> dataclass, field
+<span class="hljs-keyword">from</span> enum <span class="hljs-keyword">import</span> Enum, auto
+<span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">Tuple</span>
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Node</span>:
+    <span class="hljs-keyword">pass</span>
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">ExprType</span>:
+    <span class="hljs-keyword">pass</span></pre>
+
+<br>
+<p>The first part is just our <code class="hljs">import</code>s, nothing too special here.
+The <code class="hljs">Node</code> and <code class="hljs">ExprType</code> classes are empty base nodes which we will extend off of later.</p>
+<br>
+<a id="the-types" href="#the-types"><h3>The Types</h3></a>
+<br>
+<p>One of the most important parts of our AST is the ability to represent complex types.
+We could of course use <code class="hljs">type</code> to represent our types, though <code class="hljs">type</code> is very lax, allowing us
+to store pretty much anything in it. Instead, we do something like this:</p>
+<br>
+<pre class="hljs"><span class="hljs-meta">@dataclass</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">SingleExprType</span>(<span class="hljs-title class_ inherited__">ExprType</span>):
+    <span class="hljs-built_in">type</span>: <span class="hljs-built_in">type</span>
+
+
+<span class="hljs-meta">@dataclass</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">TupleExprType</span>(<span class="hljs-title class_ inherited__">ExprType</span>):
+    <span class="hljs-built_in">type</span>: <span class="hljs-type">Tuple</span>[ExprType, ...]</pre>
+
+<br>
+<p>These <code class="hljs">SingleExprType</code> and <code class="hljs">TupleExprType</code> classes extend off of <code class="hljs">ExprType</code>,
+and basically give us wrappers around the built-in Python types.</p>
+<br>
+<a id="the-basic-expressions" href="#the-basic-expressions"><h3>The Basic Expressions</h3></a>
+<br>
+<p>Expressions are usually the denses part of an AST.
+Everything from literals (<code class="hljs">123</code>, <code class="hljs">true</code>, etc), function calls, binary expressions, and so on.
+These next few are terminal expressions, meaning they are a single value, usually a single
+token.</p>
+<br>
+<pre class="hljs"><span class="hljs-meta">@dataclass</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Expr</span>(<span class="hljs-title class_ inherited__">Node</span>):
+    rtype: ExprType = field(init=<span class="hljs-literal">False</span>)</pre>
+
+<br>
+<p>This is the root node for our expressions (numbers, results of equations, function call results, etc).
+We use <code class="hljs">init=False</code> because we won&#x27;t be setting this in our <code class="hljs">__init__</code> methods, but in the body
+of the classes which extend off of this one.</p>
+<br>
+<p><code class="hljs">rtype</code> represents the &quot;return type&quot; or &quot;resulting type&quot; when this expression is evaluated.</p>
+<br>
+<hr>
+<br>
+<pre class="hljs"><span class="hljs-meta">@dataclass</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">IntExpr</span>(<span class="hljs-title class_ inherited__">Expr</span>):
+    rtype = SingleExprType(<span class="hljs-built_in">int</span>)
+    value: <span class="hljs-built_in">int</span>
+
+
+<span class="hljs-meta">@dataclass</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">BoolExpr</span>(<span class="hljs-title class_ inherited__">Expr</span>):
+    rtype = SingleExprType(<span class="hljs-built_in">bool</span>)
+    value: <span class="hljs-built_in">bool</span>
+
+
+<span class="hljs-meta">@dataclass</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">FloatExpr</span>(<span class="hljs-title class_ inherited__">Expr</span>):
+    rtype = SingleExprType(<span class="hljs-built_in">float</span>)
+    value: <span class="hljs-built_in">float</span>
+
+
+<span class="hljs-meta">@dataclass</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">StrExpr</span>(<span class="hljs-title class_ inherited__">Expr</span>):
+    value: <span class="hljs-built_in">str</span>
+    rtype = SingleExprType(<span class="hljs-built_in">str</span>)</pre>
+
+<br>
+<p>These next few nodes just represent common expression nodes which we will probably use all the time,
+such as our <code class="hljs">int</code>s and <code class="hljs">bool</code>s. They have an <code class="hljs">rtype</code> which represents the type of the expression,
+and a <code class="hljs">value</code>. Since these are literal expressions (ie, <code class="hljs">1</code>, <code class="hljs">&quot;hello world&quot;</code>, etc), we know the
+value ahead of time, and can store it directly.</p>
+<br>
+<hr>
+<br>
+<pre class="hljs"><span class="hljs-meta">@dataclass</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">IdentifierExpr</span>(<span class="hljs-title class_ inherited__">Expr</span>):
+    rtype: ExprType = field(init=<span class="hljs-literal">True</span>)
+    name: <span class="hljs-built_in">str</span></pre>
+
+<br>
+<p>Now we get to the identifier, which is something like <code class="hljs">x</code> or <code class="hljs">y</code>.
+Note that we now use <code class="hljs">init=True</code>, which means we have to define the <code class="hljs">rtype</code> when we construct an <code class="hljs">IdentifierExpr</code>.
+We also have a <code class="hljs">name</code> which is pretty self-explanitory.</p>
+<br>
+<hr>
+<br>
+<pre class="hljs"><span class="hljs-meta">@dataclass</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">TupleExpr</span>(<span class="hljs-title class_ inherited__">Expr</span>):
+    rtype: TupleExprType = field(init=<span class="hljs-literal">True</span>)
+    values: <span class="hljs-type">Tuple</span>[Expr, ...]
+
+<span class="hljs-meta">    @classmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">of</span>(<span class="hljs-params">cls, *args: Expr</span>) -&gt; TupleExpr:
+        <span class="hljs-keyword">return</span> cls(
+            TupleExprType(<span class="hljs-built_in">tuple</span>(expr.rtype <span class="hljs-keyword">for</span> expr <span class="hljs-keyword">in</span> args)),
+            args,
+        )</pre>
+
+<br>
+<p>The <code class="hljs">TupleExpr</code> is a bit more complex, only because we have this special <code class="hljs">of</code> helper method.
+A <code class="hljs">tuple</code> is an immutable container of zero or more expressions, such as <code class="hljs">(1, 2, 3)</code>, <code class="hljs">(1,)</code>, or just <code class="hljs">()</code>.
+To see why we need this <code class="hljs">of</code> method, let&#x27;s see what it would look like to create a <code class="hljs">TupleExpr</code> with and
+without the <code class="hljs">of</code> method:</p>
+<br>
+<p>Without <code class="hljs">of</code>:</p>
+<br>
+<pre class="hljs">value1 = IntExpr(<span class="hljs-number">123</span>)
+value2 = FloatExpr(<span class="hljs-number">3.14</span>)
+t = TupleExpr(
+    rtype=TupleExprType(value1.rtype, value2.rtype),
+    values=(value1, value2)
+)</pre>
+
+<br>
+<p>With <code class="hljs">of</code>:</p>
+<br>
+<pre class="hljs">value1 = IntExpr(<span class="hljs-number">123</span>)
+value2 = FloatExpr(<span class="hljs-number">3.14</span>)
+t = TupleExpr.of(value1, value2)</pre>
+
+<br>
+<p>Isn&#x27;t that nice? Basically, since we know the <code class="hljs">rtype</code> of <code class="hljs">value1</code> and <code class="hljs">value2</code>, we can pull those out
+and use them to create our new <code class="hljs">TupleExpr</code>.</p>
+<br>
+<a id="the-complex-expressions" href="#the-complex-expressions"><h3>The Complex Expressions</h3></a>
+<br>
+<p>These are going to be our binary expressions (ie, <code class="hljs">1 + 2</code>), and unary expressions (ie, <code class="hljs">not true</code>).
+They require a little bit more setup:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">class</span> <span class="hljs-title class_">BinaryExprOper</span>(<span class="hljs-title class_ inherited__">Enum</span>):
+    ADD = auto()
+    SUBTRACT = auto()
+    MULTIPLY = auto()
+    DIVIDE = auto()
+    POWER = auto()
+    EQUALS = auto()
+    LESS_THEN = auto()
+    LESS_THEN_EQ = auto()
+    GREATER_THEN = auto()
+    GREATER_THEN_EQ = auto()
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">is_bool_like</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">bool</span>:
+        oper = <span class="hljs-built_in">type</span>(self)
+
+        <span class="hljs-keyword">return</span> self <span class="hljs-keyword">in</span> (
+            oper.EQUALS,
+            oper.LESS_THEN,
+            oper.LESS_THEN_EQ,
+            oper.GREATER_THEN,
+            oper.GREATER_THEN_EQ,
+        )</pre>
+
+<br>
+<p><code class="hljs">BinaryExprOper</code> is an enum which contains all of the binary operators we support. There is also a
+<code class="hljs">is_bool_like</code> method which tells us whether an operator results in a boolean or not. To see why this
+is important, lets take a look at an example:</p>
+<br>
+<pre class="hljs"><span class="hljs-comment"># What should the resulting type of this expression be?</span>
+<span class="hljs-number">1</span> + <span class="hljs-number">2</span>
+
+<span class="hljs-comment"># And this?</span>
+<span class="hljs-number">1.0</span> + <span class="hljs-number">2.0</span>
+
+<span class="hljs-comment"># What about this?</span>
+<span class="hljs-number">1</span> &lt; <span class="hljs-number">2</span></pre>
+
+<br>
+<p>Answer: <code class="hljs">int</code>, <code class="hljs">float</code>, and <code class="hljs">bool</code>. Notice the <code class="hljs">&lt;</code> operator always results in a <code class="hljs">bool</code>, but the result
+of the <code class="hljs">+</code> operator depends on the types of the expressions to the left-hand and right-hand side of the <code class="hljs">+</code>.</p>
+<br>
+<hr>
+<br>
+<pre class="hljs"><span class="hljs-meta">@dataclass</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">BinaryExpr</span>(<span class="hljs-title class_ inherited__">Expr</span>):
+    rtype: ExprType = field(init=<span class="hljs-literal">True</span>)
+    lhs: Expr
+    oper: BinaryExprOper
+    rhs: Expr
+
+<span class="hljs-meta">    @classmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">of</span>(<span class="hljs-params">cls, lhs: Expr, oper: BinaryExprOper, rhs: Expr</span>) -&gt; BinaryExpr:
+        <span class="hljs-built_in">type</span> = SingleExprType(<span class="hljs-built_in">bool</span>) <span class="hljs-keyword">if</span> oper.is_bool_like() <span class="hljs-keyword">else</span> lhs.rtype
+
+        <span class="hljs-keyword">return</span> cls(<span class="hljs-built_in">type</span>, lhs, oper, rhs)</pre>
+
+<br>
+<p>This is the expr class that corresponds to the <code class="hljs">BinaryExprOper</code>.
+We have an <code class="hljs">rtype</code> (user defined), a left-hand side (<code class="hljs">lhs</code>), an <code class="hljs">oper</code>, and a right-hand side (<code class="hljs">rhs</code>).</p>
+<br>
+<p>Again, we have an <code class="hljs">of</code> method to allow us to pass 2 expressions, an operator, and get back a nice <code class="hljs">BinaryExpr</code>:</p>
+<br>
+<pre class="hljs">BinaryExpr.of(IntExpr(<span class="hljs-number">1</span>), BinaryExprOper.ADD, IntExpr(<span class="hljs-number">2</span>))</pre>
+
+<br>
+<p>Since we pass in a non-bool operator, <code class="hljs">ADD</code>, the resulting type is <code class="hljs">SingleExprType(int)</code>.</p>
+<br>
+<hr>
+<br>
+<pre class="hljs"><span class="hljs-keyword">class</span> <span class="hljs-title class_">UnaryExprOper</span>(<span class="hljs-title class_ inherited__">Enum</span>):
+    NEGATIVE = auto()
+    NOT = auto()
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">is_bool_like</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">bool</span>:
+        <span class="hljs-keyword">return</span> self <span class="hljs-keyword">is</span> <span class="hljs-built_in">type</span>(self).NOT
+
+
+<span class="hljs-meta">@dataclass</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">UnaryExpr</span>(<span class="hljs-title class_ inherited__">Expr</span>):
+    rtype: ExprType = field(init=<span class="hljs-literal">True</span>)
+    oper: UnaryExprOper
+    rhs: Expr
+
+<span class="hljs-meta">    @classmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">of</span>(<span class="hljs-params">cls, oper: UnaryExprOper, rhs: Expr</span>) -&gt; UnaryExpr:
+        <span class="hljs-built_in">type</span> = SingleExprType(<span class="hljs-built_in">bool</span>) <span class="hljs-keyword">if</span> oper.is_bool_like() <span class="hljs-keyword">else</span> rhs.rtype
+
+        <span class="hljs-keyword">return</span> cls(<span class="hljs-built_in">type</span>, oper, rhs)</pre>
+
+<br>
+<p>The unary expressions are pretty much the same as the binary ones, except that there are a lot less
+unary operators we have to account for.</p>
+<br>
+<a id="the-statements" href="#the-statements"><h3>The Statements</h3></a>
+<br>
+<p>In most programming languages, statements are constructs which don&#x27;t return a value, such as a function
+declaration, or an if statement. In F# though, most things are an expression, including if statements.
+To make things easier, we will create statements to represent these constructs, but still treat them as
+if they are expressions:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Stmt</span>:
+    <span class="hljs-keyword">pass</span>
+
+
+<span class="hljs-meta">@dataclass</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">VarDefStmtExpr</span>(Stmt, Expr):
+    name: <span class="hljs-built_in">str</span>
+    expr: Expr
+
+
+<span class="hljs-meta">@dataclass</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">ModuleDefStmtExpr</span>(Stmt, Expr):
+    name: <span class="hljs-built_in">str</span>
+    stmts: <span class="hljs-type">Tuple</span>[Stmt, ...]</pre>
+
+<br>
+<p>As you can see, <code class="hljs">VarDefStmtExpr</code> and <code class="hljs">ModuleDefStmtExpr</code> are both statements and expressions.</p>
+<br>
+<p>A variable definition is basically a name attached to an expression, so that is how we represent it.
+A module is basically a name, and a bunch of statements, like so:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">module</span> m <span class="hljs-operator">=</span>
+  <span class="hljs-keyword">let</span> name <span class="hljs-operator">=</span> <span class="hljs-string">&quot;bob&quot;</span>
+
+  <span class="hljs-keyword">let</span> b <span class="hljs-operator">=</span> <span class="hljs-number">2</span>
+
+Console.WriteLine m.name
+
+<span class="hljs-comment">// prints &quot;bob&quot;</span></pre>
+
+<br>
+<a id="testing-it-all" href="#testing-it-all"><h2>Testing It All</h2></a>
+<br>
+<p>Of course we wouldn&#x27;t forget to write our tests, would we? I won&#x27;t go over all the tests here,
+but I urge you to look at them
+<a href="https://github.com/dosisod/write-a-compiler/blob/200e29beb0b870415e8ce823904ccf131eff141f/test/test_ast_nodes.py">here</a>
+for examples of how the classes we defined are supposed to be used.</p>
+<br>
+<a id="fin" href="#fin"><h2>Fin</h2></a>
+<br>
+<p>That&#x27;s it! We will almost certainly be changing this over time, adding more, changing what doesn&#x27;t
+work, etc. This will work well for now though.</p>
+<br>
+<p>The next step is going to be mapping our token stream into AST nodes!</p>
+<br>
+<p>[<a href="./part-4.html">prev</a>]</p>
+<hr>
+
+<script src="https://utteranc.es/client.js"
+  repo="dosisod/dosisod.github.io"
+  issue-term="title"
+  theme="github-light"
+  crossorigin="anonymous"
+  async>
+</script>
+
+<noscript>
+  <br>
+  <em>
+    Comment with GitHub functionality is
+    disabled when JavaScript is turned off.
+  </em>
+</noscript>
+
+</main>
+
+</body>
+</html>

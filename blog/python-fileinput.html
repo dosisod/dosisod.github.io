@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="og:title" content="Python's `fileinput` Module" />
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/github.css" />
+  <title>Python's `fileinput` Module</title>
+</head>
+<body>
+
+<main>
+<a id="python-x27-s-code-class-hljs-fileinput-code-module" href="#python-x27-s-code-class-hljs-fileinput-code-module"><h1>Python&#x27;s <code class="hljs">fileinput</code> Module</h1></a>
+<br>
+<p>You think you know Python, and then you stumble across the <a href="https://docs.python.org/3/library/fileinput.html">fileinput</a> module:</p>
+<br>
+<blockquote>[fileinput] iterates over the lines of all files listed in <code class="hljs">sys.argv[1:]</code>, defaulting to <code class="hljs">sys.stdin</code> if the list is empty.
+If a filename is <code class="hljs">&#x27;-&#x27;</code>, it is also replaced by <code class="hljs">sys.stdin</code>...</blockquote>
+<br>
+<p>This is so helpful, how have I never heard of this module before?</p>
+<br>
+<p>I&#x27;ve always just iterated over <code class="hljs">sys.argv[1:]</code> directly and opened all the files manually, not even handling <code class="hljs">-</code> because it would be
+another condition I didn&#x27;t feel like testing. This little bit of boilerplate reduction makes quick file IO much nicer IMO.
+You can even modify files inplace by simply printing to stdout (assuming you set the <code class="hljs">inplace</code> keyword).</p>
+<br>
+<p>This made me think, what CLI tasks could this be used for?</p>
+<br>
+<a id="code-class-hljs-cat-code-clone" href="#code-class-hljs-cat-code-clone"><h2><code class="hljs">cat</code> clone</h2></a>
+<br>
+<p>Recreating <code class="hljs">cat</code> is trivial:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">import</span> fileinput <span class="hljs-keyword">as</span> f
+
+<span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> f.<span class="hljs-built_in">input</span>():
+  <span class="hljs-built_in">print</span>(x, end=<span class="hljs-string">&quot;&quot;</span>)</pre>
+
+<br>
+<p>Lets create some test data:</p>
+<br>
+<pre class="hljs"><span class="hljs-meta prompt_">$ </span><span class="language-bash"><span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;abc123&quot;</span> &gt; a</span>
+<span class="hljs-meta prompt_">$ </span><span class="language-bash"><span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;bbbbbb&quot;</span> &gt; b</span>
+<span class="hljs-meta prompt_">$ </span><span class="language-bash"><span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;c45678&quot;</span> &gt; c</span></pre>
+
+<br>
+<p>Then run our <code class="hljs">cat.py</code> program:</p>
+<br>
+<pre class="hljs"><span class="hljs-meta prompt_">$ </span><span class="language-bash">python3 cat.py a b c</span>
+abc123
+bbbbbb
+c45678</pre>
+
+<br>
+<p>What about stdin?</p>
+<br>
+<pre class="hljs"><span class="hljs-meta prompt_">$ </span><span class="language-bash"><span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;hello&quot;</span> | python3 cat.py -</span>
+hello</pre>
+
+<br>
+<p>Amazing!</p>
+<br>
+<br>
+<a id="code-class-hljs-grep-code-clone" href="#code-class-hljs-grep-code-clone"><h2><code class="hljs">grep</code> clone</h2></a>
+<br>
+<p>Recreating <code class="hljs">grep</code> is also pretty trivial since <code class="hljs">fileinput</code> is line based and keeps track of the current file:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">import</span> sys
+<span class="hljs-keyword">import</span> re
+<span class="hljs-keyword">import</span> fileinput
+
+PATTERN = re.<span class="hljs-built_in">compile</span>(sys.argv.pop(<span class="hljs-number">1</span>))
+
+<span class="hljs-keyword">for</span> line <span class="hljs-keyword">in</span> fileinput.<span class="hljs-built_in">input</span>():
+    <span class="hljs-keyword">if</span> PATTERN.search(line):
+        <span class="hljs-built_in">print</span>(fileinput.filename(), line, sep=<span class="hljs-string">&quot;:&quot;</span>, end=<span class="hljs-string">&quot;&quot;</span>)</pre>
+
+<br>
+<p>Running:</p>
+<br>
+<pre class="hljs"><span class="hljs-meta prompt_">$ </span><span class="language-bash">python3 grep.py c a b c</span>
+a:abc123
+c:c45678</pre>
+
+<br>
+<p>Our basic <code class="hljs">grep.py</code> program mimics <code class="hljs">grep</code> pretty well, except all the missing flags,
+and of course, the color.</p>
+<br>
+<br>
+<a id="code-class-hljs-grep-code-clone-with-color" href="#code-class-hljs-grep-code-clone-with-color"><h2><code class="hljs">grep</code> clone (with color)</h2></a>
+<br>
+<p>I&#x27;m getting a bit carried away now, but adding color support to our little <code class="hljs">grep</code> clone is easy enough:</p>
+<br>
+<pre class="hljs"><span class="hljs-keyword">import</span> fileinput
+<span class="hljs-keyword">import</span> os
+<span class="hljs-keyword">import</span> re
+<span class="hljs-keyword">import</span> sys
+
+PATTERN = re.<span class="hljs-built_in">compile</span>(sys.argv.pop(<span class="hljs-number">1</span>))
+
+GREP_COLORS = os.getenv(<span class="hljs-string">&quot;GREP_COLORS&quot;</span>, <span class="hljs-string">&quot;ms=01;31:mc=01;31:sl=:cx=:fn=1;34:ln=32:bn=32:se=0&quot;</span>)
+COLORS = <span class="hljs-built_in">dict</span>(x.split(<span class="hljs-string">&quot;=&quot;</span>) <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> GREP_COLORS.split(<span class="hljs-string">&quot;:&quot;</span>))
+
+RESET = <span class="hljs-string">&quot;\x1b[0m&quot;</span>
+
+<span class="hljs-keyword">for</span> line <span class="hljs-keyword">in</span> fileinput.<span class="hljs-built_in">input</span>():
+    <span class="hljs-keyword">if</span> PATTERN.search(line):
+        filename = <span class="hljs-string">f&quot;\x1b[<span class="hljs-subst">{COLORS[<span class="hljs-string">&#x27;fn&#x27;</span>]}</span>m<span class="hljs-subst">{fileinput.filename()}</span><span class="hljs-subst">{RESET}</span>&quot;</span>
+        line = PATTERN.sub(<span class="hljs-string">f&quot;\x1b[<span class="hljs-subst">{COLORS[<span class="hljs-string">&#x27;mc&#x27;</span>]}</span>m\\1<span class="hljs-subst">{RESET}</span>&quot;</span>, line)
+
+        <span class="hljs-built_in">print</span>(filename, line, sep=<span class="hljs-string">&quot;:&quot;</span>, end=<span class="hljs-string">&quot;&quot;</span>)</pre>
+
+<br>
+<p>Running the same command as above gives us the following colorized output:</p>
+<br>
+<span style="color:#00f">a</span>:ab<span style="color:#f00">c</span>123
+<br>
+<span style="color:#00f">c</span>:<span style="color:#f00">c</span>45678
+<br>
+<a id="fin" href="#fin"><h2>Fin</h2></a>
+<br>
+<p>That&#x27;s all I got for now. The <code class="hljs">fileinput</code> module is pretty useful for line based file operations,
+though if you need to read whole files at once, you&#x27;re probably better off with iterating over <code class="hljs">sys.argv[1:]</code>
+like usual.</p>
+<hr>
+
+<script src="https://utteranc.es/client.js"
+  repo="dosisod/dosisod.github.io"
+  issue-term="title"
+  theme="github-light"
+  crossorigin="anonymous"
+  async>
+</script>
+
+<noscript>
+  <br>
+  <em>
+    Comment with GitHub functionality is
+    disabled when JavaScript is turned off.
+  </em>
+</noscript>
+
+</main>
+
+</body>
+</html>

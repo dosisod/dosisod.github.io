@@ -1,0 +1,69 @@
+[tool.mypy]
+allow_redefinition = true
+check_untyped_defs = true
+allow_untyped_defs = false
+disallow_any_decorated = true
+disallow_any_explicit = true
+disallow_any_generics = true
+disallow_any_unimported = true
+disallow_incomplete_defs = true
+disallow_subclassing_any = true
+namespace_packages = true
+no_implicit_optional = true
+strict_equality = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unreachable = true
+warn_unused_configs = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = "test.*"
+allow_untyped_defs = true
+
+[tool.coverage.run]
+omit = ["md2html/__main__.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "raise NotImplementedError",
+  "pragma: no cover",
+]
+skip_covered = true
+skip_empty = true
+
+[tool.pytest.ini_options]
+addopts = "--cov=md2html --cov-report=html --cov-report=term-missing --cov-fail-under=100"
+
+[tool.ruff]
+preview = true
+
+lint.select = ["ALL"]
+
+lint.extend-ignore = [
+  "ANN101",
+  "COM812",
+  "CPY001",
+  "D100", "D101", "D102", "D103", "D104",
+  "D202", "D203", "D205", "D211", "D212",
+  "E203", "E731",
+  "F403", "F405",
+  "FIX002",
+  "INP001",
+  "TRY003",
+  "EM101", "EM102",
+  "PT011",
+  "PLR2004",
+  "S101", "S404",
+  "TD002", "TD003",
+  "PLR0911", "PLR6301",
+
+  # TODO : Address these
+  "C901",
+  "I001",
+]
+
+target-version = "py311"
+
+[tool.ruff.lint.per-file-ignores]
+"md2html/html.py" = ["ARG002"]

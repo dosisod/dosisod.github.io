@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="og:title" content="Lost at C: Bool" />
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/github.css" />
+  <title>Lost at C: Bool</title>
+</head>
+<body>
+
+<main>
+<a id="lost-at-c-bool" href="#lost-at-c-bool"><h1>Lost at C: Bool</h1></a>
+<br>
+<p>One of the most common data types in any programming language is the boolean, giving you the
+basic ability to say whether something is true or false. C is
+special though, in that there isn&#x27;t one single &quot;correct&quot; way to use booleans. Let&#x27;s take a look
+at the many different ways you will see booleans represented in C programs.</p>
+<br>
+<blockquote>Here is a <a href="https://www.dii.uchile.cl/~daespino/files/Iso_C_1999_definition.pdf">PDF</a>
+copy of the C99 standard, for reference below.</blockquote>
+<br>
+<a id="pre-c99" href="#pre-c99"><h2>Pre-C99</h2></a>
+<br>
+<p>In older versions of C (and even in C programs today), people used <code class="hljs">int</code> instead of
+an actual boolean type. A boolean is essentially a one bit integer, so storing a boolean value in
+an <code class="hljs">int</code> isn&#x27;t terrible, but it doesn&#x27;t do a good job of explaining intent: For example,
+returning <code class="hljs">2</code> from a function that uses an <code class="hljs">int</code> instead of a boolean means that if
+you are checking for <code class="hljs">1</code> explicitly (ie, the <code class="hljs">true</code> case), your check will fail, despite <code class="hljs">1</code> and <code class="hljs">2</code> being
+truthy.</p>
+<br>
+<p>Here are a few ways you might find <code class="hljs">bool</code>/<code class="hljs">true</code>/<code class="hljs">false</code> being defined:</p>
+<br>
+<pre class="hljs"><span class="hljs-meta">#<span class="hljs-keyword">define</span> bool int</span>
+<span class="hljs-comment">// or</span>
+<span class="hljs-keyword">typedef</span> <span class="hljs-type">int</span> <span class="hljs-type">bool</span>;
+
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> true 1</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> false 0</span>
+<span class="hljs-comment">// or</span>
+<span class="hljs-class"><span class="hljs-keyword">enum</span> {</span> <span class="hljs-literal">false</span>, <span class="hljs-literal">true</span> };</pre>
+
+<br>
+<p>If you are stuck with something like C89 or ANSI C, then you have no other option then to
+define your own <code class="hljs">bool</code> type. If you are using C99 and up, use the following method:</p>
+<br>
+<a id="c99" href="#c99"><h2>C99</h2></a>
+<br>
+<p>In C99, a boolean type was added, called <code class="hljs">_Bool</code>. You can define boolean data types,
+and all is well:</p>
+<br>
+<pre class="hljs"><span class="hljs-type">_Bool</span> isProgrammer = <span class="hljs-number">0</span>;</pre>
+
+<br>
+<p>Note that we can&#x27;t use <code class="hljs">true</code> or <code class="hljs">false</code>. We will get into that later.</p>
+<br>
+<p>Why did they name it <code class="hljs">_Bool</code>, and not <code class="hljs">bool</code>? The reason is that other programmers had
+already defined their own <code class="hljs">bool</code> types, like in the last section.
+If the C committee decided to add the <code class="hljs">bool</code> type globally, it could cause issues with people
+who had already defined <code class="hljs">bool</code> to be something else.</p>
+<br>
+<p>Also, the C99 standard states that:</p>
+<br>
+<blockquote>&quot;All identifiers that begin with an underscore and either an uppercase letter or another
+underscore are always reserved for any use.&quot;
+
+- <strong>ISO/IEC 9899:1999 § 7.1.3</strong></blockquote>
+<br>
+<p>With that in mind, it is possible for the C standard to add in new data types (and other identifiers)
+using a reserved name. So long as a user isn&#x27;t already using the reserved name, everything should just work.</p>
+<br>
+<p>To make our lives easier, C99 also made the <code class="hljs">bool</code>/<code class="hljs">true</code>/<code class="hljs">false</code> keywords available
+via the <code class="hljs">stdbool.h</code> header:</p>
+<br>
+<pre class="hljs"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdbool.h&gt;</span></span>
+
+<span class="hljs-type">bool</span> isProgrammer = <span class="hljs-literal">true</span>;</pre>
+
+<br>
+<p>Although it is somewhat annoying that you need to include a header just to have access to these,
+it is better then the alternative (defining your own bool type).</p>
+<br>
+<a id="c" href="#c"><h2>C++</h2></a>
+<br>
+<p>Although not directly related to C, when you are dealing with header files which might be included in both
+C and C++ code, it might be important to note a few things:</p>
+<br>
+<ul>
+<li><code class="hljs">bool</code> is a built-in data type (no need to include anything)</li>
+<li><code class="hljs">_Bool</code> is only available if you include <code class="hljs">stdbool.h</code> or <code class="hljs">cstdbool</code></li>
+<li>Different C versions might not support the <code class="hljs">stdbool.h</code> header (pre C99)</li>
+</ul>
+<br>
+<a id="fin" href="#fin"><h2>Fin</h2></a>
+<br>
+<p>That&#x27;s it! Although it is somewhat minor, this is something that you will see all over the place in
+C code, and is something to be on the lookout for.</p>
+<hr>
+
+<script src="https://utteranc.es/client.js"
+  repo="dosisod/dosisod.github.io"
+  issue-term="title"
+  theme="github-light"
+  crossorigin="anonymous"
+  async>
+</script>
+
+<noscript>
+  <br>
+  <em>
+    Comment with GitHub functionality is
+    disabled when JavaScript is turned off.
+  </em>
+</noscript>
+
+</main>
+
+</body>
+</html>
